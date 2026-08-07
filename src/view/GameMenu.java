@@ -106,6 +106,13 @@ public class GameMenu extends JFrame {
         cardPanel.add(bgnxntwoplayer, "TwoPlayernxnPanel");
     }
 
+    public void setGridSizeVS_AI(int gridSize) {
+        this.gridSize = gridSize;
+        BackgroundPanel bgoneplayernxn = new BackgroundPanel(backgroundPath);
+        TwoPlayerNxnPanel nxnPanel = new TwoPlayerNxnPanel(this, bgoneplayernxn, this.gridSize, true);
+        cardPanel.add(bgoneplayernxn, "OnePlayerNxnPanel");
+    }
+
     public CardLayout getCardLayout() { return cardLayout; }
     public JPanel getCardPanel() { return cardPanel; }
 }

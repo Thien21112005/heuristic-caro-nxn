@@ -46,8 +46,7 @@ public class OnePlayerPanel extends JPanel {
         playButton.addActionListener(e -> {
             new SoundPlayer(selectPath).playOnce();
             int n = Integer.parseInt(textField.getText());
-            TwoPlayerNxnPanel nxnPanel = new TwoPlayerNxnPanel(gameMenu, backgroundPanel, n, true);
-            backgroundPanel.add(nxnPanel, "OnePlayerNxnPanel");
+            gameMenu.setGridSizeVS_AI(n);
             gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "OnePlayerNxnPanel");
         });
 
