@@ -70,39 +70,46 @@ public class GameModel {
             dem = 0;
             for (int m = 0; m < n; m++) { if (array[i][m] == value) dem++; }
             if (dem == n) return true;
-            dem = 0;
-            for (int m = 0; m < n; m++) { if (array[m][m] == value) dem++; }
-            if (dem == n) return true;
-            dem = 0;
-            for (int m = 0; m < n; m++) { if (array[m][n - m - 1] == value) dem++; }
-            if (dem == n) return true;
+            
+            if (i == j) {
+                dem = 0;
+                for (int m = 0; m < n; m++) { if (array[m][m] == value) dem++; }
+                if (dem == n) return true;
+            }
+            if (i + j == n - 1) {
+                dem = 0;
+                for (int m = 0; m < n; m++) { if (array[m][n - m - 1] == value) dem++; }
+                if (dem == n) return true;
+            }
             return false;
         } else {
-            int[] directions = {-1, 0, 1};
-            for (int dx : directions) {
-                for (int dy : directions) {
-                    if (dx == 0 && dy == 0) continue;
-                    int count = 1;
-                    for (int step = 1; step < 5; step++) {
-                        int ni = i + dx * step;
-                        int nj = j + dy * step;
-                        if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
-                            count++;
-                        } else {
-                            break;
-                        }
+            int[][] directions = { {0, 1}, {1, 0}, {1, 1}, {1, -1} };
+            for (int[] dir : directions) {
+                int dx = dir[0];
+                int dy = dir[1];
+                int count = 1;
+                
+                // Đi tới
+                for (int step = 1; step < 5; step++) {
+                    int ni = i + dx * step;
+                    int nj = j + dy * step;
+                    if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
+                        count++;
+                    } else {
+                        break;
                     }
-                    for (int step = 1; step < 5; step++) {
-                        int ni = i - dx * step;
-                        int nj = j - dy * step;
-                        if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
-                            count++;
-                        } else {
-                            break;
-                        }
-                    }
-                    if (count >= 5) return true;
                 }
+                // Đi lùi
+                for (int step = 1; step < 5; step++) {
+                    int ni = i - dx * step;
+                    int nj = j - dy * step;
+                    if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
+                        count++;
+                    } else {
+                        break;
+                    }
+                }
+                if (count >= 5) return true;
             }
             return false;
         }
