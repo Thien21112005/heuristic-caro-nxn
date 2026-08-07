@@ -35,6 +35,10 @@ public class TwoPlayerNxnPanel extends JPanel {
     private JPanel grid;
     private JScrollPane scrollPane;
     private int cellSize = 60; // Default cell size
+    
+    private AvatarPanel avatarX;
+    private AvatarPanel avatarO;
+    private int[] aiDelays = {400, 600, 800, 1000, 1200, 1500};
 
     public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n, boolean isVsAI) {
         this.n = n;
@@ -91,6 +95,7 @@ public class TwoPlayerNxnPanel extends JPanel {
                     gameModel.toggleTurn();
                     undo();
                 }
+                updateTurnIndicator();
             }
         });
 
@@ -189,12 +194,14 @@ public class TwoPlayerNxnPanel extends JPanel {
                                 ((JButton) e.getSource()).setIcon(scaleImage(xImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 1);
                                 gameModel.toggleTurn();
+                                updateTurnIndicator();
                                 
                                 if (checkGameOver(finalI, finalJ, 1)) return;
                                 
                                 if (isVsAI) {
-                                    // Simulate AI thinking time
-                                    Timer timer = new Timer(600, evt -> makeAIMove());
+                                    // Simulate AI thinking time with random delay
+                                    int randomDelay = aiDelays[new java.util.Random().nextInt(aiDelays.length)];
+                                    Timer timer = new Timer(randomDelay, evt -> makeAIMove());
                                     timer.setRepeats(false);
                                     timer.start();
                                 }
@@ -202,6 +209,7 @@ public class TwoPlayerNxnPanel extends JPanel {
                                 ((JButton) e.getSource()).setIcon(scaleImage(oImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 2);
                                 gameModel.toggleTurn();
+                                updateTurnIndicator();
                                 checkGameOver(finalI, finalJ, 2);
                             }
                         }
@@ -211,11 +219,32 @@ public class TwoPlayerNxnPanel extends JPanel {
             }
         }
 
+        avatarX = new AvatarPanel("/assets/avatar_x.jpg", Color.CYAN);
+        avatarX.setBounds(10, 260, 80, 80);
+        
+        avatarO = new AvatarPanel("/assets/avatar_o.jpg", Color.RED);
+        avatarO.setBounds(710, 260, 80, 80);
+
+        backgroundPanel.add(avatarX);
+        backgroundPanel.add(avatarO);
+
         backgroundPanel.add(scrollPane);
         backgroundPanel.add(undoBtn);
         backgroundPanel.add(resetBtn);
         backgroundPanel.add(mainMenuBtn);
         backgroundPanel.add(backBtn);
+        
+        updateTurnIndicator();
+    }
+    
+    private void updateTurnIndicator() {
+        if (gameModel.isXTurn()) {
+            avatarX.setActive(true);
+            avatarO.setActive(false);
+        } else {
+            avatarX.setActive(false);
+            avatarO.setActive(true);
+        }
     }
     
     private void makeAIMove() {
@@ -227,6 +256,7 @@ public class TwoPlayerNxnPanel extends JPanel {
             btn[r][c].setIcon(scaleImage(oImage, cellSize, cellSize));
             gameModel.setArrayValue(r, c, 2);
             gameModel.toggleTurn();
+            updateTurnIndicator();
             checkGameOver(r, c, 2);
         }
     }
@@ -323,5 +353,6 @@ public class TwoPlayerNxnPanel extends JPanel {
         }
         gameModel.reset();
         enableBoard();
+        updateTurnIndicator();
     }
 }
