@@ -51,7 +51,7 @@ public class OnePlayerPanel extends JPanel {
         });
 
         JButton backButton = new CustomButton("Back");
-        backButton.setBounds(100, 20, 100, 40);
+        backButton.setBounds(50, 40, 100, 30);
         backButton.addMouseListener(new ButtonHoverEffect(backButton, scrollPath));
         backButton.addActionListener(e -> {
             new SoundPlayer(selectPath).playOnce();
