@@ -6,11 +6,12 @@ import java.awt.*;
 public class CustomButton extends JButton {
     public CustomButton(String text) {
         super(text);
-        setFont(new Font("Arial", Font.BOLD, 20));
+        setFont(new Font("Segoe UI", Font.BOLD, 22));
         setForeground(Color.WHITE);
-        setBackground(new Color(0, 102, 204));
+        setBackground(new Color(41, 128, 185)); // Flat blue
         setFocusPainted(false);
-        setBorder(BorderFactory.createLineBorder(Color.WHITE, 4));
+        setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        setCursor(new Cursor(Cursor.HAND_CURSOR));
         setOpaque(true);
     }
 }

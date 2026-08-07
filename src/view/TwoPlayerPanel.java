@@ -22,16 +22,17 @@ public class TwoPlayerPanel extends JPanel {
 
         SoundPlayer sound = new SoundPlayer(selectPath);
         JTextField textField = new JTextField("3");
-        textField.setFont(new Font("Arial", Font.PLAIN, 30));
+        textField.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        textField.setHorizontalAlignment(JTextField.CENTER);
         textField.setEditable(false);
-        textField.setBounds(130, 270, 300, 60);
+        textField.setBounds(350, 270, 100, 60);
 
-        JButton upButton = new CustomButton("Up");
-        JButton downButton = new CustomButton("Down");
+        JButton downButton = new CustomButton("-");
+        JButton upButton = new CustomButton("+");
         JButton playButton = new CustomButton("Play");
         playButton.setBounds(250, 400, 300, 60);
-        upButton.setBounds(450, 270, 100, 60);
-        downButton.setBounds(570, 270, 100, 60);
+        downButton.setBounds(230, 270, 100, 60);
+        upButton.setBounds(470, 270, 100, 60);
 
         upButton.addMouseListener(new ButtonHoverEffect(upButton, scrollPath));
         downButton.addMouseListener(new ButtonHoverEffect(downButton, scrollPath));
