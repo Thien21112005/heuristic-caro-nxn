@@ -34,14 +34,25 @@ public class AboutGamePanel extends JPanel {
                 "Thank you for playing!\n");
 
         textArea.setCaretPosition(0);
-        textArea.setFont(new Font("arial", Font.PLAIN, 21));
+        textArea.setFont(new Font("Segoe UI", Font.PLAIN, 21));
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.setEditable(false);
+        textArea.setOpaque(false);
+        textArea.setForeground(Color.WHITE);
 
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setBounds(150, 100, 500, 340);
-        backgroundPanel.add(scrollPane);
+        scrollPane.getViewport().setOpaque(false);
+        scrollPane.setOpaque(false);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        JPanel glassPanel = new JPanel();
+        glassPanel.setBounds(150, 100, 500, 340);
+        glassPanel.setBackground(new Color(0, 0, 0, 160));
+        glassPanel.setLayout(new BorderLayout());
+        glassPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        backgroundPanel.add(glassPanel);
 
         JButton backButton = new CustomButton("Back");
         backButton.setBounds(50, 40, 100, 30);

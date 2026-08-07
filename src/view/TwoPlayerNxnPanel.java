@@ -57,18 +57,18 @@ public class TwoPlayerNxnPanel extends JPanel {
         scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         
         undoBtn = new CustomButton("Undo");
-        undoBtn.setBounds(310, 30, 90, 30);
+        undoBtn.setBounds(220, 20, 100, 40);
         resetBtn = new CustomButton("Reset");
-        resetBtn.setBounds(610, 30, 90, 30);
+        resetBtn.setBounds(580, 20, 100, 40);
         mainMenuBtn = new CustomButton("Main Menu");
-        mainMenuBtn.setBounds(330, 540, 140, 30);
+        mainMenuBtn.setBounds(320, 540, 160, 40);
         backBtn = new CustomButton("Back");
-        backBtn.setBounds(100, 30, 90, 30);
+        backBtn.setBounds(100, 20, 100, 40);
         
         zoomInBtn = new CustomButton("+");
-        zoomInBtn.setBounds(410, 30, 90, 30);
+        zoomInBtn.setBounds(340, 20, 100, 40);
         zoomOutBtn = new CustomButton("-");
-        zoomOutBtn.setBounds(510, 30, 90, 30);
+        zoomOutBtn.setBounds(460, 20, 100, 40);
 
         zoomInBtn.addMouseListener(new ButtonHoverEffect(zoomInBtn, scrollPath));
         zoomInBtn.addActionListener(e -> {
