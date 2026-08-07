@@ -179,6 +179,9 @@ public class TwoPlayerNxnPanel extends JPanel {
                     public void actionPerformed(ActionEvent e) {
                         if (isDragging) return;
                         
+                        // Ignore player clicks if it's AI's turn
+                        if (isVsAI && !gameModel.isXTurn()) return;
+                        
                         if (((JButton) e.getSource()).getIcon() == null) {
                             gameModel.saveState();
 
@@ -190,8 +193,10 @@ public class TwoPlayerNxnPanel extends JPanel {
                                 if (checkGameOver(finalI, finalJ, 1)) return;
                                 
                                 if (isVsAI) {
-                                    // AI turn in background to allow UI to update X immediately
-                                    SwingUtilities.invokeLater(() -> makeAIMove());
+                                    // Simulate AI thinking time
+                                    Timer timer = new Timer(600, evt -> makeAIMove());
+                                    timer.setRepeats(false);
+                                    timer.start();
                                 }
                             } else if (!isVsAI) {
                                 ((JButton) e.getSource()).setIcon(scaleImage(oImage, cellSize, cellSize));
