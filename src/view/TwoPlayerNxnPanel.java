@@ -53,40 +53,18 @@ public class TwoPlayerNxnPanel extends JPanel {
         
         scrollPane = new JScrollPane(grid);
         scrollPane.setBounds(100, 75, 600, 450);
-        scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Faster scrolling
-        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-        
         undoBtn = new CustomButton("Undo");
-        undoBtn.setBounds(220, 20, 100, 40);
+        undoBtn.setBounds(340, 20, 100, 40);
         resetBtn = new CustomButton("Reset");
-        resetBtn.setBounds(580, 20, 100, 40);
+        resetBtn.setBounds(460, 20, 100, 40);
         mainMenuBtn = new CustomButton("Main Menu");
         mainMenuBtn.setBounds(320, 540, 160, 40);
         backBtn = new CustomButton("Back");
-        backBtn.setBounds(100, 20, 100, 40);
-        
-        zoomInBtn = new CustomButton("+");
-        zoomInBtn.setBounds(340, 20, 100, 40);
-        zoomOutBtn = new CustomButton("-");
-        zoomOutBtn.setBounds(460, 20, 100, 40);
+        backBtn.setBounds(220, 20, 100, 40);
 
-        zoomInBtn.addMouseListener(new ButtonHoverEffect(zoomInBtn, scrollPath));
-        zoomInBtn.addActionListener(e -> {
-            new SoundPlayer(selectPath).playOnce();
-            if (cellSize < 150) {
-                cellSize += 10;
-                updateGridSize();
-            }
-        });
-
-        zoomOutBtn.addMouseListener(new ButtonHoverEffect(zoomOutBtn, scrollPath));
-        zoomOutBtn.addActionListener(e -> {
-            new SoundPlayer(selectPath).playOnce();
-            if (cellSize > 30) {
-                cellSize -= 10;
-                updateGridSize();
-            }
-        });
+        scrollPane.setWheelScrollingEnabled(false);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
         resetBtn.addMouseListener(new ButtonHoverEffect(resetBtn, scrollPath));
         resetBtn.addActionListener(new ActionListener() {
@@ -126,6 +104,49 @@ public class TwoPlayerNxnPanel extends JPanel {
             }
         });
 
+        java.awt.event.MouseAdapter wheelAdapter = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent e) {
+                if (e.getWheelRotation() < 0) {
+                    if (cellSize < 150) {
+                        cellSize += 10;
+                        updateGridSize();
+                    }
+                } else {
+                    if (cellSize > 30) {
+                        cellSize -= 10;
+                        updateGridSize();
+                    }
+                }
+            }
+        };
+
+        java.awt.event.MouseAdapter panAdapter = new java.awt.event.MouseAdapter() {
+            private Point origin;
+
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                origin = e.getLocationOnScreen();
+            }
+
+            @Override
+            public void mouseDragged(java.awt.event.MouseEvent e) {
+                if (origin != null) {
+                    Point current = e.getLocationOnScreen();
+                    int dx = origin.x - current.x;
+                    int dy = origin.y - current.y;
+
+                    JScrollBar hBar = scrollPane.getHorizontalScrollBar();
+                    JScrollBar vBar = scrollPane.getVerticalScrollBar();
+
+                    hBar.setValue(hBar.getValue() + dx);
+                    vBar.setValue(vBar.getValue() + dy);
+
+                    origin = current;
+                }
+            }
+        };
+
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 btn[i][j] = new JButton("");
@@ -133,6 +154,10 @@ public class TwoPlayerNxnPanel extends JPanel {
                 btn[i][j].setBackground(new Color(245, 245, 245));
                 btn[i][j].setFocusPainted(false);
                 btn[i][j].setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+                
+                btn[i][j].addMouseWheelListener(wheelAdapter);
+                btn[i][j].addMouseListener(panAdapter);
+                btn[i][j].addMouseMotionListener(panAdapter);
                 
                 int finalI = i;
                 int finalJ = j;
@@ -180,8 +205,6 @@ public class TwoPlayerNxnPanel extends JPanel {
         backgroundPanel.add(resetBtn);
         backgroundPanel.add(mainMenuBtn);
         backgroundPanel.add(backBtn);
-        backgroundPanel.add(zoomInBtn);
-        backgroundPanel.add(zoomOutBtn);
     }
     
     private void updateGridSize() {

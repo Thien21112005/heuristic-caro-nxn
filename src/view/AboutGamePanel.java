@@ -18,20 +18,28 @@ public class AboutGamePanel extends JPanel {
         this.backgroundPanel = backgroundPanel;
 
         setLayout(null);
-        JTextArea textArea = new JTextArea();
-
-        textArea.setText("Game developed by Team \"Nhà Chọt Lét\"  \n" +
-                "Version: 0.0.1  \n\n" +
-                "This is a Tic Tac Toe game created as part of our academic project.  \n" +
-                "All rights reserved © 2024 by Team Nhà Chọt Lét.  \n\n" +
-                "Features:  \n" +
-                "- Single Player Mode  \n" +
-                "- Multiplayer Mode  \n" +
-                "- Sound Effects and Interactive UI  \n" +
-                "- Optimized for learning and fun  \n\n" +
-                "Disclaimer:  \n" +
-                "This software is for educational purposes only. Redistribution or commercial use is prohibited without prior permission from the development team.  \n\n" +
-                "Thank you for playing!\n");
+        JTextArea textArea = new JTextArea(
+                "Game developed by Team \"Nhà Chợt Lét\"\n" +
+                "Version: 0.0.1\n\n" +
+                "This is a Tic Tac Toe game created as part of our academic project.\n" +
+                "All rights reserved © 2024 by Team Nhà Chợt Lét.\n\n" +
+                "Features:\n" +
+                "- Single Player Mode\n" +
+                "- Multiplayer Mode\n" +
+                "- Sound Effects and Interactive UI\n" +
+                "- Optimized for learning and fun\n\n" +
+                "Disclaimer:\n" +
+                "This software is for educational purposes only.\n" +
+                "Any reproduction or distribution of this software is prohibited " +
+                "without prior permission from the development team.\n\n" +
+                "Thank you for playing!\n") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                g.setColor(new Color(0, 0, 0, 160));
+                g.fillRect(0, 0, getWidth(), getHeight());
+                super.paintComponent(g);
+            }
+        };
 
         textArea.setCaretPosition(0);
         textArea.setFont(new Font("Segoe UI", Font.PLAIN, 21));
@@ -45,14 +53,9 @@ public class AboutGamePanel extends JPanel {
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setOpaque(false);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        scrollPane.setBounds(150, 100, 500, 340);
         
-        JPanel glassPanel = new JPanel();
-        glassPanel.setBounds(150, 100, 500, 340);
-        glassPanel.setBackground(new Color(0, 0, 0, 160));
-        glassPanel.setLayout(new BorderLayout());
-        glassPanel.add(scrollPane, BorderLayout.CENTER);
-        
-        backgroundPanel.add(glassPanel);
+        backgroundPanel.add(scrollPane);
 
         JButton backButton = new CustomButton("Back");
         backButton.setBounds(50, 40, 100, 30);
