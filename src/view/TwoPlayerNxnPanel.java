@@ -63,6 +63,7 @@ public class TwoPlayerNxnPanel extends JPanel {
         
         undoBtn = new CustomButton("Undo");
         undoBtn.setBounds(340, 20, 100, 40);
+        undoBtn.setVisible(gameMenu.isCheatModeEnabled());
         resetBtn = new CustomButton("Reset");
         resetBtn.setBounds(460, 20, 100, 40);
         mainMenuBtn = new CustomButton("Main Menu");
@@ -219,10 +220,10 @@ public class TwoPlayerNxnPanel extends JPanel {
             }
         }
 
-        avatarX = new AvatarPanel("/assets/avatar_x.jpg", Color.CYAN);
+        avatarX = new AvatarPanel("P1", Color.CYAN);
         avatarX.setBounds(10, 260, 80, 80);
         
-        avatarO = new AvatarPanel("/assets/avatar_o.jpg", Color.RED);
+        avatarO = new AvatarPanel(isVsAI ? "AI" : "P2", Color.RED);
         avatarO.setBounds(710, 260, 80, 80);
 
         backgroundPanel.add(avatarX);

@@ -13,6 +13,7 @@ public class GameMenu extends JFrame {
     private SoundPlayer sound;
     private JPanel cardPanel;
     private int gridSize = 3;
+    private boolean isCheatModeEnabled = false;
 
     private String selectPath = "/assets/Select.wav";
     private String scrollPath = "/assets/Scroll.wav";
@@ -35,6 +36,7 @@ public class GameMenu extends JFrame {
         BackgroundPanel bgtwoplayer = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgoneplayer = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgnxntwoplayer = new BackgroundPanel(backgroundPath);
+        BackgroundPanel bgsetting = new BackgroundPanel(backgroundPath);
 
         bgmenu.setLayout(null);
 
@@ -44,7 +46,10 @@ public class GameMenu extends JFrame {
         JButton aboutGameButton = new CustomButton("About Game");
         JButton exitButton = new CustomButton("Exit");
 
-        settingButton.addActionListener(new UnderConstructionAction(this));
+        settingButton.addActionListener(e -> {
+            new SoundPlayer(selectPath).playOnce();
+            cardLayout.show(cardPanel, "Setting");
+        });
         multiplayerButton.addActionListener(new UnderConstructionAction(this));
 
         newGameButton.setBounds(250, 160, 300, 60);
@@ -80,6 +85,7 @@ public class GameMenu extends JFrame {
         NewGamePanel newGamePanel = new NewGamePanel(this, bgnewgame);
         TwoPlayerPanel twoPlayerPanel = new TwoPlayerPanel(this, bgtwoplayer);
         OnePlayerPanel onePlayerPanel = new OnePlayerPanel(this, bgoneplayer);
+        SettingPanel settingPanel = new SettingPanel(this, bgsetting);
 
         cardPanel.add(bgmenu, "MainMenu");
         cardPanel.add(bgabout, "AboutGame");
@@ -87,6 +93,7 @@ public class GameMenu extends JFrame {
         cardPanel.add(bgtwoplayer, "TwoPlayerPanel");
         cardPanel.add(bgoneplayer, "OnePlayerPanel");
         cardPanel.add(bgnxntwoplayer, "TwoPlayernxnPanel");
+        cardPanel.add(bgsetting, "Setting");
 
         this.add(cardPanel);
         this.setLocationRelativeTo(null);
@@ -109,4 +116,7 @@ public class GameMenu extends JFrame {
 
     public CardLayout getCardLayout() { return cardLayout; }
     public JPanel getCardPanel() { return cardPanel; }
+    
+    public boolean isCheatModeEnabled() { return isCheatModeEnabled; }
+    public void setCheatModeEnabled(boolean enabled) { this.isCheatModeEnabled = enabled; }
 }

@@ -45,16 +45,11 @@ public class CustomDialog extends JDialog {
         titleLabel.setBounds(20, 15, 410, 30);
         panel.add(titleLabel);
         
-        JTextArea messageLabel = new JTextArea(message);
+        String htmlMessage = "<html><div style='text-align: center;'>" + message.replaceAll("\n", "<br>") + "</div></html>";
+        JLabel messageLabel = new JLabel(htmlMessage, SwingConstants.CENTER);
         messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
         messageLabel.setForeground(Color.WHITE);
-        messageLabel.setOpaque(false);
-        messageLabel.setEditable(false);
-        messageLabel.setFocusable(false);
-        messageLabel.setLineWrap(true);
-        messageLabel.setWrapStyleWord(true);
-        // Center text alignment using margin padding trick or just let it flow
-        messageLabel.setBounds(40, 65, 370, 70);
+        messageLabel.setBounds(20, 50, 410, 90);
         panel.add(messageLabel);
         
         if (optionType == YES_NO_OPTION) {
