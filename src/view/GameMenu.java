@@ -33,6 +33,7 @@ public class GameMenu extends JFrame {
         BackgroundPanel bgabout = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgnewgame = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgtwoplayer = new BackgroundPanel(backgroundPath);
+        BackgroundPanel bgoneplayer = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgnxntwoplayer = new BackgroundPanel(backgroundPath);
 
         bgmenu.setLayout(null);
@@ -84,11 +85,13 @@ public class GameMenu extends JFrame {
         AboutGamePanel aboutGamePanel = new AboutGamePanel(this, bgabout);
         NewGamePanel newGamePanel = new NewGamePanel(this, bgnewgame);
         TwoPlayerPanel twoPlayerPanel = new TwoPlayerPanel(this, bgtwoplayer);
+        OnePlayerPanel onePlayerPanel = new OnePlayerPanel(this, bgoneplayer);
 
         cardPanel.add(bgmenu, "MainMenu");
         cardPanel.add(bgabout, "AboutGame");
         cardPanel.add(bgnewgame, "NewGame");
         cardPanel.add(bgtwoplayer, "TwoPlayerPanel");
+        cardPanel.add(bgoneplayer, "OnePlayerPanel");
         cardPanel.add(bgnxntwoplayer, "TwoPlayernxnPanel");
 
         this.add(cardPanel);

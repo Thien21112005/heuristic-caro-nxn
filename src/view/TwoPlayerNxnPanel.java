@@ -1,7 +1,7 @@
 package view;
 
 import controller.ButtonHoverEffect;
-import model.BoardState; // kept for legacy
+import model.GameAI;
 import model.GameModel;
 import utils.ResourceUtils;
 import utils.SoundPlayer;
@@ -11,13 +11,14 @@ import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Stack;
 
 public class TwoPlayerNxnPanel extends JPanel {
     private GameMenu gameMenu;
     private BackgroundPanel backgroundPanel;
     private int n;
     private GameModel gameModel;
+    private boolean isVsAI = false;
+    private GameAI ai;
     
     private String selectPath = "/assets/Select.wav";
     private String scrollPath = "/assets/Scroll.wav";
@@ -30,30 +31,32 @@ public class TwoPlayerNxnPanel extends JPanel {
 
     private JButton[][] btn;
     private JButton undoBtn, resetBtn, mainMenuBtn, backBtn;
-    private JButton zoomInBtn, zoomOutBtn;
     
     private JPanel grid;
     private JScrollPane scrollPane;
     private int cellSize = 60; // Default cell size
 
-    public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n) {
+    public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n, boolean isVsAI) {
         this.n = n;
         this.gameMenu = gameMenu;
         this.backgroundPanel = backgroundPanel;
         this.gameModel = new GameModel(n);
+        this.isVsAI = isVsAI;
+        if (isVsAI) {
+            this.ai = new GameAI(n, 2, 1);
+        }
+        
         this.btn = new JButton[n][n];
 
         this.xImage = ResourceUtils.getImageIcon("/assets/x_image.png");
         this.oImage = ResourceUtils.getImageIcon("/assets/o_image.png");
-
-        SoundPlayer alert = new SoundPlayer(alertPath);
-        SoundPlayer congratulation = new SoundPlayer(congratulationPath);
 
         grid = new JPanel(new GridLayout(n, n));
         grid.setBackground(Color.DARK_GRAY);
         
         scrollPane = new JScrollPane(grid);
         scrollPane.setBounds(100, 75, 600, 450);
+        
         undoBtn = new CustomButton("Undo");
         undoBtn.setBounds(340, 20, 100, 40);
         resetBtn = new CustomButton("Reset");
@@ -84,6 +87,10 @@ public class TwoPlayerNxnPanel extends JPanel {
                 new SoundPlayer(selectPath).playOnce();
                 gameModel.toggleTurn();
                 undo();
+                if (isVsAI && !gameModel.isXTurn()) {
+                    gameModel.toggleTurn();
+                    undo();
+                }
             }
         });
 
@@ -101,7 +108,7 @@ public class TwoPlayerNxnPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
                 int option = JOptionPane.showOptionDialog(null, "Are you sure you want to return to the main menu? All progress will be lost.", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[]{"Yes", "No"}, "No");
-                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "TwoPlayerPanel");
+                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), isVsAI ? "OnePlayerPanel" : "TwoPlayerPanel");
             }
         });
 
@@ -178,28 +185,19 @@ public class TwoPlayerNxnPanel extends JPanel {
                             if (gameModel.isXTurn()) {
                                 ((JButton) e.getSource()).setIcon(scaleImage(xImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 1);
-                            } else {
+                                gameModel.toggleTurn();
+                                
+                                if (checkGameOver(finalI, finalJ, 1)) return;
+                                
+                                if (isVsAI) {
+                                    // AI turn in background to allow UI to update X immediately
+                                    SwingUtilities.invokeLater(() -> makeAIMove());
+                                }
+                            } else if (!isVsAI) {
                                 ((JButton) e.getSource()).setIcon(scaleImage(oImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 2);
-                            }
-
-                            gameModel.toggleTurn();
-
-                            if (gameModel.checkWin(finalI, finalJ, 1)) {
-                                disableBoard();
-                                congratulation.playOnce();
-                                int option = JOptionPane.showOptionDialog(null, "Winner is X. Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
-                                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
-                            } else if (gameModel.checkWin(finalI, finalJ, 2)) {
-                                disableBoard();
-                                congratulation.playOnce();
-                                int option = JOptionPane.showOptionDialog(null, "Winner is O. Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
-                                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
-                            } else if (gameModel.isBoardFull()) {
-                                disableBoard();
-                                alert.playOnce();
-                                int option = JOptionPane.showOptionDialog(null, "It's a draw!. Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
-                                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+                                gameModel.toggleTurn();
+                                checkGameOver(finalI, finalJ, 2);
                             }
                         }
                     }
@@ -213,6 +211,42 @@ public class TwoPlayerNxnPanel extends JPanel {
         backgroundPanel.add(resetBtn);
         backgroundPanel.add(mainMenuBtn);
         backgroundPanel.add(backBtn);
+    }
+    
+    private void makeAIMove() {
+        int[] bestMove = ai.getBestMove(gameModel.getArray());
+        int r = bestMove[0];
+        int c = bestMove[1];
+        if (r != -1 && c != -1) {
+            gameModel.saveState();
+            btn[r][c].setIcon(scaleImage(oImage, cellSize, cellSize));
+            gameModel.setArrayValue(r, c, 2);
+            gameModel.toggleTurn();
+            checkGameOver(r, c, 2);
+        }
+    }
+    
+    private boolean checkGameOver(int r, int c, int player) {
+        if (gameModel.checkWin(r, c, player)) {
+            disableBoard();
+            new SoundPlayer(congratulationPath).playOnce();
+            String msg = (player == 1) ? "Winner is X." : "Winner is O.";
+            int option = JOptionPane.showOptionDialog(null, msg + " Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
+            if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+            return true;
+        } else if (gameModel.isBoardFull()) {
+            disableBoard();
+            new SoundPlayer(alertPath).playOnce();
+            int option = JOptionPane.showOptionDialog(null, "It's a draw!. Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
+            if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+            return true;
+        }
+        return false;
+    }
+    
+    // Legacy constructor for TwoPlayerPanel compatibility
+    public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n) {
+        this(gameMenu, backgroundPanel, n, false);
     }
     
     private void updateGridSize() {

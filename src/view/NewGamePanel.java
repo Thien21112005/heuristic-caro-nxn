@@ -27,7 +27,8 @@ public class NewGamePanel extends JPanel {
         twoPlayerButton.setBounds(250, 320, 300, 60);
         backButton.setBounds(50, 40, 100, 30);
         
-        onePlayerButton.addActionListener(new UnderConstructionAction(gameMenu));
+        onePlayerButton.addMouseListener(new ButtonHoverEffect(onePlayerButton, scrollPath));
+        onePlayerButton.addActionListener(new controller.OnePlayerAction(gameMenu, selectPath));
         twoPlayerButton.addMouseListener(new ButtonHoverEffect(twoPlayerButton, scrollPath));
         twoPlayerButton.addActionListener(new TwoPlayerAction(gameMenu, selectPath));
         backButton.addMouseListener(new ButtonHoverEffect(backButton, scrollPath));
