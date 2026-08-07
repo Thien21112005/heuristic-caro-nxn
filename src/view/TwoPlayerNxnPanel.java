@@ -79,8 +79,8 @@ public class TwoPlayerNxnPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
-                int option = JOptionPane.showConfirmDialog(null, "Do you want to reset the game?", "Confirm Reset", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-                if (option == JOptionPane.YES_OPTION) resetGame();
+                int option = CustomDialog.showDialog(gameMenu, "Start fresh?\nThis will clear the entire board.", "Confirm Reset", CustomDialog.YES_NO_OPTION);
+                if (option == CustomDialog.YES_OPTION) resetGame();
             }
         });
 
@@ -103,8 +103,8 @@ public class TwoPlayerNxnPanel extends JPanel {
         mainMenuBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
-                int option = JOptionPane.showOptionDialog(null, "Are you sure you want to return to the main menu? All progress will be lost.", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[]{"Yes", "No"}, "No");
-                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+                int option = CustomDialog.showDialog(gameMenu, "Leaving so soon?\nYour current game progress will be lost.", "Confirm", CustomDialog.YES_NO_OPTION);
+                if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
             }
         });
 
@@ -112,8 +112,8 @@ public class TwoPlayerNxnPanel extends JPanel {
         backBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
-                int option = JOptionPane.showOptionDialog(null, "Are you sure you want to return to the main menu? All progress will be lost.", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new Object[]{"Yes", "No"}, "No");
-                if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), isVsAI ? "OnePlayerPanel" : "TwoPlayerPanel");
+                int option = CustomDialog.showDialog(gameMenu, "Leaving so soon?\nYour current game progress will be lost.", "Confirm", CustomDialog.YES_NO_OPTION);
+                if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), isVsAI ? "NewGame" : "TwoPlayerPanel");
             }
         });
 
@@ -265,15 +265,15 @@ public class TwoPlayerNxnPanel extends JPanel {
         if (gameModel.checkWin(r, c, player)) {
             disableBoard();
             new SoundPlayer(congratulationPath).playOnce();
-            String msg = (player == 1) ? "Winner is X." : "Winner is O.";
-            int option = JOptionPane.showOptionDialog(null, msg + " Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
-            if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+            String msg = (player == 1) ? "Player X has claimed victory!\nDo you want to play another game?" : "Player O has claimed victory!\nDo you want to play another game?";
+            int option = CustomDialog.showDialog(gameMenu, msg, "Notification", CustomDialog.YES_NO_OPTION);
+            if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
             return true;
         } else if (gameModel.isBoardFull()) {
             disableBoard();
             new SoundPlayer(alertPath).playOnce();
-            int option = JOptionPane.showOptionDialog(null, "It's a draw!. Do you want to return to the main menu?", "Notification", JOptionPane.YES_OPTION, JOptionPane.INFORMATION_MESSAGE, null, new Object[]{"Yes"}, "Yes");
-            if (option == JOptionPane.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+            int option = CustomDialog.showDialog(gameMenu, "It's a draw!\nDo you want to play another game?", "Notification", CustomDialog.YES_NO_OPTION);
+            if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
             return true;
         }
         return false;
@@ -310,7 +310,7 @@ public class TwoPlayerNxnPanel extends JPanel {
             try {
                 UIManager.setLookAndFeel(new NimbusLookAndFeel());
                 gameModel.setXTurn(true);
-                JOptionPane.showMessageDialog(null, "Nothing to undo", "Error", JOptionPane.ERROR_MESSAGE);
+                CustomDialog.showDialog(gameMenu, "Hold on, you haven't made any moves yet!", "Hold On", CustomDialog.MESSAGE_OPTION);
             } catch (Exception e) {
                 e.printStackTrace();
             }

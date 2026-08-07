@@ -19,14 +19,9 @@ public class UnderConstructionAction implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         SoundPlayer soundPlayer = new SoundPlayer(alertPath);
         soundPlayer.playOnce();
-        try {
-            UIManager.setLookAndFeel(new NimbusLookAndFeel());
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-        JOptionPane.showMessageDialog(gameMenu,
-                "The content is under development.",
-                "Under Development",
-                JOptionPane.INFORMATION_MESSAGE);
+        view.CustomDialog.showDialog(gameMenu,
+                "This feature is still being forged in the Cyber-lab!\nPlease check back later.",
+                "Under Construction",
+                view.CustomDialog.MESSAGE_OPTION);
     }
 }

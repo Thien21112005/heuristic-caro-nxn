@@ -63,15 +63,9 @@ public class GameMenu extends JFrame {
         exitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    UIManager.setLookAndFeel(new NimbusLookAndFeel());
-                    new SoundPlayer(selectPath).playOnce();
-                    int confirm = JOptionPane.showConfirmDialog(GameMenu.this, "Are you sure you want to exit?", "Exit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-                    if (confirm == JOptionPane.YES_OPTION) {
-                        System.exit(0);
-                    }
-                } catch (Exception e1) {
-                    e1.printStackTrace();
+                int confirm = CustomDialog.showDialog(GameMenu.this, "Are you sure you want to quit the game?", "Exit Confirmation", CustomDialog.YES_NO_OPTION);
+                if (confirm == CustomDialog.YES_OPTION) {
+                    System.exit(0);
                 }
             }
         });
