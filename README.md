@@ -78,9 +78,37 @@ The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
 - **Controller (`src/controller`):** Handles business logic triggered by the UI and manages application routing (`CardLayout`).
 
 ## Prerequisites & Installation
-- Java Development Kit (JDK) 8 or higher.
-- Compile: `javac -d out/production/TicTacToe -sourcepath src src/main/RunGame.java`
-- Run: `java -cp out/production/TicTacToe main.RunGame`
+
+### Requirements
+- **Java Development Kit (JDK):** Version 8 or higher (Java 11 or 17 recommended).
+- **Environment Variables:** Ensure that your `JAVA_HOME` is set and the `java` and `javac` commands are accessible in your system's PATH.
+- **IDE (Optional but recommended):** IntelliJ IDEA, Eclipse, or Visual Studio Code with the Java Extension Pack.
+
+### Installation & Compilation (Command Line)
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Thien21112005/heuristic-caro-nxn.git
+   ```
+2. **Navigate to the project directory:**
+   ```bash
+   cd heuristic-caro-nxn
+   ```
+3. **Compile the source code:**
+   Ensure you are in the root directory of the project, then run the compiler to build the classes into the `out/production/TicTacToe` folder:
+   ```bash
+   javac -d out/production/TicTacToe -sourcepath src src/main/RunGame.java
+   ```
+4. **Launch the game:**
+   ```bash
+   java -cp out/production/TicTacToe main.RunGame
+   ```
+
+### Running with IntelliJ IDEA
+1. Open IntelliJ IDEA and select **Open**.
+2. Navigate to the cloned `heuristic-caro-nxn` folder and click **OK**.
+3. Right-click on the `src/` directory and select **Mark Directory as > Sources Root**.
+4. Open `src/main/RunGame.java`.
+5. Click the green **Run** button next to the `public static void main` method to start the game.
 
 ## Usage & Configuration
 **Cheat Mode (Undo Feature):**
@@ -165,9 +193,37 @@ Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controll
 - **Controller (`src/controller`):** Xử lý các logic khi người dùng tương tác, luân chuyển các màn hình (`CardLayout`).
 
 ## Hướng dẫn cài đặt
-- Yêu cầu: Java Development Kit (JDK) 8 trở lên.
-- Biên dịch code: `javac -d out/production/TicTacToe -sourcepath src src/main/RunGame.java`
-- Chạy game: `java -cp out/production/TicTacToe main.RunGame`
+
+### Yêu cầu hệ thống
+- **Java Development Kit (JDK):** Yêu cầu phiên bản 8 trở lên (Khuyến khích dùng Java 11 hoặc 17).
+- **Biến môi trường:** Đảm bảo bạn đã cài đặt biến `JAVA_HOME` và các lệnh `java`, `javac` có thể chạy được từ Terminal/Command Prompt.
+- **IDE (Tùy chọn nhưng khuyên dùng):** IntelliJ IDEA, Eclipse, hoặc Visual Studio Code (kèm gói Java Extension).
+
+### Cài đặt & Chạy bằng Command Line (Terminal)
+1. **Clone mã nguồn về máy:**
+   ```bash
+   git clone https://github.com/Thien21112005/heuristic-caro-nxn.git
+   ```
+2. **Di chuyển vào thư mục dự án:**
+   ```bash
+   cd heuristic-caro-nxn
+   ```
+3. **Biên dịch code (Compile):**
+   Đứng tại thư mục gốc của dự án, chạy lệnh sau để build code vào thư mục `out/production/TicTacToe`:
+   ```bash
+   javac -d out/production/TicTacToe -sourcepath src src/main/RunGame.java
+   ```
+4. **Khởi chạy Game:**
+   ```bash
+   java -cp out/production/TicTacToe main.RunGame
+   ```
+
+### Chạy bằng IntelliJ IDEA (Dành cho người mới)
+1. Mở IntelliJ IDEA, chọn nút **Open**.
+2. Tìm đến thư mục `heuristic-caro-nxn` vừa tải về và ấn **OK**.
+3. Nhấn chuột phải vào thư mục `src/`, chọn **Mark Directory as > Sources Root**.
+4. Mở file `src/main/RunGame.java`.
+5. Nhấn vào nút **Run** (hình tam giác màu xanh lá cây) ở đầu file để khởi chạy game.
 
 ## Sử dụng & Cấu hình
 **Chế độ Cheat (Nút Undo):**
