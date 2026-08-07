@@ -26,6 +26,7 @@ public class TwoPlayerNxnPanel extends JPanel {
     
     private ImageIcon xImage;
     private ImageIcon oImage;
+    private boolean isDragging = false;
 
     private JButton[][] btn;
     private JButton undoBtn, resetBtn, mainMenuBtn, backBtn;
@@ -127,6 +128,7 @@ public class TwoPlayerNxnPanel extends JPanel {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
                 origin = e.getLocationOnScreen();
+                isDragging = false;
             }
 
             @Override
@@ -135,6 +137,10 @@ public class TwoPlayerNxnPanel extends JPanel {
                     Point current = e.getLocationOnScreen();
                     int dx = origin.x - current.x;
                     int dy = origin.y - current.y;
+                    
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                        isDragging = true;
+                    }
 
                     JScrollBar hBar = scrollPane.getHorizontalScrollBar();
                     JScrollBar vBar = scrollPane.getVerticalScrollBar();
@@ -164,6 +170,8 @@ public class TwoPlayerNxnPanel extends JPanel {
                 btn[i][j].addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
+                        if (isDragging) return;
+                        
                         if (((JButton) e.getSource()).getIcon() == null) {
                             gameModel.saveState();
 
