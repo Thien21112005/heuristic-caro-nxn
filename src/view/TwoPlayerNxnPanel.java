@@ -1,7 +1,7 @@
 package view;
 
 import controller.ButtonHoverEffect;
-import model.BoardState;
+import model.BoardState; // kept for legacy
 import model.GameModel;
 import utils.ResourceUtils;
 import utils.SoundPlayer;
@@ -27,16 +27,19 @@ public class TwoPlayerNxnPanel extends JPanel {
     private ImageIcon xImage;
     private ImageIcon oImage;
 
-    private Stack<BoardState[][]> stack;
     private JButton[][] btn;
     private JButton undoBtn, resetBtn, mainMenuBtn, backBtn;
+    private JButton zoomInBtn, zoomOutBtn;
+    
+    private JPanel grid;
+    private JScrollPane scrollPane;
+    private int cellSize = 60; // Default cell size
 
     public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n) {
         this.n = n;
         this.gameMenu = gameMenu;
         this.backgroundPanel = backgroundPanel;
         this.gameModel = new GameModel(n);
-        this.stack = new Stack<>();
         this.btn = new JButton[n][n];
 
         this.xImage = ResourceUtils.getImageIcon("/assets/x_image.png");
@@ -45,17 +48,45 @@ public class TwoPlayerNxnPanel extends JPanel {
         SoundPlayer alert = new SoundPlayer(alertPath);
         SoundPlayer congratulation = new SoundPlayer(congratulationPath);
 
-        JPanel grid = new JPanel(new GridLayout(n, n));
-        grid.setBounds(100, 75, 600, 450);
+        grid = new JPanel(new GridLayout(n, n));
+        grid.setBackground(Color.DARK_GRAY);
+        
+        scrollPane = new JScrollPane(grid);
+        scrollPane.setBounds(100, 75, 600, 450);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Faster scrolling
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
         
         undoBtn = new CustomButton("Undo");
-        undoBtn.setBounds(350, 30, 100, 30);
+        undoBtn.setBounds(310, 30, 90, 30);
         resetBtn = new CustomButton("Reset");
-        resetBtn.setBounds(600, 30, 100, 30);
+        resetBtn.setBounds(610, 30, 90, 30);
         mainMenuBtn = new CustomButton("Main Menu");
-        mainMenuBtn.setBounds(350, 540, 130, 30);
+        mainMenuBtn.setBounds(330, 540, 140, 30);
         backBtn = new CustomButton("Back");
-        backBtn.setBounds(100, 30, 100, 30);
+        backBtn.setBounds(100, 30, 90, 30);
+        
+        zoomInBtn = new CustomButton("+");
+        zoomInBtn.setBounds(410, 30, 90, 30);
+        zoomOutBtn = new CustomButton("-");
+        zoomOutBtn.setBounds(510, 30, 90, 30);
+
+        zoomInBtn.addMouseListener(new ButtonHoverEffect(zoomInBtn, scrollPath));
+        zoomInBtn.addActionListener(e -> {
+            new SoundPlayer(selectPath).playOnce();
+            if (cellSize < 150) {
+                cellSize += 10;
+                updateGridSize();
+            }
+        });
+
+        zoomOutBtn.addMouseListener(new ButtonHoverEffect(zoomOutBtn, scrollPath));
+        zoomOutBtn.addActionListener(e -> {
+            new SoundPlayer(selectPath).playOnce();
+            if (cellSize > 30) {
+                cellSize -= 10;
+                updateGridSize();
+            }
+        });
 
         resetBtn.addMouseListener(new ButtonHoverEffect(resetBtn, scrollPath));
         resetBtn.addActionListener(new ActionListener() {
@@ -98,21 +129,24 @@ public class TwoPlayerNxnPanel extends JPanel {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 btn[i][j] = new JButton("");
-                btn[i][j].setPreferredSize(new Dimension(100, 100));
+                btn[i][j].setPreferredSize(new Dimension(cellSize, cellSize));
+                btn[i][j].setBackground(new Color(245, 245, 245));
+                btn[i][j].setFocusPainted(false);
+                btn[i][j].setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1));
+                
                 int finalI = i;
                 int finalJ = j;
                 btn[i][j].addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         if (((JButton) e.getSource()).getIcon() == null) {
-                            saveBoardState();
                             gameModel.saveState();
 
                             if (gameModel.isXTurn()) {
-                                ((JButton) e.getSource()).setIcon(scaleImage(xImage, (JButton) e.getSource()));
+                                ((JButton) e.getSource()).setIcon(scaleImage(xImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 1);
                             } else {
-                                ((JButton) e.getSource()).setIcon(scaleImage(oImage, (JButton) e.getSource()));
+                                ((JButton) e.getSource()).setIcon(scaleImage(oImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 2);
                             }
 
@@ -141,28 +175,37 @@ public class TwoPlayerNxnPanel extends JPanel {
             }
         }
 
-        backgroundPanel.add(grid);
+        backgroundPanel.add(scrollPane);
         backgroundPanel.add(undoBtn);
         backgroundPanel.add(resetBtn);
         backgroundPanel.add(mainMenuBtn);
         backgroundPanel.add(backBtn);
+        backgroundPanel.add(zoomInBtn);
+        backgroundPanel.add(zoomOutBtn);
     }
-
-    private void saveBoardState() {
-        BoardState[][] currentState = new BoardState[n][n];
+    
+    private void updateGridSize() {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                currentState[i][j] = new BoardState(btn[i][j].getIcon());
+                btn[i][j].setPreferredSize(new Dimension(cellSize, cellSize));
+                int val = gameModel.getArray()[i][j];
+                if (val == 1) {
+                    btn[i][j].setIcon(scaleImage(xImage, cellSize, cellSize));
+                } else if (val == 2) {
+                    btn[i][j].setIcon(scaleImage(oImage, cellSize, cellSize));
+                } else {
+                    btn[i][j].setIcon(null);
+                }
             }
         }
-        stack.push(currentState);
+        grid.revalidate();
+        grid.repaint();
     }
 
     public void undo() {
-        if (!stack.isEmpty() && gameModel.canUndo()) {
-            BoardState[][] previousState = stack.pop();
+        if (gameModel.canUndo()) {
             gameModel.undo();
-            restoreBoardState(previousState);
+            updateGridSize(); 
         } else {
             try {
                 UIManager.setLookAndFeel(new NimbusLookAndFeel());
@@ -174,20 +217,13 @@ public class TwoPlayerNxnPanel extends JPanel {
         }
     }
 
-    private void restoreBoardState(BoardState[][] state) {
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                btn[i][j].setIcon(state[i][j].getIcon());
-            }
-        }
-    }
-
-    private ImageIcon scaleImage(ImageIcon originalImage, JButton button) {
+    private ImageIcon scaleImage(ImageIcon originalImage, int w, int h) {
         Image img = originalImage.getImage();
-        int buttonWidth = button.getWidth();
-        int buttonHeight = button.getHeight();
-        if (buttonWidth == 0 || buttonHeight == 0) return originalImage;
-        Image scaledImage = img.getScaledInstance(buttonWidth, buttonHeight, Image.SCALE_SMOOTH);
+        if (w == 0 || h == 0) return originalImage;
+        int padding = 10;
+        int imgW = Math.max(1, w - padding);
+        int imgH = Math.max(1, h - padding);
+        Image scaledImage = img.getScaledInstance(imgW, imgH, Image.SCALE_SMOOTH);
         return new ImageIcon(scaledImage);
     }
 
@@ -215,7 +251,6 @@ public class TwoPlayerNxnPanel extends JPanel {
                 btn[i][j].setIcon(null);
             }
         }
-        stack.clear();
         gameModel.reset();
         enableBoard();
     }
