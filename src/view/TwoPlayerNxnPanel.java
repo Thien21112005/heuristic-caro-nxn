@@ -94,11 +94,7 @@ public class TwoPlayerNxnPanel extends JPanel {
         };
         grid.setBackground(Color.DARK_GRAY);
         
-        JPanel wrapper = new JPanel(new GridBagLayout());
-        wrapper.setBackground(Color.DARK_GRAY);
-        wrapper.add(grid);
-        
-        scrollPane = new JScrollPane(wrapper);
+        scrollPane = new JScrollPane(grid);
         scrollPane.setBounds(100, 75, 600, 450);
         
         undoBtn = new CustomButton("Undo");
@@ -167,8 +163,12 @@ public class TwoPlayerNxnPanel extends JPanel {
                         updateGridSize();
                     }
                 } else {
-                    if (cellSize > 30) {
+                    int minSize = Math.max(30, (int) Math.ceil(600.0 / n));
+                    if (cellSize - 10 >= minSize) {
                         cellSize -= 10;
+                        updateGridSize();
+                    } else if (cellSize > minSize) {
+                        cellSize = minSize;
                         updateGridSize();
                     }
                 }
