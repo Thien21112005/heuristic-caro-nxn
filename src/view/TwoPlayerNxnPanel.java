@@ -55,8 +55,8 @@ public class TwoPlayerNxnPanel extends JPanel {
         
         this.btn = new JButton[n][n];
 
-        this.xImage = ResourceUtils.getImageIcon("/assets/x_image.png");
-        this.oImage = ResourceUtils.getImageIcon("/assets/o_image.png");
+        this.xImage = ResourceUtils.getImageIcon("/assets/x_image_funny.jpg");
+        this.oImage = ResourceUtils.getImageIcon("/assets/o_image_funny.jpg");
 
         grid = new JPanel(new GridLayout(n, n)) {
             @Override
