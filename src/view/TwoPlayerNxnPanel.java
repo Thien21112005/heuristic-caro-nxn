@@ -38,6 +38,8 @@ public class TwoPlayerNxnPanel extends JPanel {
     
     private AvatarPanel avatarX;
     private AvatarPanel avatarO;
+    private JLabel winnerLabelX;
+    private JLabel winnerLabelO;
     private int[] aiDelays = {400, 600, 800, 1000, 1200, 1500};
 
     public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n, boolean isVsAI) {
@@ -259,9 +261,23 @@ public class TwoPlayerNxnPanel extends JPanel {
         
         avatarO = new AvatarPanel(isVsAI ? "AI" : "P2", Color.RED);
         avatarO.setBounds(710, 260, 80, 80);
+        
+        winnerLabelX = new JLabel("WINNER", SwingConstants.CENTER);
+        winnerLabelX.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        winnerLabelX.setForeground(Color.YELLOW);
+        winnerLabelX.setBounds(10, 235, 80, 20);
+        winnerLabelX.setVisible(false);
+        
+        winnerLabelO = new JLabel("WINNER", SwingConstants.CENTER);
+        winnerLabelO.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        winnerLabelO.setForeground(Color.YELLOW);
+        winnerLabelO.setBounds(710, 235, 80, 20);
+        winnerLabelO.setVisible(false);
 
         backgroundPanel.add(avatarX);
         backgroundPanel.add(avatarO);
+        backgroundPanel.add(winnerLabelX);
+        backgroundPanel.add(winnerLabelO);
 
         backgroundPanel.add(scrollPane);
         backgroundPanel.add(undoBtn);
@@ -302,13 +318,18 @@ public class TwoPlayerNxnPanel extends JPanel {
             if (player == 1) {
                 avatarX.setActive(true);
                 avatarO.setActive(false);
+                winnerLabelX.setVisible(true);
             } else {
                 avatarX.setActive(false);
                 avatarO.setActive(true);
+                winnerLabelO.setVisible(true);
             }
             disableBoard();
             new SoundPlayer(congratulationPath).playOnce();
-            String msg = (player == 1) ? "Player X has claimed victory!\nDo you want to play another game?" : "Player O has claimed victory!\nDo you want to play another game?";
+            
+            String winnerName = (player == 1) ? "Player 1" : (isVsAI ? "AI" : "Player 2");
+            String msg = winnerName + " has claimed victory!\nDo you want to play another game?";
+            
             int option = CustomDialog.showDialog(gameMenu, msg, "Notification", CustomDialog.YES_NO_OPTION);
             if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
             return true;
@@ -395,6 +416,8 @@ public class TwoPlayerNxnPanel extends JPanel {
             }
         }
         gameModel.reset();
+        winnerLabelX.setVisible(false);
+        winnerLabelO.setVisible(false);
         enableBoard();
         updateTurnIndicator();
     }
