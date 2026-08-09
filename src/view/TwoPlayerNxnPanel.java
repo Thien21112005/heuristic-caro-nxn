@@ -94,7 +94,11 @@ public class TwoPlayerNxnPanel extends JPanel {
         };
         grid.setBackground(Color.DARK_GRAY);
         
-        scrollPane = new JScrollPane(grid);
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setBackground(Color.DARK_GRAY);
+        wrapper.add(grid);
+        
+        scrollPane = new JScrollPane(wrapper);
         scrollPane.setBounds(100, 75, 600, 450);
         
         undoBtn = new CustomButton("Undo");
