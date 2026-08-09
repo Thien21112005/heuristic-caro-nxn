@@ -208,7 +208,26 @@ public class TwoPlayerNxnPanel extends JPanel {
 
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                btn[i][j] = new JButton("");
+                int finalI = i;
+                int finalJ = j;
+                btn[i][j] = new JButton("") {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        super.paintComponent(g);
+                        int val = gameModel.getArray()[finalI][finalJ];
+                        if (val > 0) {
+                            Graphics2D g2 = (Graphics2D) g;
+                            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                            int padding = 10;
+                            int w = getWidth() - padding * 2;
+                            int h = getHeight() - padding * 2;
+                            if (w > 0 && h > 0) {
+                                Image img = (val == 1) ? xImage.getImage() : oImage.getImage();
+                                g2.drawImage(img, padding, padding, w, h, this);
+                            }
+                        }
+                    }
+                };
                 btn[i][j].setPreferredSize(new Dimension(cellSize, cellSize));
                 btn[i][j].setBackground(new Color(245, 245, 245));
                 btn[i][j].setFocusPainted(false);
@@ -218,8 +237,6 @@ public class TwoPlayerNxnPanel extends JPanel {
                 btn[i][j].addMouseListener(panAdapter);
                 btn[i][j].addMouseMotionListener(panAdapter);
                 
-                int finalI = i;
-                int finalJ = j;
                 btn[i][j].addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
@@ -228,12 +245,12 @@ public class TwoPlayerNxnPanel extends JPanel {
                         // Ignore player clicks if it's AI's turn
                         if (isVsAI && !gameModel.isXTurn()) return;
                         
-                        if (((JButton) e.getSource()).getIcon() == null) {
+                        if (gameModel.getArray()[finalI][finalJ] == 0) {
                             gameModel.saveState();
 
                             if (gameModel.isXTurn()) {
-                                ((JButton) e.getSource()).setIcon(scaleImage(xImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 1);
+                                btn[finalI][finalJ].repaint();
                                 gameModel.toggleTurn();
                                 updateTurnIndicator();
                                 
@@ -247,8 +264,8 @@ public class TwoPlayerNxnPanel extends JPanel {
                                     timer.start();
                                 }
                             } else if (!isVsAI) {
-                                ((JButton) e.getSource()).setIcon(scaleImage(oImage, cellSize, cellSize));
                                 gameModel.setArrayValue(finalI, finalJ, 2);
+                                btn[finalI][finalJ].repaint();
                                 gameModel.toggleTurn();
                                 updateTurnIndicator();
                                 checkGameOver(finalI, finalJ, 2);
@@ -308,8 +325,8 @@ public class TwoPlayerNxnPanel extends JPanel {
         int c = bestMove[1];
         if (r != -1 && c != -1) {
             gameModel.saveState();
-            btn[r][c].setIcon(scaleImage(oImage, cellSize, cellSize));
             gameModel.setArrayValue(r, c, 2);
+            btn[r][c].repaint();
             gameModel.toggleTurn();
             updateTurnIndicator();
             checkGameOver(r, c, 2);
@@ -356,14 +373,6 @@ public class TwoPlayerNxnPanel extends JPanel {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 btn[i][j].setPreferredSize(new Dimension(cellSize, cellSize));
-                int val = gameModel.getArray()[i][j];
-                if (val == 1) {
-                    btn[i][j].setIcon(scaleImage(xImage, cellSize, cellSize));
-                } else if (val == 2) {
-                    btn[i][j].setIcon(scaleImage(oImage, cellSize, cellSize));
-                } else {
-                    btn[i][j].setIcon(null);
-                }
             }
         }
         grid.revalidate();
