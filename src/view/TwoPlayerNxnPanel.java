@@ -55,7 +55,41 @@ public class TwoPlayerNxnPanel extends JPanel {
         this.xImage = ResourceUtils.getImageIcon("/assets/x_image.png");
         this.oImage = ResourceUtils.getImageIcon("/assets/o_image.png");
 
-        grid = new JPanel(new GridLayout(n, n));
+        grid = new JPanel(new GridLayout(n, n)) {
+            @Override
+            public void paint(Graphics g) {
+                super.paint(g);
+                int[] winLine = gameModel.getWinningLine();
+                if (winLine != null && winLine.length == 4) {
+                    Graphics2D g2 = (Graphics2D) g;
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(255, 50, 50, 200));
+                    g2.setStroke(new BasicStroke(5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    
+                    int r1 = winLine[0];
+                    int c1 = winLine[1];
+                    int r2 = winLine[2];
+                    int c2 = winLine[3];
+                    
+                    if (btn[r1][c1] != null && btn[r2][c2] != null) {
+                        int x1 = btn[r1][c1].getX() + btn[r1][c1].getWidth() / 2;
+                        int y1 = btn[r1][c1].getY() + btn[r1][c1].getHeight() / 2;
+                        int x2 = btn[r2][c2].getX() + btn[r2][c2].getWidth() / 2;
+                        int y2 = btn[r2][c2].getY() + btn[r2][c2].getHeight() / 2;
+                        
+                        // Extend line slightly past the center of the start/end buttons
+                        double angle = Math.atan2(y2 - y1, x2 - x1);
+                        int extension = 20;
+                        int startX = x1 - (int)(Math.cos(angle) * extension);
+                        int startY = y1 - (int)(Math.sin(angle) * extension);
+                        int endX = x2 + (int)(Math.cos(angle) * extension);
+                        int endY = y2 + (int)(Math.sin(angle) * extension);
+                        
+                        g2.drawLine(startX, startY, endX, endY);
+                    }
+                }
+            }
+        };
         grid.setBackground(Color.DARK_GRAY);
         
         scrollPane = new JScrollPane(grid);
@@ -264,6 +298,14 @@ public class TwoPlayerNxnPanel extends JPanel {
     
     private boolean checkGameOver(int r, int c, int player) {
         if (gameModel.checkWin(r, c, player)) {
+            grid.repaint();
+            if (player == 1) {
+                avatarX.setActive(true);
+                avatarO.setActive(false);
+            } else {
+                avatarX.setActive(false);
+                avatarO.setActive(true);
+            }
             disableBoard();
             new SoundPlayer(congratulationPath).playOnce();
             String msg = (player == 1) ? "Player X has claimed victory!\nDo you want to play another game?" : "Player O has claimed victory!\nDo you want to play another game?";

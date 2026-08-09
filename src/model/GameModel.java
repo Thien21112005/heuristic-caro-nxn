@@ -43,6 +43,12 @@ public class GameModel {
         return !arrayStack.isEmpty();
     }
     
+    private int[] winningLine = null; // [startRow, startCol, endRow, endCol]
+
+    public int[] getWinningLine() {
+        return winningLine;
+    }
+    
     public void reset() {
         arrayStack.clear();
         for (int i = 0; i < n; i++) {
@@ -51,6 +57,7 @@ public class GameModel {
             }
         }
         isXTurn = true;
+        winningLine = null;
     }
     
     public boolean isBoardFull() {
@@ -66,20 +73,32 @@ public class GameModel {
         if (n <= 5) {
             int dem = 0;
             for (int m = 0; m < n; m++) { if (array[m][j] == value) dem++; }
-            if (dem == n) return true;
+            if (dem == n) {
+                winningLine = new int[]{0, j, n - 1, j};
+                return true;
+            }
             dem = 0;
             for (int m = 0; m < n; m++) { if (array[i][m] == value) dem++; }
-            if (dem == n) return true;
+            if (dem == n) {
+                winningLine = new int[]{i, 0, i, n - 1};
+                return true;
+            }
             
             if (i == j) {
                 dem = 0;
                 for (int m = 0; m < n; m++) { if (array[m][m] == value) dem++; }
-                if (dem == n) return true;
+                if (dem == n) {
+                    winningLine = new int[]{0, 0, n - 1, n - 1};
+                    return true;
+                }
             }
             if (i + j == n - 1) {
                 dem = 0;
                 for (int m = 0; m < n; m++) { if (array[m][n - m - 1] == value) dem++; }
-                if (dem == n) return true;
+                if (dem == n) {
+                    winningLine = new int[]{0, n - 1, n - 1, 0};
+                    return true;
+                }
             }
             return false;
         } else {
@@ -89,27 +108,37 @@ public class GameModel {
                 int dy = dir[1];
                 int count = 1;
                 
-                // Đi tới
+                int startI = i, startJ = j;
+                int endI = i, endJ = j;
+                
+                // Forward
                 for (int step = 1; step < 5; step++) {
                     int ni = i + dx * step;
                     int nj = j + dy * step;
                     if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
                         count++;
+                        endI = ni;
+                        endJ = nj;
                     } else {
                         break;
                     }
                 }
-                // Đi lùi
+                // Backward
                 for (int step = 1; step < 5; step++) {
                     int ni = i - dx * step;
                     int nj = j - dy * step;
                     if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
                         count++;
+                        startI = ni;
+                        startJ = nj;
                     } else {
                         break;
                     }
                 }
-                if (count >= 5) return true;
+                if (count >= 5) {
+                    winningLine = new int[]{startI, startJ, endI, endJ};
+                    return true;
+                }
             }
             return false;
         }
