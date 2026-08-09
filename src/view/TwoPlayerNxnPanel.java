@@ -43,11 +43,12 @@ public class TwoPlayerNxnPanel extends JPanel {
     private int[] aiDelays = {400, 600, 800, 1000, 1200, 1500};
 
     public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n, boolean isVsAI) {
-        this.n = n;
         this.gameMenu = gameMenu;
         this.backgroundPanel = backgroundPanel;
+        this.n = n;
         this.gameModel = new GameModel(n);
         this.isVsAI = isVsAI;
+        this.cellSize = Math.max(30, Math.min(150, (int)(450.0 / n)));
         if (isVsAI) {
             this.ai = new GameAI(n, 2, 1);
         }
@@ -163,7 +164,7 @@ public class TwoPlayerNxnPanel extends JPanel {
                         updateGridSize();
                     }
                 } else {
-                    int minSize = Math.max(30, (int) Math.ceil(600.0 / n));
+                    int minSize = Math.max(30, (int) (450.0 / n));
                     if (cellSize - 10 >= minSize) {
                         cellSize -= 10;
                         updateGridSize();
