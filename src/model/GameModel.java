@@ -1,146 +1,122 @@
 package model;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
+/**
+ * Board state and rules. Boards up to 5x5 need a full line to win,
+ * larger boards need 5 in a row.
+ */
 public class GameModel {
-    private int n;
-    private int[][] array;
-    private Stack<int[][]> arrayStack;
-    private boolean isXTurn = true;
+    public static final int EMPTY = 0;
+    public static final int X = 1;
+    public static final int O = 2;
+
+    private static final int[][] DIRECTIONS = { {0, 1}, {1, 0}, {1, 1}, {1, -1} };
+
+    private final int n;
+    private final int target;
+    private final int[][] board;
+    private final Deque<int[]> moves = new ArrayDeque<>(); // {row, col, player}
+
+    private int currentPlayer = X;
+    private int winner = EMPTY;
+    private boolean draw = false;
+    private int[] winningLine = null; // [startRow, startCol, endRow, endCol]
 
     public GameModel(int n) {
         this.n = n;
-        this.array = new int[n][n];
-        this.arrayStack = new Stack<>();
+        this.target = winLengthFor(n);
+        this.board = new int[n][n];
     }
 
-    public int[][] getArray() { return array; }
-    public void setArrayValue(int i, int j, int value) { this.array[i][j] = value; }
-    
-    public boolean isXTurn() { return isXTurn; }
-    public void toggleTurn() { this.isXTurn = !this.isXTurn; }
-    public void setXTurn(boolean turn) { this.isXTurn = turn; }
-    
-    public void saveState() {
-        int[][] currentArray = new int[n][n];
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                currentArray[i][j] = array[i][j];
-            }
-        }
-        arrayStack.push(currentArray);
+    public static int winLengthFor(int n) {
+        return n <= 5 ? n : 5;
     }
-    
-    public int[][] undo() {
-        if (!arrayStack.isEmpty()) {
-            array = arrayStack.pop();
-            return array;
-        }
-        return null;
-    }
-    
-    public boolean canUndo() {
-        return !arrayStack.isEmpty();
-    }
-    
-    private int[] winningLine = null; // [startRow, startCol, endRow, endCol]
 
-    public int[] getWinningLine() {
-        return winningLine;
+    public int getSize() { return n; }
+    public int getTarget() { return target; }
+    public int[][] getBoard() { return board; }
+    public int getCell(int r, int c) { return board[r][c]; }
+    public int getCurrentPlayer() { return currentPlayer; }
+    public int getWinner() { return winner; }
+    public boolean isDraw() { return draw; }
+    public boolean isOver() { return winner != EMPTY || draw; }
+    public int[] getWinningLine() { return winningLine; }
+    public int getMoveCount() { return moves.size(); }
+    public boolean canUndo() { return !moves.isEmpty(); }
+
+    /** Last move as {row, col, player}, or null on an empty board. */
+    public int[] getLastMove() { return moves.peek(); }
+
+    public static int opponent(int player) {
+        return player == X ? O : X;
     }
-    
-    public void reset() {
-        arrayStack.clear();
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                array[i][j] = 0;
-            }
-        }
-        isXTurn = true;
-        winningLine = null;
-    }
-    
-    public boolean isBoardFull() {
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                if (array[i][j] == 0) return false;
-            }
+
+    /** Places the current player's piece. Returns false if the move is not allowed. */
+    public boolean play(int r, int c) {
+        if (isOver() || r < 0 || r >= n || c < 0 || c >= n || board[r][c] != EMPTY) return false;
+        board[r][c] = currentPlayer;
+        moves.push(new int[]{r, c, currentPlayer});
+        if (checkWin(r, c, currentPlayer)) {
+            winner = currentPlayer;
+        } else if (moves.size() == n * n) {
+            draw = true;
+        } else {
+            currentPlayer = opponent(currentPlayer);
         }
         return true;
     }
-    
-    public boolean checkWin(int i, int j, int value) {
-        if (n <= 5) {
-            int dem = 0;
-            for (int m = 0; m < n; m++) { if (array[m][j] == value) dem++; }
-            if (dem == n) {
-                winningLine = new int[]{0, j, n - 1, j};
+
+    /** Takes back the last move; it becomes that player's turn again. */
+    public boolean undo() {
+        if (moves.isEmpty()) return false;
+        int[] last = moves.pop();
+        board[last[0]][last[1]] = EMPTY;
+        currentPlayer = last[2];
+        winner = EMPTY;
+        draw = false;
+        winningLine = null;
+        return true;
+    }
+
+    public void reset() {
+        moves.clear();
+        for (int[] row : board) java.util.Arrays.fill(row, EMPTY);
+        currentPlayer = X;
+        winner = EMPTY;
+        draw = false;
+        winningLine = null;
+    }
+
+    private boolean checkWin(int r, int c, int player) {
+        for (int[] dir : DIRECTIONS) {
+            int count = 1;
+            int startR = r, startC = c, endR = r, endC = c;
+
+            for (int step = 1; step < target; step++) {
+                int nr = r + dir[0] * step, nc = c + dir[1] * step;
+                if (!inside(nr, nc) || board[nr][nc] != player) break;
+                count++;
+                endR = nr;
+                endC = nc;
+            }
+            for (int step = 1; step < target; step++) {
+                int nr = r - dir[0] * step, nc = c - dir[1] * step;
+                if (!inside(nr, nc) || board[nr][nc] != player) break;
+                count++;
+                startR = nr;
+                startC = nc;
+            }
+            if (count >= target) {
+                winningLine = new int[]{startR, startC, endR, endC};
                 return true;
             }
-            dem = 0;
-            for (int m = 0; m < n; m++) { if (array[i][m] == value) dem++; }
-            if (dem == n) {
-                winningLine = new int[]{i, 0, i, n - 1};
-                return true;
-            }
-            
-            if (i == j) {
-                dem = 0;
-                for (int m = 0; m < n; m++) { if (array[m][m] == value) dem++; }
-                if (dem == n) {
-                    winningLine = new int[]{0, 0, n - 1, n - 1};
-                    return true;
-                }
-            }
-            if (i + j == n - 1) {
-                dem = 0;
-                for (int m = 0; m < n; m++) { if (array[m][n - m - 1] == value) dem++; }
-                if (dem == n) {
-                    winningLine = new int[]{0, n - 1, n - 1, 0};
-                    return true;
-                }
-            }
-            return false;
-        } else {
-            int[][] directions = { {0, 1}, {1, 0}, {1, 1}, {1, -1} };
-            for (int[] dir : directions) {
-                int dx = dir[0];
-                int dy = dir[1];
-                int count = 1;
-                
-                int startI = i, startJ = j;
-                int endI = i, endJ = j;
-                
-                // Forward
-                for (int step = 1; step < 5; step++) {
-                    int ni = i + dx * step;
-                    int nj = j + dy * step;
-                    if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
-                        count++;
-                        endI = ni;
-                        endJ = nj;
-                    } else {
-                        break;
-                    }
-                }
-                // Backward
-                for (int step = 1; step < 5; step++) {
-                    int ni = i - dx * step;
-                    int nj = j - dy * step;
-                    if (ni >= 0 && ni < n && nj >= 0 && nj < n && array[ni][nj] == value) {
-                        count++;
-                        startI = ni;
-                        startJ = nj;
-                    } else {
-                        break;
-                    }
-                }
-                if (count >= 5) {
-                    winningLine = new int[]{startI, startJ, endI, endJ};
-                    return true;
-                }
-            }
-            return false;
         }
+        return false;
+    }
+
+    private boolean inside(int r, int c) {
+        return r >= 0 && r < n && c >= 0 && c < n;
     }
 }
