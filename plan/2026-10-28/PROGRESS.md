@@ -58,7 +58,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 6.6 Nút Đầu hàng
 
 ## Giai đoạn 7: Replay (`feat/replay`)
-- ⬜ 7.1 Lịch sử nước đi + replay trong model
+- ✅ 7.1 Lịch sử nước đi + replay trong model
 - ⬜ 7.2 Test replay
 - ⬜ 7.3 BoardView vẽ từ display model
 - ⬜ 7.4 Số thứ tự nước đi
