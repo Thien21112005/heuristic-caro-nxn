@@ -1,5 +1,6 @@
 package controller;
 
+import model.GameConfig;
 import model.GameMode;
 import model.GameModel;
 import model.ai.AiStrategy;
@@ -48,6 +49,11 @@ public class GameController {
 
     public GameController(int size, GameMode mode) {
         this(size, mode, mode == GameMode.VS_AI ? Difficulty.NORMAL.createAi() : null);
+    }
+
+    public GameController(GameConfig config) {
+        this(config.size(), config.mode(),
+                config.mode() == GameMode.VS_AI ? config.difficulty().createAi() : null);
     }
 
     /** For tests and custom opponents: plays VS AI with the given strategy. */

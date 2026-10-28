@@ -1,11 +1,14 @@
 package view;
 
-import utils.I18n;
+import model.GameConfig;
 import model.GameMode;
 import model.GameModel;
 import model.Settings;
+import model.ai.Difficulty;
+import utils.I18n;
 import view.components.AppButton;
 import view.components.RoundedPanel;
+import view.components.SegmentedControl;
 import view.theme.Theme;
 
 import javax.swing.*;
@@ -13,13 +16,16 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 
 /**
- * Pre-game screen: pick the board size, see the win rule, start.
+ * Pre-game screen: board size and win rule on the left, mode options
+ * (difficulty, ...) on the right, then start.
  */
 public class SetupPanel extends BackgroundPanel {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
     private static final int[] PRESETS = {3, 10, 15, 20};
-    private static final int CARD_WIDTH = 560;
+    private static final int COLUMN_WIDTH = 420;
+    private static final int COLUMN_GAP = 40;
+    private static final int PADDING = 40;
 
     private final GameMode mode;
     private int size;
@@ -29,6 +35,8 @@ public class SetupPanel extends BackgroundPanel {
     private final AppButton minus = new AppButton("−", AppButton.Variant.SECONDARY);
     private final AppButton plus = new AppButton("+", AppButton.Variant.SECONDARY);
     private final AppButton[] presetButtons = new AppButton[PRESETS.length];
+    private SegmentedControl<Difficulty> difficulty;
+    private JLabel difficultyHint;
 
     public SetupPanel(MainWindow window, GameMode mode) {
         super("/assets/Background.jpg");
@@ -38,19 +46,69 @@ public class SetupPanel extends BackgroundPanel {
 
         add(TopBar.withBack(() -> window.showScreen(MainWindow.MAIN_MENU)), BorderLayout.NORTH);
 
-        RoundedPanel card = new RoundedPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(40, 44, 40, 44));
+        JPanel left = column();
+        buildBoardColumn(left);
+        JPanel right = mode == GameMode.VS_AI ? column() : null;
+        if (right != null) buildAiOptions(right);
+        refresh(); // fill dynamic text before the card measures itself
 
+        RoundedPanel card = new RoundedPanel(new BorderLayout(0, 0));
+        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 4, PADDING, PADDING, PADDING));
+
+        JPanel header = column();
         JLabel title = new JLabel(I18n.t(mode == GameMode.VS_AI ? "setup.title.vsAi" : "setup.title.twoPlayers"));
         title.setFont(Theme.font(Font.BOLD, 36f));
         title.setForeground(Theme.TEXT);
-
         JLabel subtitle = new JLabel(I18n.t(mode == GameMode.VS_AI
                 ? "setup.subtitle.vsAi" : "setup.subtitle.twoPlayers"));
         subtitle.setFont(Theme.font(Font.PLAIN, 17f));
         subtitle.setForeground(Theme.TEXT_MUTED);
+        addRow(header, title, 0);
+        addRow(header, subtitle, 8);
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 26, 0));
 
+        JPanel body = new JPanel(new GridLayout(1, right == null ? 1 : 2, COLUMN_GAP, 0));
+        body.setOpaque(false);
+        left.add(Box.createVerticalGlue());
+        body.add(left);
+        if (right != null) {
+            right.add(Box.createVerticalGlue());
+            body.add(right);
+        }
+
+        AppButton start = new AppButton(I18n.t("setup.start"), AppButton.Variant.PRIMARY);
+        start.setFont(Theme.semibold(20f));
+        start.setPreferredSize(new Dimension(10, 62));
+        start.addActionListener(e -> {
+            Settings.get().setBoardSize(mode, size);
+            window.startGame(mode == GameMode.VS_AI
+                    ? GameConfig.vsAi(size, difficulty.getSelected())
+                    : GameConfig.twoPlayers(size));
+        });
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setOpaque(false);
+        footer.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+        footer.add(start);
+
+        card.add(header, BorderLayout.NORTH);
+        card.add(body, BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
+        int columns = right == null ? 1 : 2;
+        int width = columns * COLUMN_WIDTH + (columns - 1) * COLUMN_GAP + 2 * PADDING;
+        card.setPreferredSize(new Dimension(width, card.getPreferredSize().height));
+
+        JPanel center = new JPanel(new GridBagLayout());
+        center.setOpaque(false);
+        center.add(card);
+        add(center, BorderLayout.CENTER);
+
+        bindKey(KeyEvent.VK_LEFT, () -> setSize(size - 1));
+        bindKey(KeyEvent.VK_RIGHT, () -> setSize(size + 1));
+        bindKey(KeyEvent.VK_ENTER, start::doClick);
+        bindKey(KeyEvent.VK_ESCAPE, () -> window.showScreen(MainWindow.MAIN_MENU));
+    }
+
+    private void buildBoardColumn(JPanel col) {
         sizeLabel.setFont(Theme.font(Font.BOLD, 54f));
         sizeLabel.setForeground(Theme.TEXT);
 
@@ -63,8 +121,8 @@ public class SetupPanel extends BackgroundPanel {
 
         JPanel stepper = new JPanel(new BorderLayout(12, 0));
         stepper.setOpaque(false);
-        square(minus, 68);
-        square(plus, 68);
+        minus.setPreferredSize(new Dimension(68, 68));
+        plus.setPreferredSize(new Dimension(68, 68));
         stepper.add(minus, BorderLayout.WEST);
         stepper.add(sizeLabel, BorderLayout.CENTER);
         stepper.add(plus, BorderLayout.EAST);
@@ -80,48 +138,49 @@ public class SetupPanel extends BackgroundPanel {
             presets.add(chip);
         }
 
-        RoundedPanel rule = new RoundedPanel(Theme.RADIUS);
+        RoundedPanel rule = new RoundedPanel(Theme.RADIUS) {
+            @Override
+            public Dimension getMaximumSize() {
+                // Grow with the text (Vietnamese wraps to two lines) but never stretch further
+                return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+            }
+        };
         rule.setFill(Theme.alpha(Theme.ACCENT, 28));
         rule.setBorderColor(Theme.alpha(Theme.ACCENT, 90));
         rule.setLayout(new BorderLayout());
-        rule.setBorder(BorderFactory.createEmptyBorder(14, 20, 14, 20));
-        ruleLabel.setFont(Theme.font(Font.PLAIN, 16f));
+        rule.setBorder(BorderFactory.createEmptyBorder(12, 18, 12, 18));
+        ruleLabel.setFont(Theme.font(Font.PLAIN, 15f));
         ruleLabel.setForeground(Theme.TEXT);
         rule.add(ruleLabel);
 
-        AppButton start = new AppButton(I18n.t("setup.start"), AppButton.Variant.PRIMARY);
-        start.setFont(Theme.semibold(20f));
-        start.addActionListener(e -> {
-            Settings.get().setBoardSize(mode, size);
-            window.startGame(mode, size);
-        });
-
-        addRow(card, title, 0);
-        addRow(card, subtitle, 8);
-        addRow(card, sectionLabel(I18n.t("setup.boardSize")), 34);
-        addRow(card, stepper, 12);
-        addRow(card, presets, 16);
-        addRow(card, rule, 24);
-        addRow(card, start, 34);
+        addRow(col, sectionLabel(I18n.t("setup.boardSize")), 0);
+        addRow(col, stepper, 12);
+        addRow(col, presets, 14);
+        addRow(col, rule, 18);
         stretch(stepper, 72);
-        stretch(presets, 48);
-        stretch(rule, 76);
-        stretch(start, 64);
+        stretch(presets, 46);
+    }
 
-        Dimension cardSize = new Dimension(CARD_WIDTH, card.getPreferredSize().height);
-        card.setPreferredSize(cardSize);
+    private void buildAiOptions(JPanel col) {
+        difficulty = new SegmentedControl<>();
+        difficulty.add(Difficulty.EASY, I18n.t("difficulty.easy"))
+                .add(Difficulty.NORMAL, I18n.t("difficulty.normal"))
+                .add(Difficulty.HARD, I18n.t("difficulty.hard"));
+        difficultyHint = new JLabel();
+        difficultyHint.setFont(Theme.font(Font.PLAIN, 14f));
+        difficultyHint.setForeground(Theme.TEXT_MUTED);
+        difficulty.setOnChange(d -> refreshDifficultyHint());
+        difficulty.setSelected(Difficulty.NORMAL);
 
-        JPanel center = new JPanel(new GridBagLayout());
-        center.setOpaque(false);
-        center.add(card);
-        add(center, BorderLayout.CENTER);
+        addRow(col, sectionLabel(I18n.t("setup.difficulty")), 0);
+        addRow(col, difficulty, 12);
+        addRow(col, difficultyHint, 10);
+        refreshDifficultyHint();
+    }
 
-        bindKey(KeyEvent.VK_LEFT, () -> setSize(size - 1));
-        bindKey(KeyEvent.VK_RIGHT, () -> setSize(size + 1));
-        bindKey(KeyEvent.VK_ENTER, start::doClick);
-        bindKey(KeyEvent.VK_ESCAPE, () -> window.showScreen(MainWindow.MAIN_MENU));
-
-        refresh();
+    private void refreshDifficultyHint() {
+        String key = "difficulty." + difficulty.getSelected().name().toLowerCase() + ".desc";
+        difficultyHint.setText("<html><div style='width:300px'>" + I18n.t(key) + "</div></html>");
     }
 
     private void setSize(int newSize) {
@@ -137,9 +196,9 @@ public class SetupPanel extends BackgroundPanel {
             presetButtons[i].setVariant(PRESETS[i] == size ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
         }
         int target = GameModel.winLengthFor(size);
-        ruleLabel.setText("<html><b>" + I18n.t("setup.rule.label") + "</b> " + (target == size
+        ruleLabel.setText("<html><div style='width:270px'><b>" + I18n.t("setup.rule.label") + "</b> " + (target == size
                 ? I18n.t("setup.rule.fullLine")
-                : I18n.t("setup.rule.inARow", target)) + "</html>");
+                : I18n.t("setup.rule.inARow", target)) + "</div></html>");
     }
 
     private static int clamp(int value) {
@@ -170,18 +229,21 @@ public class SetupPanel extends BackgroundPanel {
         return label;
     }
 
-    private static void addRow(JPanel card, JComponent c, int gapBefore) {
-        if (gapBefore > 0) card.add(Box.createVerticalStrut(gapBefore));
+    private static JPanel column() {
+        JPanel col = new JPanel();
+        col.setOpaque(false);
+        col.setLayout(new BoxLayout(col, BoxLayout.Y_AXIS));
+        return col;
+    }
+
+    private static void addRow(JPanel col, JComponent c, int gapBefore) {
+        if (gapBefore > 0) col.add(Box.createVerticalStrut(gapBefore));
         c.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(c);
+        col.add(c);
     }
 
     private static void stretch(JComponent c, int height) {
-        c.setPreferredSize(new Dimension(CARD_WIDTH - 88, height));
+        c.setPreferredSize(new Dimension(COLUMN_WIDTH, height));
         c.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
-    }
-
-    private static void square(JComponent c, int side) {
-        c.setPreferredSize(new Dimension(side, side));
     }
 }
