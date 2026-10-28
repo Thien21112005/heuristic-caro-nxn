@@ -6,6 +6,7 @@ import model.GameConfig;
 import model.GameMode;
 import model.GameModel;
 import model.Settings;
+import model.Stats;
 import utils.SoundManager;
 import view.components.AppButton;
 import view.components.BoardView;
@@ -44,6 +45,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final int[] scores = new int[2];
     private int draws;
     private int hintsUsed;
+    private Stats.Entry statsBeforeLastGame; // lets an undone winning move un-record the result
     private int lastMoveCount;
     private boolean autoFit = true;
     private Timer gameOverTimer;
@@ -219,6 +221,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         if (winner == GameModel.EMPTY) draws++;
         else scores[seatOf(winner)]++;
         refreshScores();
+        Stats.Outcome outcome = winner == GameModel.EMPTY ? Stats.Outcome.DRAW
+                : seatOf(winner) == 0 ? Stats.Outcome.WIN : Stats.Outcome.LOSS;
+        statsBeforeLastGame = Stats.get().record(Stats.bucket(config), outcome, model.getMoveCount());
         refreshStatus();
 
         boolean humanLost = mode == GameMode.VS_AI && winner == controller.getAiSide();
@@ -263,6 +268,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             if (winner == GameModel.EMPTY) draws--;
             else scores[seatOf(winner)]--;
             refreshScores();
+            if (statsBeforeLastGame != null) {
+                Stats.get().restore(Stats.bucket(config), statsBeforeLastGame);
+                statsBeforeLastGame = null;
+            }
         }
         cancelGameOverDialog();
         controller.undo();

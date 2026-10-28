@@ -17,6 +17,7 @@ public class MainWindow extends JFrame {
     public static final String SETUP_TWO = "SetupTwo";
     public static final String SETTINGS = "Settings";
     public static final String ABOUT = "About";
+    public static final String STATS = "Stats";
     private static final String GAME = "Game";
 
     private final CardLayout cardLayout = new CardLayout();
@@ -43,6 +44,7 @@ public class MainWindow extends JFrame {
         cardPanel.add(new SetupPanel(this, GameMode.TWO_PLAYERS), SETUP_TWO);
         cardPanel.add(new SettingsPanel(this), SETTINGS);
         cardPanel.add(new AboutPanel(this), ABOUT);
+        cardPanel.add(new StatsPanel(this), STATS);
     }
 
     /**

@@ -18,6 +18,7 @@ public class AppButton extends JButton {
     private float hover = 0f;
     private final Timer animator;
     private boolean sounds = true;
+    private Color accent; // ghost buttons: text colour instead of the muted default
 
     public AppButton(String text) {
         this(text, Variant.PRIMARY);
@@ -71,6 +72,12 @@ public class AppButton extends JButton {
     /** Tighter padding for icon-like or chip buttons. */
     public AppButton compact() {
         setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        return this;
+    }
+
+    public AppButton setAccent(Color accent) {
+        this.accent = accent;
+        repaint();
         return this;
     }
 
@@ -131,7 +138,8 @@ public class AppButton extends JButton {
                     g2.setColor(Theme.alpha(Color.WHITE, (int) (18 * hover)));
                     g2.fillRoundRect(0, 0, w, h - 2, arc, arc);
                 }
-                setForeground(blend(Theme.TEXT_MUTED, Theme.TEXT, hover));
+                setForeground(accent != null ? blend(accent, accent.brighter(), hover)
+                        : blend(Theme.TEXT_MUTED, Theme.TEXT, hover));
                 break;
             }
         }

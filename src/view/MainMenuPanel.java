@@ -36,12 +36,14 @@ public class MainMenuPanel extends BackgroundPanel {
         twoPlayers.setToolTipText(I18n.t("menu.twoPlayers.tooltip"));
         AppButton settings = button(I18n.t("menu.settings"), AppButton.Variant.SECONDARY);
         AppButton about = button(I18n.t("menu.about"), AppButton.Variant.SECONDARY);
+        AppButton stats = button(I18n.t("menu.stats"), AppButton.Variant.SECONDARY);
         AppButton quit = button(I18n.t("menu.quit"), AppButton.Variant.GHOST);
 
         vsAi.addActionListener(e -> window.showScreen(MainWindow.SETUP_AI));
         twoPlayers.addActionListener(e -> window.showScreen(MainWindow.SETUP_TWO));
         settings.addActionListener(e -> window.showScreen(MainWindow.SETTINGS));
         about.addActionListener(e -> window.showScreen(MainWindow.ABOUT));
+        stats.addActionListener(e -> window.showScreen(MainWindow.STATS));
         quit.addActionListener(e -> window.requestQuit());
 
         column.add(title);
@@ -51,10 +53,12 @@ public class MainMenuPanel extends BackgroundPanel {
         column.add(Box.createVerticalStrut(12));
         column.add(twoPlayers);
         column.add(Box.createVerticalStrut(28));
-        JPanel row = new JPanel(new GridLayout(1, 2, 12, 0));
+        JPanel row = new JPanel(new GridLayout(1, 3, 10, 0));
         row.setOpaque(false);
-        row.add(settings);
-        row.add(about);
+        for (AppButton b : new AppButton[]{settings, stats, about}) {
+            b.compact();
+            row.add(b);
+        }
         fix(row, 44);
         column.add(row);
         column.add(Box.createVerticalStrut(12));
