@@ -25,9 +25,10 @@ public class SoundPlayer {
     }
 
     public void stop() {
-        if (clip != null && clip.isRunning()) {
+        if (clip != null) {
             clip.stop();
             clip.close();
+            clip = null;
         }
     }
 

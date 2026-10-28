@@ -1,6 +1,8 @@
 package view;
 
 import controller.*;
+import model.Settings;
+import utils.SoundManager;
 import utils.SoundPlayer;
 import javax.swing.*;
 import java.awt.*;
@@ -9,10 +11,8 @@ import java.awt.event.ActionListener;
 
 public class GameMenu extends JFrame {
     private CardLayout cardLayout;
-    private SoundPlayer sound;
     private JPanel cardPanel;
     private int gridSize = 3;
-    private boolean isCheatModeEnabled = false;
     private JPanel currentGamePanel;
 
     private String selectPath = "/assets/Select.wav";
@@ -20,12 +20,11 @@ public class GameMenu extends JFrame {
     private String backgroundPath = "/assets/Background.jpg";
 
     public GameMenu(String title, String filePath) {
-        this.sound = new SoundPlayer(filePath);
         this.setTitle(title);
         this.setSize(800, 600);
         this.setResizable(false);
         this.setUndecorated(true);
-        sound.playLoop();
+        SoundManager.startMusic();
 
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
@@ -124,6 +123,6 @@ public class GameMenu extends JFrame {
     public CardLayout getCardLayout() { return cardLayout; }
     public JPanel getCardPanel() { return cardPanel; }
     
-    public boolean isCheatModeEnabled() { return isCheatModeEnabled; }
-    public void setCheatModeEnabled(boolean enabled) { this.isCheatModeEnabled = enabled; }
+    public boolean isCheatModeEnabled() { return Settings.get().isUndoEnabled(); }
+    public void setCheatModeEnabled(boolean enabled) { Settings.get().setUndoEnabled(enabled); }
 }

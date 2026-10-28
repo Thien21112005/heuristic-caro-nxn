@@ -22,7 +22,7 @@ public class SettingPanel extends JPanel {
         titleLabel.setForeground(Color.CYAN);
         titleLabel.setBounds(200, 100, 400, 60);
 
-        JButton cheatModeBtn = new CustomButton("Enable Cheat Mode (Undo): OFF");
+        JButton cheatModeBtn = new CustomButton("Enable Cheat Mode (Undo): " + (gameMenu.isCheatModeEnabled() ? "ON" : "OFF"));
         cheatModeBtn.setBounds(200, 220, 400, 60);
         cheatModeBtn.addMouseListener(new ButtonHoverEffect(cheatModeBtn, scrollPath));
         
