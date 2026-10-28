@@ -12,6 +12,7 @@ import utils.SoundManager;
 import view.components.AppButton;
 import view.components.BoardView;
 import view.components.PlayerCard;
+import view.components.ReplayBar;
 import view.theme.Theme;
 
 import javax.swing.*;
@@ -43,6 +44,14 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final AppButton undo;
     private final AppButton hint;
     private final AppButton resign;
+    private final AppButton numbers;
+
+    // Replay of a finished game
+    private static final int REPLAY_STEP_MS = 600;
+    private final ReplayBar replayBar = new ReplayBar();
+    private final Timer replayTimer;
+    private java.util.List<int[]> replayMoves;
+    private int replayIndex;
 
     private final int[] scores = new int[2];
     private int draws;
@@ -140,11 +149,23 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             }
         });
 
+        JPanel boardColumn = new JPanel(new BorderLayout(0, 10));
+        boardColumn.setOpaque(false);
+        boardColumn.add(scroll, BorderLayout.CENTER);
+        boardColumn.add(replayBar, BorderLayout.SOUTH);
+        replayBar.setVisible(false);
+        replayBar.setOnSeek(this::seekReplay);
+        replayBar.setOnTogglePlay(this::toggleReplayPlayback);
+        replayTimer = new Timer(REPLAY_STEP_MS, e -> {
+            if (replayIndex >= replayMoves.size()) stopReplayPlayback();
+            else seekReplay(replayIndex + 1);
+        });
+
         JPanel center = new JPanel(new BorderLayout(20, 0));
         center.setOpaque(false);
         center.setBorder(BorderFactory.createEmptyBorder(6, 24, 0, 24));
         center.add(wrapCard(cards[0]), BorderLayout.WEST);
-        center.add(scroll, BorderLayout.CENTER);
+        center.add(boardColumn, BorderLayout.CENTER);
         center.add(wrapCard(cards[1]), BorderLayout.EAST);
         add(center, BorderLayout.CENTER);
 
@@ -165,8 +186,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             fitBoard();
         });
         AppButton zoomIn = zoomButton("+", I18n.t("game.zoomIn.tooltip"), () -> zoomBy(1));
+        numbers = zoomButton("#", I18n.t("game.numbers.tooltip"), this::toggleMoveNumbers);
         JPanel zoom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         zoom.setOpaque(false);
+        zoom.add(numbers);
         zoom.add(zoomOut);
         zoom.add(fit);
         zoom.add(zoomIn);
@@ -192,6 +215,15 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), this::requestRestart);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), this::requestLeave);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), fit::doClick);
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0), this::toggleMoveNumbers);
+        // Replay controls; they only act while the replay bar is showing
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), () -> replayStep(() -> replayIndex - 1));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), () -> replayStep(() -> replayIndex + 1));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), () -> replayStep(() -> 0));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), () -> replayStep(() -> Integer.MAX_VALUE));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), () -> {
+            if (ensureReplay()) toggleReplayPlayback();
+        });
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0), () -> zoomBy(1));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), () -> zoomBy(1));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), () -> zoomBy(-1));
@@ -205,6 +237,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     /** Stops timers; call when the screen is discarded. */
     public void dispose() {
         if (gameOverTimer != null) gameOverTimer.stop();
+        replayTimer.stop();
         controller.dispose();
     }
 
@@ -212,6 +245,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     @Override
     public void onStateChanged() {
+        if (!model.isOver()) exitReplay();
         if (model.getMoveCount() > lastMoveCount) SoundManager.play(SoundManager.CLICK);
         lastMoveCount = model.getMoveCount();
 
@@ -275,6 +309,73 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
                 I18n.t("game.over.viewBoard"), false);
         if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
+        else enterReplay();
+    }
+
+    // ---- Replay ----
+
+    private void enterReplay() {
+        if (!model.isOver() || replayBar.isVisible()) return;
+        replayMoves = model.getMoves();
+        replayIndex = replayMoves.size();
+        replayBar.setRange(replayMoves.size());
+        replayBar.setPosition(replayIndex);
+        replayBar.setPlaying(false);
+        replayBar.setVisible(true);
+        revalidate();
+    }
+
+    /** Opens the replay if the round is over; false while a game is still running. */
+    private boolean ensureReplay() {
+        if (!model.isOver()) return false;
+        enterReplay();
+        return true;
+    }
+
+    private void replayStep(java.util.function.IntSupplier target) {
+        if (!ensureReplay()) return;
+        stopReplayPlayback();
+        seekReplay(target.getAsInt());
+    }
+
+    private void exitReplay() {
+        if (!replayBar.isVisible()) return;
+        stopReplayPlayback();
+        board.setDisplayModel(null);
+        replayBar.setVisible(false);
+        revalidate();
+    }
+
+    private void seekReplay(int k) {
+        if (replayMoves == null) return;
+        replayIndex = Math.max(0, Math.min(k, replayMoves.size()));
+        // The last step is the live final position, which also carries the winning line
+        board.setDisplayModel(replayIndex == replayMoves.size() ? null
+                : GameModel.replay(model.getSize(), replayMoves, replayIndex));
+        replayBar.setPosition(replayIndex);
+        if (replayIndex >= replayMoves.size()) stopReplayPlayback();
+    }
+
+    private void toggleReplayPlayback() {
+        if (replayMoves == null) return;
+        if (replayTimer.isRunning()) {
+            stopReplayPlayback();
+            return;
+        }
+        if (replayIndex >= replayMoves.size()) seekReplay(0);
+        replayTimer.start();
+        replayBar.setPlaying(true);
+    }
+
+    private void stopReplayPlayback() {
+        replayTimer.stop();
+        replayBar.setPlaying(false);
+    }
+
+    private void toggleMoveNumbers() {
+        boolean on = !board.isShowingMoveNumbers();
+        board.setShowMoveNumbers(on);
+        numbers.setVariant(on ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
     }
 
     private void showHint() {

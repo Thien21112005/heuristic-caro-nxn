@@ -25,7 +25,9 @@ public class BoardView extends JComponent {
     private static final int ANIM_MS = 220;
 
     private final GameController controller;
-    private final GameModel model;
+    private final GameModel liveModel;
+    private GameModel display; // a replayed position shown instead of the live game, or null
+    private boolean showMoveNumbers;
     private final int n;
 
     private static final Image X_IMAGE = ResourceUtils.getImageIcon("/assets/x_image_funny.png").getImage();
@@ -52,8 +54,8 @@ public class BoardView extends JComponent {
 
     public BoardView(GameController controller) {
         this.controller = controller;
-        this.model = controller.getModel();
-        this.n = model.getSize();
+        this.liveModel = controller.getModel();
+        this.n = liveModel.getSize();
         setOpaque(false);
 
         animTimer = new Timer(15, e -> {
@@ -93,7 +95,7 @@ public class BoardView extends JComponent {
             public void mouseReleased(MouseEvent e) {
                 if (!dragged && SwingUtilities.isLeftMouseButton(e)) {
                     int[] rc = cellAt(e.getPoint());
-                    if (rc != null) controller.play(rc[0], rc[1]);
+                    if (rc != null && display == null) controller.play(rc[0], rc[1]);
                 }
                 pressPoint = null;
                 dragged = false;
@@ -124,6 +126,35 @@ public class BoardView extends JComponent {
 
     public void setOnZoom(Runnable onZoom) { this.onZoom = onZoom; }
 
+    /**
+     * Shows a different position (e.g. a step of a replay) without touching the
+     * live game; pass null to go back to the live board. Input is ignored meanwhile.
+     */
+    public void setDisplayModel(GameModel model) {
+        if (model != null && model.getSize() != n) throw new IllegalArgumentException("board size mismatch");
+        display = model;
+        clearHint();
+        animatedMove = null;
+        repaint();
+    }
+
+    public boolean isShowingReplay() { return display != null; }
+
+    public void setShowMoveNumbers(boolean show) {
+        showMoveNumbers = show;
+        repaint();
+    }
+
+    public boolean isShowingMoveNumbers() { return showMoveNumbers; }
+
+    private GameModel shown() {
+        return display != null ? display : liveModel;
+    }
+
+    private boolean interactive() {
+        return display == null && controller.acceptsInput();
+    }
+
     public int getCellSize() { return cell; }
 
     /** Call after every model change; animates the newest piece. */
@@ -150,7 +181,7 @@ public class BoardView extends JComponent {
 
     public void stateChanged() {
         clearHint();
-        int[] last = model.getLastMove();
+        int[] last = shown().getLastMove();
         if (last != null && (animatedMove == null || last[0] != animatedMove[0] || last[1] != animatedMove[1])) {
             animatedMove = last;
             animStart = System.currentTimeMillis();
@@ -235,7 +266,7 @@ public class BoardView extends JComponent {
         int[] rc = cellAt(p);
         int r = rc == null ? -1 : rc[0];
         int c = rc == null ? -1 : rc[1];
-        boolean playable = rc != null && controller.acceptsInput() && model.getCell(r, c) == GameModel.EMPTY;
+        boolean playable = rc != null && interactive() && shown().getCell(r, c) == GameModel.EMPTY;
         if (!dragged) {
             setCursor(Cursor.getPredefinedCursor(playable ? Cursor.HAND_CURSOR : Cursor.DEFAULT_CURSOR));
         }
@@ -260,7 +291,7 @@ public class BoardView extends JComponent {
         g2.fillRoundRect(PAD, PAD, size, size, arc, arc);
 
         // Winning cells highlight
-        int[] win = model.getWinningLine();
+        int[] win = shown().getWinningLine();
         boolean[][] winning = winningCells(win);
         if (win != null) {
             g2.setColor(Theme.alpha(Theme.WIN, 38));
@@ -270,9 +301,9 @@ public class BoardView extends JComponent {
         }
 
         // Hover preview
-        boolean canPlay = controller.acceptsInput();
-        int current = model.getCurrentPlayer();
-        if (canPlay && hoverRow >= 0 && model.getCell(hoverRow, hoverCol) == GameModel.EMPTY) {
+        boolean canPlay = interactive();
+        int current = shown().getCurrentPlayer();
+        if (canPlay && hoverRow >= 0 && shown().getCell(hoverRow, hoverCol) == GameModel.EMPTY) {
             int x = PAD + hoverCol * cell, y = PAD + hoverRow * cell;
             g2.setColor(Theme.alpha(colorOf(current), 34));
             g2.fillRoundRect(x + 2, y + 2, cell - 4, cell - 4, 10, 10);
@@ -299,10 +330,10 @@ public class BoardView extends JComponent {
         g2.drawRoundRect(PAD, PAD, size, size, arc, arc);
 
         // Pieces
-        int[] last = model.getLastMove();
+        int[] last = shown().getLastMove();
         for (int r = 0; r < n; r++) {
             for (int c = 0; c < n; c++) {
-                int v = model.getCell(r, c);
+                int v = shown().getCell(r, c);
                 if (v == GameModel.EMPTY) continue;
                 float scale = 1f;
                 if (animatedMove != null && animatedMove[0] == r && animatedMove[1] == c) {
@@ -319,13 +350,13 @@ public class BoardView extends JComponent {
         }
 
         // Hint: ghost of the suggested piece inside a pulsing ring
-        if (hint != null && model.getCell(hint[0], hint[1]) == GameModel.EMPTY) {
+        if (hint != null && shown().getCell(hint[0], hint[1]) == GameModel.EMPTY) {
             int x = PAD + hint[1] * cell, y = PAD + hint[0] * cell;
             double phase = (System.currentTimeMillis() - hintStart) / 400.0;
             float pulse = (float) (0.5 + 0.5 * Math.sin(phase * Math.PI));
             Composite oldComposite = g2.getComposite();
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
-            drawPiece(g2, model.getCurrentPlayer(), x, y, 1f);
+            drawPiece(g2, shown().getCurrentPlayer(), x, y, 1f);
             g2.setComposite(oldComposite);
             int grow = Math.round(pulse * cell * 0.12f);
             g2.setColor(Theme.alpha(Theme.WIN, 90 + (int) (120 * pulse)));
@@ -358,7 +389,30 @@ public class BoardView extends JComponent {
                 g2.draw(stroke);
             }
         }
+        // Numbers go on top of everything, including the win line, so they stay readable
+        if (showMoveNumbers) drawMoveNumbers(g2);
         g2.dispose();
+    }
+
+    /** Small numbered badge in the corner of every piece, in the order they were played. */
+    private void drawMoveNumbers(Graphics2D g2) {
+        java.util.List<int[]> moves = shown().getMoves();
+        int d = Math.max(14, Math.round(cell * 0.36f));
+        Font font = Theme.semibold(Math.max(9f, d * 0.55f));
+        g2.setFont(font);
+        FontMetrics fm = g2.getFontMetrics();
+        for (int i = 0; i < moves.size(); i++) {
+            int[] m = moves.get(i);
+            int x = PAD + m[1] * cell + cell - d - 1;
+            int y = PAD + m[0] * cell + cell - d - 1;
+            String text = String.valueOf(i + 1);
+            int w = Math.max(d, fm.stringWidth(text) + 6);
+            x -= w - d;
+            g2.setColor(Theme.alpha(Theme.BG, 225));
+            g2.fillRoundRect(x, y, w, d, d, d);
+            g2.setColor(colorOf(m[2]));
+            g2.drawString(text, x + (w - fm.stringWidth(text)) / 2, y + (d - fm.getHeight()) / 2 + fm.getAscent());
+        }
     }
 
     private void drawPiece(Graphics2D g2, int player, int x, int y, float scale) {

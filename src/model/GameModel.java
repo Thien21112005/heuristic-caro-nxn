@@ -54,6 +54,30 @@ public class GameModel {
         return count;
     }
 
+    /** Every move so far as {row, col, player}, oldest first. */
+    public java.util.List<int[]> getMoves() {
+        java.util.List<int[]> list = new java.util.ArrayList<>(moves.size());
+        java.util.Iterator<int[]> it = moves.descendingIterator();
+        while (it.hasNext()) list.add(it.next().clone());
+        return list;
+    }
+
+    /**
+     * Rebuilds the position after the first {@code count} moves of a game,
+     * e.g. to step through a finished game.
+     */
+    public static GameModel replay(int size, java.util.List<int[]> moves, int count) {
+        GameModel model = new GameModel(size);
+        int k = Math.max(0, Math.min(count, moves.size()));
+        for (int i = 0; i < k; i++) {
+            int[] m = moves.get(i);
+            if (!model.play(m[0], m[1])) {
+                throw new IllegalArgumentException("move " + i + " is not legal: " + m[0] + "," + m[1]);
+            }
+        }
+        return model;
+    }
+
     /** Last move as {row, col, player}, or null on an empty board. */
     public int[] getLastMove() { return moves.peek(); }
 
