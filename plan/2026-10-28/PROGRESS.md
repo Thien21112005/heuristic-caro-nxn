@@ -8,7 +8,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 0.1 CI chạy `mvn verify`
 - ✅ 0.2 Badge CI trong README
 - ✅ 0.3 Nén nhạc nền 22 kHz mono
-- ⬜ 0.4 Icon ứng dụng
+- ✅ 0.4 Icon ứng dụng
 
 ## Giai đoạn 1: Song ngữ (`feat/i18n`)
 - ⬜ 1.1 I18n helper + bundle tiếng Anh

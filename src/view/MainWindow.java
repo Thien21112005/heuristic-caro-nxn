@@ -1,10 +1,13 @@
 package view;
 
 import model.GameMode;
+import utils.ResourceUtils;
 import utils.SoundManager;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainWindow extends JFrame {
     public static final String MAIN_MENU = "MainMenu";
@@ -23,6 +26,7 @@ public class MainWindow extends JFrame {
         setSize(1120, 740);
         setMinimumSize(new Dimension(980, 680));
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setIconImages(loadIcons());
         SoundManager.startMusic();
 
         cardPanel.add(new MainMenuPanel(this), MAIN_MENU);
@@ -34,6 +38,14 @@ public class MainWindow extends JFrame {
         setContentPane(cardPanel);
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    private static List<Image> loadIcons() {
+        List<Image> icons = new ArrayList<>();
+        for (int size : new int[]{16, 24, 32, 48, 64, 128, 256}) {
+            icons.add(ResourceUtils.getImageIcon("/assets/icon/icon-" + size + ".png").getImage());
+        }
+        return icons;
     }
 
     public void showScreen(String name) {
