@@ -19,6 +19,7 @@ public class PlayerCard extends JComponent {
 
     private final int player;
     private final String name;
+    private String tag; // optional prefix for the "Plays X" line, e.g. the AI level
     private final Color color;
     private int score;
     private Status status = Status.WAITING;
@@ -33,6 +34,11 @@ public class PlayerCard extends JComponent {
             dots = (dots + 1) % 4;
             repaint();
         });
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+        repaint();
     }
 
     public void setScore(int score) {
@@ -98,7 +104,8 @@ public class PlayerCard extends JComponent {
         int y = cy + circle + 30;
         drawCentered(g2, name, Theme.font(Font.BOLD, 18f), Theme.TEXT, w, y);
         y += 20;
-        drawCentered(g2, I18n.t("player.plays", player == GameModel.X ? "X" : "O"), Theme.font(Font.PLAIN, 13f), Theme.TEXT_MUTED, w, y);
+        String plays = I18n.t("player.plays", player == GameModel.X ? "X" : "O");
+        drawCentered(g2, tag == null ? plays : tag + "  ·  " + plays, Theme.font(Font.PLAIN, 13f), Theme.TEXT_MUTED, w, y);
 
         // Score
         y += 44;
