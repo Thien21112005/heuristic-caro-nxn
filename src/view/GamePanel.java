@@ -150,7 +150,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         JPanel hintBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 10));
         hintBox.setOpaque(false);
         hintBox.add(hint);
-        Dimension footerSide = new Dimension(220, zoom.getPreferredSize().height);
+        Dimension footerSide = new Dimension(Math.max(240, zoom.getPreferredSize().width), zoom.getPreferredSize().height);
         hintBox.setPreferredSize(footerSide);
         zoom.setPreferredSize(footerSide);
 
@@ -355,7 +355,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         AppButton b = new AppButton(text, AppButton.Variant.SECONDARY).compact();
         b.setToolTipText(tooltip);
         b.setFont(Theme.semibold(text.length() > 1 ? 13f : 18f));
-        b.setPreferredSize(new Dimension(text.length() > 1 ? 52 : 40, 40));
+        int width = text.length() > 1 ? Math.max(52, b.getPreferredSize().width) : 40;
+        b.setPreferredSize(new Dimension(width, 40));
         b.addActionListener(e -> action.run());
         return b;
     }

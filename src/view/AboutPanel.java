@@ -74,7 +74,7 @@ public class AboutPanel extends BackgroundPanel {
     }
 
     private static JComponent paragraph(String html, int gapTop) {
-        JLabel label = new JLabel("<html><div style='width:400px;line-height:1.4'>" + html + "</div></html>");
+        JLabel label = new JLabel("<html><div style='width:370px;line-height:1.4'>" + html + "</div></html>");
         label.setFont(Theme.font(Font.PLAIN, 14f));
         label.setForeground(Theme.TEXT);
         label.setBorder(BorderFactory.createEmptyBorder(gapTop, 0, 0, 0));
