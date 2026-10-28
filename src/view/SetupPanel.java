@@ -18,7 +18,7 @@ public class SetupPanel extends BackgroundPanel {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
     private static final int[] PRESETS = {3, 10, 15, 20};
-    private static final int CARD_WIDTH = 440;
+    private static final int CARD_WIDTH = 560;
 
     private final GameMode mode;
     private int size;
@@ -39,23 +39,23 @@ public class SetupPanel extends BackgroundPanel {
 
         RoundedPanel card = new RoundedPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(32, 36, 32, 36));
+        card.setBorder(BorderFactory.createEmptyBorder(40, 44, 40, 44));
 
         JLabel title = new JLabel(mode == GameMode.VS_AI ? "Play vs AI" : "Two players");
-        title.setFont(Theme.font(Font.BOLD, 28f));
+        title.setFont(Theme.font(Font.BOLD, 36f));
         title.setForeground(Theme.TEXT);
 
         JLabel subtitle = new JLabel(mode == GameMode.VS_AI
                 ? "You play X and move first. The AI plays O."
                 : "Player 1 is X and moves first, Player 2 is O.");
-        subtitle.setFont(Theme.font(Font.PLAIN, 14f));
+        subtitle.setFont(Theme.font(Font.PLAIN, 17f));
         subtitle.setForeground(Theme.TEXT_MUTED);
 
-        sizeLabel.setFont(Theme.font(Font.BOLD, 40f));
+        sizeLabel.setFont(Theme.font(Font.BOLD, 54f));
         sizeLabel.setForeground(Theme.TEXT);
 
-        minus.compact().setFont(Theme.semibold(22f));
-        plus.compact().setFont(Theme.semibold(22f));
+        minus.compact().setFont(Theme.semibold(28f));
+        plus.compact().setFont(Theme.semibold(28f));
         minus.setToolTipText("Smaller board (←)");
         plus.setToolTipText("Bigger board (→)");
         minus.addActionListener(e -> setSize(size - 1));
@@ -63,8 +63,8 @@ public class SetupPanel extends BackgroundPanel {
 
         JPanel stepper = new JPanel(new BorderLayout(12, 0));
         stepper.setOpaque(false);
-        square(minus, 52);
-        square(plus, 52);
+        square(minus, 68);
+        square(plus, 68);
         stepper.add(minus, BorderLayout.WEST);
         stepper.add(sizeLabel, BorderLayout.CENTER);
         stepper.add(plus, BorderLayout.EAST);
@@ -74,7 +74,7 @@ public class SetupPanel extends BackgroundPanel {
         for (int i = 0; i < PRESETS.length; i++) {
             int preset = PRESETS[i];
             AppButton chip = new AppButton(preset + "×" + preset, AppButton.Variant.SECONDARY);
-            chip.compact().setFont(Theme.semibold(13f));
+            chip.compact().setFont(Theme.semibold(16f));
             chip.addActionListener(e -> setSize(preset));
             presetButtons[i] = chip;
             presets.add(chip);
@@ -84,29 +84,29 @@ public class SetupPanel extends BackgroundPanel {
         rule.setFill(Theme.alpha(Theme.ACCENT, 28));
         rule.setBorderColor(Theme.alpha(Theme.ACCENT, 90));
         rule.setLayout(new BorderLayout());
-        rule.setBorder(BorderFactory.createEmptyBorder(12, 16, 12, 16));
-        ruleLabel.setFont(Theme.font(Font.PLAIN, 14f));
+        rule.setBorder(BorderFactory.createEmptyBorder(14, 20, 14, 20));
+        ruleLabel.setFont(Theme.font(Font.PLAIN, 16f));
         ruleLabel.setForeground(Theme.TEXT);
         rule.add(ruleLabel);
 
         AppButton start = new AppButton("Start game", AppButton.Variant.PRIMARY);
-        start.setFont(Theme.semibold(17f));
+        start.setFont(Theme.semibold(20f));
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
             window.startGame(mode, size);
         });
 
         addRow(card, title, 0);
-        addRow(card, subtitle, 6);
-        addRow(card, sectionLabel("BOARD SIZE"), 28);
-        addRow(card, stepper, 10);
-        addRow(card, presets, 14);
-        addRow(card, rule, 20);
-        addRow(card, start, 28);
-        stretch(stepper, 56);
-        stretch(presets, 38);
-        stretch(rule, 64);
-        stretch(start, 54);
+        addRow(card, subtitle, 8);
+        addRow(card, sectionLabel("BOARD SIZE"), 34);
+        addRow(card, stepper, 12);
+        addRow(card, presets, 16);
+        addRow(card, rule, 24);
+        addRow(card, start, 34);
+        stretch(stepper, 72);
+        stretch(presets, 48);
+        stretch(rule, 76);
+        stretch(start, 64);
 
         Dimension cardSize = new Dimension(CARD_WIDTH, card.getPreferredSize().height);
         card.setPreferredSize(cardSize);
@@ -138,7 +138,7 @@ public class SetupPanel extends BackgroundPanel {
         }
         int target = GameModel.winLengthFor(size);
         ruleLabel.setText("<html><b>Win rule:</b> " + (target == size
-                ? "fill a whole row, column or diagonal (" + target + " in a row)."
+                ? "fill a whole row, column or diagonal."
                 : "line up " + target + " pieces in a row — any direction.") + "</html>");
     }
 
@@ -165,7 +165,7 @@ public class SetupPanel extends BackgroundPanel {
 
     static JLabel sectionLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(Theme.semibold(12f));
+        label.setFont(Theme.semibold(13f));
         label.setForeground(Theme.TEXT_MUTED);
         return label;
     }
@@ -177,7 +177,7 @@ public class SetupPanel extends BackgroundPanel {
     }
 
     private static void stretch(JComponent c, int height) {
-        c.setPreferredSize(new Dimension(CARD_WIDTH - 72, height));
+        c.setPreferredSize(new Dimension(CARD_WIDTH - 88, height));
         c.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
     }
 
