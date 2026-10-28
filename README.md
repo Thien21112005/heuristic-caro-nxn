@@ -6,7 +6,7 @@
 
 <h1 id="english">Cyberpunk Gomoku AI (Caro NxN)</h1>
 
-A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing. This project features a stunning Cyberpunk-themed user interface, dynamic NxN board generation, and a highly competitive Artificial Intelligence opponent powered by a custom **Heuristic Pattern Matching** algorithm.
+A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). This project features a modern dark, neon-accented user interface, dynamic NxN board generation, and a highly competitive Artificial Intelligence opponent powered by a custom **Heuristic Pattern Matching** algorithm.
 
 ## Table of Contents
 - [Features](#features)
@@ -18,14 +18,19 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 ## Features
 
 ### Gameplay
-- **Dynamic Board Sizing:** Support for NxN grid configurations (from classic 3x3 up to massive 20x20+ boards).
-- **Infinite Canvas Navigation:** Integrated drag-to-pan scrolling and mouse-wheel zooming, allowing players to comfortably navigate enormous boards without losing track of the game state.
-- **Two Game Modes:** Local Co-op (Two Players) and VS AI.
+- **Dynamic Board Sizing:** Any NxN board from 3x3 to 20x20, with quick presets and the last size remembered.
+- **Clear win rule:** 3x3 to 5x5 need a full row, column or diagonal; 6x6 and up need 5 in a row. The rule is shown before and during the game.
+- **Zoom & Pan:** Mouse-wheel zoom anchored at the cursor, drag to pan, plus zoom/fit buttons; the board auto-fits the window.
+- **Two Game Modes:** Local Two Players and VS AI, with a running score across rounds.
+- **Undo (optional):** Enable "Allow undo" in Settings; against the AI it takes back your move and the AI's reply.
 
 ### User Interface (UI/UX)
-- **Cyberpunk Aesthetic:** A cohesive, premium dark theme with glowing dialogs and a high-tech background.
-- **Dynamic Turn Indicators:** Visual cues that dynamically highlight the active player's avatar while dimming the waiting player (with custom default profiles for Player and AI).
-- **Asynchronous Audio:** Hover effects, selection chimes, and victory/defeat sound effects processed asynchronously without blocking the UI thread.
+- **Modern dark theme:** FlatLaf look and feel with the Inter font, rounded cards, animated buttons and toggle switches.
+- **Custom-painted board:** Hover preview of your next piece, pop-in animation, last-move marker and a glowing winning line.
+- **Player cards:** Highlight whose turn it is, show an animated "Thinking..." state for the AI and each side's wins.
+- **Friendly dialogs:** Centered cards over a dimmed window; "Play again" or "View board" after a game.
+- **Keyboard shortcuts:** `Ctrl+Z` undo, `R` restart, `F` fit board, `+`/`-` zoom, `Esc` back.
+- **Audio settings:** Background music and sound effects can be switched off; clips load on a background thread.
 
 ## In-Depth AI Algorithm
 
@@ -68,20 +73,21 @@ When a pattern reaches the target winning length (e.g., 5 in a row), exponential
 - **Human Win (Defense):** `500,000,000` (Second priority: If the AI cannot win immediately but the human is about to win, it MUST block).
 
 ### 6. Complexity Analysis
-By scanning only from empty cells and limiting the ray cast distance to the target winning length (max 5 steps per direction), the time complexity per AI turn is strictly $\mathcal{O}(N^2)$, where $N$ is the board dimension. This guarantees a stable `~1ms` calculation time even on a 100x100 grid. To prevent the AI from feeling overly robotic, a randomized artificial delay (400ms - 1500ms) is injected to simulate "thinking" time.
+By scanning only from empty cells and limiting the ray cast distance to the target winning length (max 5 steps per direction), the time complexity per AI turn is strictly $\mathcal{O}(N^2)$, where $N$ is the board dimension. This guarantees a stable `~1ms` calculation time even on a 100x100 grid. To prevent the AI from feeling overly robotic, a randomized artificial delay (300ms - 800ms) is injected to simulate "thinking" time.
 
 ## Architecture & Design
 
 The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
-- **Model (`src/model`):** Manages internal game state, board matrix data, and the Heuristic Engine.
-- **View (`src/view`):** Contains all GUI components (drawn with Java 2D Graphics and Swing).
-- **Controller (`src/controller`):** Handles business logic triggered by the UI and manages application routing (`CardLayout`).
+- **Model (`src/model`):** `GameModel` (board, turns, win/draw detection, move history for undo), `GameAI` (heuristic engine), `Settings` (persisted preferences).
+- **Controller (`src/controller`):** `GameController` validates moves, schedules and cancels the AI reply, and handles undo/restart.
+- **View (`src/view`):** `MainWindow` hosts the screens in a `CardLayout`; reusable components live in `view/components` and the design tokens in `view/theme/Theme`.
+- **Tests (`test`):** JUnit 5 tests for the rules, the AI and the controller.
 
 ## Prerequisites & Installation
 
 ### Requirements
-- **Java Development Kit (JDK):** Version 8 or higher (Java 11 or 17 recommended).
-- **Environment Variables:** Ensure that your `JAVA_HOME` is set and the `java` and `javac` commands are accessible in your system's PATH.
+- **Java Development Kit (JDK):** Version 17 or higher.
+- **Apache Maven:** 3.8 or higher (downloads FlatLaf automatically).
 - **IDE (Optional but recommended):** IntelliJ IDEA, Eclipse, or Visual Studio Code with the Java Extension Pack.
 
 ### Installation & Compilation (Command Line)
@@ -93,26 +99,32 @@ The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
    ```bash
    cd heuristic-caro-nxn
    ```
-3. **Compile the source code:**
-   Ensure you are in the root directory of the project, then run the compiler to build the classes into the `out/production/TicTacToe` folder:
+3. **Run the game directly:**
    ```bash
-   javac -d out/production/TicTacToe -sourcepath src src/main/RunGame.java
+   mvn compile exec:java
    ```
-4. **Launch the game:**
+4. **Or build a standalone jar and run it:**
    ```bash
-   java -cp out/production/TicTacToe main.RunGame
+   mvn package
+   java -jar target/caro-nxn.jar
+   ```
+5. **Run the tests:**
+   ```bash
+   mvn test
    ```
 
 ### Running with IntelliJ IDEA
 1. Open IntelliJ IDEA and select **Open**.
-2. Navigate to the cloned `heuristic-caro-nxn` folder and click **OK**.
-3. Right-click on the `src/` directory and select **Mark Directory as > Sources Root**.
-4. Open `src/main/RunGame.java`.
-5. Click the green **Run** button next to the `public static void main` method to start the game.
+2. Choose the `pom.xml` in the cloned `heuristic-caro-nxn` folder and open it **as a Project**.
+3. Wait for Maven to download the dependencies.
+4. Open `src/main/RunGame.java` and click the green **Run** button next to `main`.
 
 ## Usage & Configuration
-**Cheat Mode (Undo Feature):**
-By default, the game enforces strict rules (no take-backs). For testing purposes, you can enable "Cheat Mode" in the **Settings** menu. This will reveal the Undo button during gameplay, allowing you to revert moves endlessly.
+**Settings** (saved automatically between launches):
+- **Background music** / **Sound effects:** turn audio on or off.
+- **Allow undo:** off by default (no take-backs). When on, an Undo button (`Ctrl+Z`) appears in the game. Against the AI it reverts both your move and the AI's reply.
+
+**Controls:** mouse wheel to zoom, drag to pan, `F` to fit the board, `R` to restart, `Esc` to go back.
 
 ---
 
@@ -120,7 +132,7 @@ By default, the game enforces strict rules (no take-backs). For testing purposes
 
 <h1 id="tiếng-việt">Cyberpunk Gomoku AI (Caro NxN)</h1>
 
-Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing. Dự án mang đậm phong cách giao diện Cyberpunk, hỗ trợ linh hoạt kích thước bàn cờ NxN và được tích hợp một hệ thống Trí tuệ Nhân tạo (AI) đáng gờm, vận hành bởi thuật toán **Heuristic Pattern Matching** (Đánh giá theo mẫu chẩn đoán) tự xây dựng.
+Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing và [FlatLaf](https://www.formdev.com/flatlaf/). Dự án có giao diện tối hiện đại với điểm nhấn neon, hỗ trợ linh hoạt kích thước bàn cờ NxN và được tích hợp một hệ thống Trí tuệ Nhân tạo (AI) đáng gờm, vận hành bởi thuật toán **Heuristic Pattern Matching** (Đánh giá theo mẫu chẩn đoán) tự xây dựng.
 
 ## Mục lục
 - [Tính năng nổi bật](#tính-năng-nổi-bật)
@@ -132,14 +144,19 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 ## Tính năng nổi bật
 
 ### Gameplay
-- **Kích thước bảng linh hoạt:** Hỗ trợ mọi cấu hình NxN (từ 3x3 truyền thống cho đến bàn cờ khổng lồ 20x20+).
-- **Điều hướng vô hạn (Infinite Canvas):** Tích hợp tính năng lăn chuột để Zoom (phóng to/thu nhỏ) và nhấn giữ kéo thả để di chuyển góc nhìn. Điều này giúp người chơi không bao giờ bị lạc lối trên các bàn cờ cỡ bự.
-- **Hai chế độ chơi:** Đấu đôi (hai người chơi trên cùng một máy) và Đấu với AI.
+- **Kích thước bàn linh hoạt:** Mọi bàn NxN từ 3x3 đến 20x20, có nút chọn nhanh và nhớ kích thước lần trước.
+- **Luật thắng rõ ràng:** Bàn 3x3 đến 5x5 phải đủ cả hàng/cột/đường chéo; từ 6x6 trở lên cần 5 quân liên tiếp. Luật được hiển thị trước và trong ván.
+- **Zoom & kéo bàn cờ:** Lăn chuột để zoom quanh con trỏ, kéo để di chuyển, có nút zoom/vừa khung; bàn cờ tự co giãn theo cửa sổ.
+- **Hai chế độ chơi:** Hai người trên cùng một máy và Đấu với AI, có tính tỉ số qua các ván.
+- **Đi lại (tuỳ chọn):** Bật "Allow undo" trong Settings; khi đấu với AI sẽ lùi cả nước của bạn lẫn nước của AI.
 
 ### Giao diện & Trải nghiệm (UI/UX)
-- **Phong cách Cyberpunk:** Sử dụng tông màu tối sang trọng, các hộp thoại (dialog) phát sáng viền Neon, cùng hình nền công nghệ cao.
-- **Chỉ báo lượt đi động:** Các Avatar được vẽ tự động bằng Graphics2D sẽ phát sáng viền tương ứng với người đang đến lượt và làm tối người chờ.
-- **Âm thanh bất đồng bộ:** Các hiệu ứng âm thanh (hover chuột, click, thắng/thua) được xử lý luồng riêng biệt, không làm giật lag giao diện.
+- **Giao diện tối hiện đại:** FlatLaf với font Inter, thẻ bo góc, nút có hiệu ứng chuyển động và công tắc bật/tắt.
+- **Bàn cờ tự vẽ:** Xem trước quân khi rê chuột, hiệu ứng đặt quân, đánh dấu nước vừa đi và đường thắng phát sáng.
+- **Thẻ người chơi:** Làm nổi bật người đến lượt, hiển thị "Thinking..." khi AI đang nghĩ và số ván thắng của mỗi bên.
+- **Hộp thoại thân thiện:** Hiện giữa màn hình trên nền mờ; sau ván có "Play again" hoặc "View board".
+- **Phím tắt:** `Ctrl+Z` đi lại, `R` chơi lại, `F` vừa khung, `+`/`-` zoom, `Esc` quay lại.
+- **Cài đặt âm thanh:** Bật/tắt nhạc nền và hiệu ứng; âm thanh được nạp ở luồng riêng nên không làm giật giao diện.
 
 ## Phân tích sâu Thuật toán AI
 
@@ -184,19 +201,20 @@ Khi một mẫu đạt đủ độ dài chiến thắng (ví dụ: 5 quân liên
 ### 6. Phân tích Độ phức tạp Thời gian
 Bằng cách chỉ quét từ các ô trống và giới hạn khoảng cách quét bằng với số quân cờ cần để thắng (tối đa 5 bước quét mỗi hướng), độ phức tạp thời gian cho mỗi lượt suy nghĩ của AI bị ép xuống chuẩn $\mathcal{O}(N^2)$ ($N$ là kích thước cạnh bàn cờ). Điều này đảm bảo AI luôn xử lý xong trong `~1ms` kể cả trên bàn cờ khổng lồ 100x100. 
 
-*Lưu ý: Để tránh AI đánh quá nhanh gây cảm giác "máy móc", code đã cố tình chèn thêm độ trễ ngẫu nhiên (400ms - 1500ms) để giả lập thời gian "suy nghĩ" của con người.*
+*Lưu ý: Để tránh AI đánh quá nhanh gây cảm giác "máy móc", code đã cố tình chèn thêm độ trễ ngẫu nhiên (300ms - 800ms) để giả lập thời gian "suy nghĩ" của con người.*
 
 ## Kiến trúc & Thiết kế
 Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controller (MVC)**:
-- **Model (`src/model`):** Quản lý trạng thái logic của ván cờ, ma trận điểm và Engine AI Heuristic.
-- **View (`src/view`):** Chứa các component giao diện (được vẽ tùy chỉnh bằng Java 2D Graphics và Swing).
-- **Controller (`src/controller`):** Xử lý các logic khi người dùng tương tác, luân chuyển các màn hình (`CardLayout`).
+- **Model (`src/model`):** `GameModel` (bàn cờ, lượt đi, kiểm tra thắng/hoà, lịch sử nước đi để Undo), `GameAI` (engine heuristic), `Settings` (lưu cài đặt).
+- **Controller (`src/controller`):** `GameController` kiểm tra nước đi, hẹn giờ/huỷ nước của AI, xử lý Undo và chơi lại.
+- **View (`src/view`):** `MainWindow` chứa các màn hình bằng `CardLayout`; component dùng chung nằm trong `view/components`, màu sắc/font ở `view/theme/Theme`.
+- **Tests (`test`):** Unit test JUnit 5 cho luật chơi, AI và controller.
 
 ## Hướng dẫn cài đặt
 
 ### Yêu cầu hệ thống
-- **Java Development Kit (JDK):** Yêu cầu phiên bản 8 trở lên (Khuyến khích dùng Java 11 hoặc 17).
-- **Biến môi trường:** Đảm bảo bạn đã cài đặt biến `JAVA_HOME` và các lệnh `java`, `javac` có thể chạy được từ Terminal/Command Prompt.
+- **Java Development Kit (JDK):** Phiên bản 17 trở lên.
+- **Apache Maven:** 3.8 trở lên (tự tải thư viện FlatLaf).
 - **IDE (Tùy chọn nhưng khuyên dùng):** IntelliJ IDEA, Eclipse, hoặc Visual Studio Code (kèm gói Java Extension).
 
 ### Cài đặt & Chạy bằng Command Line (Terminal)
@@ -208,23 +226,29 @@ Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controll
    ```bash
    cd heuristic-caro-nxn
    ```
-3. **Biên dịch code (Compile):**
-   Đứng tại thư mục gốc của dự án, chạy lệnh sau để build code vào thư mục `out/production/TicTacToe`:
+3. **Chạy game trực tiếp:**
    ```bash
-   javac -d out/production/TicTacToe -sourcepath src src/main/RunGame.java
+   mvn compile exec:java
    ```
-4. **Khởi chạy Game:**
+4. **Hoặc đóng gói thành file jar rồi chạy:**
    ```bash
-   java -cp out/production/TicTacToe main.RunGame
+   mvn package
+   java -jar target/caro-nxn.jar
+   ```
+5. **Chạy unit test:**
+   ```bash
+   mvn test
    ```
 
 ### Chạy bằng IntelliJ IDEA (Dành cho người mới)
 1. Mở IntelliJ IDEA, chọn nút **Open**.
-2. Tìm đến thư mục `heuristic-caro-nxn` vừa tải về và ấn **OK**.
-3. Nhấn chuột phải vào thư mục `src/`, chọn **Mark Directory as > Sources Root**.
-4. Mở file `src/main/RunGame.java`.
-5. Nhấn vào nút **Run** (hình tam giác màu xanh lá cây) ở đầu file để khởi chạy game.
+2. Chọn file `pom.xml` trong thư mục `heuristic-caro-nxn` và mở **as a Project**.
+3. Chờ Maven tải thư viện xong.
+4. Mở `src/main/RunGame.java` và nhấn nút **Run** (tam giác xanh) cạnh hàm `main`.
 
 ## Sử dụng & Cấu hình
-**Chế độ Cheat (Nút Undo):**
-Mặc định game áp dụng luật thi đấu nghiêm ngặt (hạ thủ bất hoàn - không được đi lại). Tuy nhiên, bạn có thể vào menu **Settings** và bật tính năng **"Enable Cheat Mode (Undo)"**. Khi vào game, nút Undo sẽ xuất hiện cho phép bạn quay ngược thời gian bao nhiêu lần tùy thích. (Khi đánh với AI, bấm Undo sẽ lùi lại cả lượt của bạn và lượt của AI).
+**Settings** (tự lưu giữa các lần mở game):
+- **Background music** / **Sound effects:** bật/tắt nhạc nền và hiệu ứng âm thanh.
+- **Allow undo:** mặc định tắt (hạ thủ bất hoàn). Khi bật, nút Undo (`Ctrl+Z`) sẽ xuất hiện trong ván. Khi đánh với AI, Undo lùi cả lượt của bạn và lượt của AI.
+
+**Điều khiển:** lăn chuột để zoom, kéo để di chuyển bàn cờ, `F` vừa khung, `R` chơi lại, `Esc` quay lại.
