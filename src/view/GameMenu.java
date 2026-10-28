@@ -14,6 +14,7 @@ public class GameMenu extends JFrame {
     private JPanel cardPanel;
     private int gridSize = 3;
     private boolean isCheatModeEnabled = false;
+    private JPanel currentGamePanel;
 
     private String selectPath = "/assets/Select.wav";
     private String scrollPath = "/assets/Scroll.wav";
@@ -35,7 +36,6 @@ public class GameMenu extends JFrame {
         BackgroundPanel bgnewgame = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgtwoplayer = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgoneplayer = new BackgroundPanel(backgroundPath);
-        BackgroundPanel bgnxntwoplayer = new BackgroundPanel(backgroundPath);
         BackgroundPanel bgsetting = new BackgroundPanel(backgroundPath);
 
         bgmenu.setLayout(null);
@@ -92,7 +92,6 @@ public class GameMenu extends JFrame {
         cardPanel.add(bgnewgame, "NewGame");
         cardPanel.add(bgtwoplayer, "TwoPlayerPanel");
         cardPanel.add(bgoneplayer, "OnePlayerPanel");
-        cardPanel.add(bgnxntwoplayer, "TwoPlayernxnPanel");
         cardPanel.add(bgsetting, "Setting");
 
         this.add(cardPanel);
@@ -103,15 +102,24 @@ public class GameMenu extends JFrame {
     public void setGridSize(int gridSize) {
         this.gridSize = gridSize;
         BackgroundPanel bgnxntwoplayer = new BackgroundPanel(backgroundPath);
-        TwoPlayerNxnPanel twoPlayerNxnPanel = new TwoPlayerNxnPanel(this, bgnxntwoplayer, this.gridSize);
-        cardPanel.add(bgnxntwoplayer, "TwoPlayernxnPanel");
+        new TwoPlayerNxnPanel(this, bgnxntwoplayer, this.gridSize);
+        replaceGamePanel(bgnxntwoplayer, "TwoPlayernxnPanel");
     }
 
     public void setGridSizeVS_AI(int gridSize) {
         this.gridSize = gridSize;
         BackgroundPanel bgoneplayernxn = new BackgroundPanel(backgroundPath);
-        TwoPlayerNxnPanel nxnPanel = new TwoPlayerNxnPanel(this, bgoneplayernxn, this.gridSize, true);
-        cardPanel.add(bgoneplayernxn, "OnePlayerNxnPanel");
+        new TwoPlayerNxnPanel(this, bgoneplayernxn, this.gridSize, true);
+        replaceGamePanel(bgoneplayernxn, "OnePlayerNxnPanel");
+    }
+
+    // Only one game board lives at a time; drop the previous one so boards don't pile up in memory
+    private void replaceGamePanel(JPanel panel, String name) {
+        if (currentGamePanel != null) {
+            cardPanel.remove(currentGamePanel);
+        }
+        currentGamePanel = panel;
+        cardPanel.add(panel, name);
     }
 
     public CardLayout getCardLayout() { return cardLayout; }
