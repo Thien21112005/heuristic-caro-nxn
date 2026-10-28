@@ -7,7 +7,6 @@ import utils.ResourceUtils;
 import utils.SoundPlayer;
 
 import javax.swing.*;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -403,7 +402,6 @@ public class TwoPlayerNxnPanel extends JPanel {
             updateGridSize(); 
         } else {
             try {
-                UIManager.setLookAndFeel(new NimbusLookAndFeel());
                 gameModel.setXTurn(true);
                 CustomDialog.showDialog(gameMenu, "Hold on, you haven't made any moves yet!", "Hold On", CustomDialog.MESSAGE_OPTION);
             } catch (Exception e) {

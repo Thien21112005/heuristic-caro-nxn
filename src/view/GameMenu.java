@@ -3,7 +3,6 @@ package view;
 import controller.*;
 import utils.SoundPlayer;
 import javax.swing.*;
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
