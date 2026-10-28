@@ -28,10 +28,10 @@ public class BoardView extends JComponent {
     private final GameModel model;
     private final int n;
 
-    private final Image xImage = ResourceUtils.getImageIcon("/assets/x_image_funny.png").getImage();
-    private final Image oImage = ResourceUtils.getImageIcon("/assets/o_image_funny.png").getImage();
-    private final Map<Integer, Image> xCache = new HashMap<>();
-    private final Map<Integer, Image> oCache = new HashMap<>();
+    private static final Image X_IMAGE = ResourceUtils.getImageIcon("/assets/x_image_funny.png").getImage();
+    private static final Image O_IMAGE = ResourceUtils.getImageIcon("/assets/o_image_funny.png").getImage();
+    private static final Map<Integer, Image> X_CACHE = new HashMap<>();
+    private static final Map<Integer, Image> O_CACHE = new HashMap<>();
 
     private int cell = 48;
     private int hoverRow = -1;
@@ -319,19 +319,20 @@ public class BoardView extends JComponent {
         int s = cell - inset * 2;
         if (s <= 0) return;
         if (scale >= 0.999f) {
-            g2.drawImage(scaled(player, s), x + inset, y + inset, null);
+            g2.drawImage(pieceImage(player, s), x + inset, y + inset, null);
         } else {
             int ss = Math.max(1, Math.round(s * scale));
             int off = (cell - ss) / 2;
-            g2.drawImage(scaled(player, s), x + off, y + off, ss, ss, null);
+            g2.drawImage(pieceImage(player, s), x + off, y + off, ss, ss, null);
         }
     }
 
-    private Image scaled(int player, int size) {
-        Map<Integer, Image> cache = player == GameModel.X ? xCache : oCache;
+    /** The X or O artwork at the given pixel size (cached). Must be called on the EDT. */
+    public static Image pieceImage(int player, int size) {
+        Map<Integer, Image> cache = player == GameModel.X ? X_CACHE : O_CACHE;
         return cache.computeIfAbsent(size, s -> player == GameModel.X
-                ? highQualityScale(xImage, s, false)
-                : highQualityScale(oImage, s, true));
+                ? highQualityScale(X_IMAGE, s, false)
+                : highQualityScale(O_IMAGE, s, true));
     }
 
     /**
