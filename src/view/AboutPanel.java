@@ -12,7 +12,7 @@ import java.awt.event.KeyEvent;
  * Credits plus a short "how to play" so new players know the rules and controls.
  */
 public class AboutPanel extends BackgroundPanel {
-    public static final String VERSION = "1.1.0";
+    public static final String VERSION = "1.2.0";
     private static final int CARD_WIDTH = 560;
 
     public AboutPanel(MainWindow window) {
