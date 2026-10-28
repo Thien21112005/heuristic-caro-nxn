@@ -73,7 +73,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 8.5 LanHost / LanClient
 - ✅ 8.6 Test loopback cả ván
 - ✅ 8.7 UDP discovery
-- ⬜ 8.8 NetworkGameController
+- ✅ 8.8 NetworkGameController
 - ⬜ 8.9 Lobby: tab Tạo phòng
 - ⬜ 8.10 Lobby: tab Vào phòng
 - ⬜ 8.11 GamePanel chế độ LAN

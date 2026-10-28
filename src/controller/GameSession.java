@@ -19,6 +19,12 @@ public interface GameSession {
         void onAiThinking(boolean thinking);
         /** Called about ten times a second while a timed turn is running. */
         default void onClockTick(long remainingMs) {}
+        /** LAN: the opponent wants a new round; answer with NetworkGameController.answerRestart. */
+        default void onRestartRequested() {}
+        /** LAN: the opponent said no to a new round. */
+        default void onRestartDeclined() {}
+        /** LAN: the link is gone ("bye", "timeout", "desync", ...). */
+        default void onConnectionLost(String reason) {}
     }
 
     void setListener(Listener listener);

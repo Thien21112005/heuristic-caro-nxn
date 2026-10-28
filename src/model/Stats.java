@@ -35,6 +35,7 @@ public final class Stats {
     public static Stats get() { return INSTANCE; }
 
     public static String bucket(GameMode mode, Difficulty difficulty) {
+        if (mode == GameMode.LAN) return "LAN";
         return mode == GameMode.TWO_PLAYERS ? TWO_PLAYERS : "VS_AI." + difficulty.name();
     }
 
