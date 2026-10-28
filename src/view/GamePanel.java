@@ -331,7 +331,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private String scoreLine() {
         String a = mode == GameMode.VS_AI ? "You" : "Player 1";
         String b = mode == GameMode.VS_AI ? "AI" : "Player 2";
-        String line = a + "  " + scoreX + " – " + scoreO + "  " + b;
+        // The dialog renders HTML, so plain double spaces would collapse
+        String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scoreX + " – " + scoreO + "</b>&nbsp;&nbsp;" + b;
         if (draws > 0) line += "\n" + draws + (draws == 1 ? " draw" : " draws");
         return line;
     }
