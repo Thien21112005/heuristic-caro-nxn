@@ -452,5 +452,6 @@ public class TwoPlayerNxnPanel extends JPanel {
         winnerLabelO.setVisible(false);
         enableBoard();
         updateTurnIndicator();
+        grid.repaint();
     }
 }
