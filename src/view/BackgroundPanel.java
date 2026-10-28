@@ -12,11 +12,20 @@ import java.awt.*;
  */
 public class BackgroundPanel extends JPanel {
     private final Image backgroundImage;
+    private int overlayAlpha = 120;
+    private int vignetteAlpha = 230;
 
     public BackgroundPanel(String imagePath) {
         this.backgroundImage = ResourceUtils.getImageIcon(imagePath).getImage();
         setBackground(Theme.BG);
         setLayout(null);
+    }
+
+    /** How much the artwork is darkened: a flat overlay plus a stronger vignette at the edges. */
+    public void setDim(int overlayAlpha, int vignetteAlpha) {
+        this.overlayAlpha = overlayAlpha;
+        this.vignetteAlpha = vignetteAlpha;
+        repaint();
     }
 
     @Override
@@ -36,12 +45,12 @@ public class BackgroundPanel extends JPanel {
             g2.drawImage(backgroundImage, (w - dw) / 2, (h - dh) / 2, dw, dh, this);
         }
 
-        g2.setColor(Theme.alpha(Theme.BG, 120));
+        g2.setColor(Theme.alpha(Theme.BG, overlayAlpha));
         g2.fillRect(0, 0, w, h);
         float radius = Math.max(w, h) * 0.75f;
         g2.setPaint(new RadialGradientPaint(w / 2f, h / 2f, radius,
                 new float[]{0f, 1f},
-                new Color[]{Theme.alpha(Theme.BG, 0), Theme.alpha(Theme.BG, 230)}));
+                new Color[]{Theme.alpha(Theme.BG, 0), Theme.alpha(Theme.BG, vignetteAlpha)}));
         g2.fillRect(0, 0, w, h);
         g2.dispose();
     }

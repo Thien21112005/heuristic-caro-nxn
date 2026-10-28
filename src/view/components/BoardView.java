@@ -224,7 +224,7 @@ public class BoardView extends JComponent {
         // Board surface
         g2.setColor(Theme.alpha(Color.BLACK, 70));
         g2.fillRoundRect(PAD - 2, PAD + 4, size + 4, size + 4, arc, arc);
-        g2.setPaint(new GradientPaint(0, PAD, new Color(0x1B1F3F), 0, PAD + size, new Color(0x131631)));
+        g2.setPaint(new GradientPaint(0, PAD, new Color(0x2D3366), 0, PAD + size, new Color(0x242A57)));
         g2.fillRoundRect(PAD, PAD, size, size, arc, arc);
 
         // Winning cells highlight
@@ -253,7 +253,7 @@ public class BoardView extends JComponent {
         // Grid
         Shape clip = g2.getClip();
         g2.clip(new java.awt.geom.RoundRectangle2D.Float(PAD, PAD, size, size, arc, arc));
-        g2.setColor(Theme.alpha(Theme.BORDER, n <= 5 ? 255 : 190));
+        g2.setColor(n <= 5 ? new Color(0x5A62A8) : new Color(0x474E8E));
         float line = n <= 5 ? 2f : 1f;
         g2.setStroke(new BasicStroke(line));
         for (int i = 1; i < n; i++) {
@@ -262,8 +262,8 @@ public class BoardView extends JComponent {
             g2.drawLine(PAD, p, PAD + size, p);
         }
         g2.setClip(clip);
-        g2.setColor(Theme.alpha(Theme.ACCENT, 70));
-        g2.setStroke(new BasicStroke(1.2f));
+        g2.setColor(Theme.alpha(Theme.ACCENT_HOVER, 130));
+        g2.setStroke(new BasicStroke(1.5f));
         g2.drawRoundRect(PAD, PAD, size, size, arc, arc);
 
         // Pieces

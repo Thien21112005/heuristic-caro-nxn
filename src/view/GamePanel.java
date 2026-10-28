@@ -43,6 +43,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     public GamePanel(MainWindow window, GameMode mode, int size) {
         super("/assets/Background.jpg");
+        setDim(40, 150);
         this.window = window;
         this.mode = mode;
         this.controller = new GameController(size, mode);

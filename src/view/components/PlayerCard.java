@@ -71,14 +71,14 @@ public class PlayerCard extends JComponent {
             g2.setColor(Theme.alpha(accent, 40));
             g2.fillRoundRect(-2, y0 - 2, w + 3, h + 3, Theme.RADIUS_LG + 4, Theme.RADIUS_LG + 4);
         }
-        g2.setColor(Theme.alpha(Theme.SURFACE, active ? 240 : 200));
+        g2.setColor(Theme.alpha(Theme.SURFACE_ALT, active ? 245 : 215));
         g2.fillRoundRect(0, y0, w - 1, h - 1, Theme.RADIUS_LG, Theme.RADIUS_LG);
         g2.setColor(active ? Theme.alpha(accent, 200) : Theme.alpha(Theme.BORDER, 200));
         g2.setStroke(new BasicStroke(active ? 2f : 1f));
         g2.drawRoundRect(0, y0, w - 1, h - 1, Theme.RADIUS_LG, Theme.RADIUS_LG);
 
         if (!active) {
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6f));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
         }
 
         // Piece in a tinted circle
