@@ -5,7 +5,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 **Chú thích:** ⬜ chưa làm · ✅ xong · ⏭️ bỏ qua / đổi phương án (có ghi chú)
 
 ## Giai đoạn 0: Nền móng (`feat/foundation`)
-- ⬜ 0.1 CI chạy `mvn verify`
+- ✅ 0.1 CI chạy `mvn verify`
 - ⬜ 0.2 Badge CI trong README
 - ⬜ 0.3 Nén nhạc nền 22 kHz mono
 - ⬜ 0.4 Icon ứng dụng
