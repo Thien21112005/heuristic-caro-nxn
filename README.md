@@ -33,6 +33,7 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 - **Friendly dialogs:** Centered cards over a dimmed window; "Play again" or "View board" after a game.
 - **Keyboard shortcuts:** `Ctrl+Z` undo, `R` restart, `F` fit board, `+`/`-` zoom, `Esc` back.
 - **Audio settings:** Background music and sound effects can be switched off; clips load on a background thread.
+- **English & Tiếng Việt:** switch language in Settings; every screen reloads instantly.
 
 ## In-Depth AI Algorithm
 
@@ -159,6 +160,7 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 - **Hộp thoại thân thiện:** Hiện giữa màn hình trên nền mờ; sau ván có "Play again" hoặc "View board".
 - **Phím tắt:** `Ctrl+Z` đi lại, `R` chơi lại, `F` vừa khung, `+`/`-` zoom, `Esc` quay lại.
 - **Cài đặt âm thanh:** Bật/tắt nhạc nền và hiệu ứng; âm thanh được nạp ở luồng riêng nên không làm giật giao diện.
+- **Tiếng Việt & English:** đổi ngôn ngữ trong Cài đặt, mọi màn hình cập nhật ngay.
 
 ## Phân tích sâu Thuật toán AI
 
