@@ -101,6 +101,63 @@ class GameControllerTest {
         assertEquals(GameModel.O, (int) onEdt(() -> gc.getModel().getCell(0, 0)));
     }
 
+    private static GameController aiOpens() throws Exception {
+        return onEdt(() -> {
+            GameController gc = new GameController(10, GameMode.VS_AI,
+                    model.ai.Difficulty.NORMAL.createAi(), GameModel.O);
+            gc.start();
+            return gc;
+        });
+    }
+
+    @Test
+    void aiPlayingXOpensTheGame() throws Exception {
+        GameController gc = aiOpens();
+        assertTrue(onEdt(gc::isAiThinking));
+        assertFalse(onEdt(gc::acceptsInput));
+        Thread.sleep(AI_WAIT_MS);
+        assertEquals(1, (int) onEdt(() -> gc.getModel().movesBy(GameModel.X)));
+        assertEquals(GameModel.O, (int) onEdt(() -> gc.getModel().getCurrentPlayer()));
+        assertTrue(onEdt(gc::acceptsInput));
+    }
+
+    @Test
+    void cannotUndoTheAiOpeningMove() throws Exception {
+        GameController gc = aiOpens();
+        Thread.sleep(AI_WAIT_MS);
+        assertFalse(onEdt(gc::canUndo));
+        onEdt(() -> { gc.undo(); return null; });
+        assertEquals(1, (int) onEdt(() -> gc.getModel().getMoveCount()), "opening move must stay");
+    }
+
+    @Test
+    void undoWhenAiMovedFirstReturnsToThePlayersTurn() throws Exception {
+        GameController gc = aiOpens();
+        Thread.sleep(AI_WAIT_MS);
+        int[] free = onEdt(() -> {
+            int[][] b = gc.getModel().getBoard();
+            for (int r = 0; r < 10; r++) for (int c = 0; c < 10; c++) if (b[r][c] == 0) return new int[]{r, c};
+            return null;
+        });
+        onEdt(() -> { gc.play(free[0], free[1]); return null; });
+        Thread.sleep(AI_WAIT_MS); // AI replies
+        assertEquals(3, (int) onEdt(() -> gc.getModel().getMoveCount()));
+        onEdt(() -> { gc.undo(); return null; });
+        assertEquals(1, (int) onEdt(() -> gc.getModel().getMoveCount()), "undo removes the reply and the player's move");
+        assertEquals(GameModel.O, (int) onEdt(() -> gc.getModel().getCurrentPlayer()));
+        assertFalse(onEdt(gc::isAiThinking));
+    }
+
+    @Test
+    void restartLetsTheAiOpenAgain() throws Exception {
+        GameController gc = aiOpens();
+        Thread.sleep(AI_WAIT_MS);
+        onEdt(() -> { gc.restart(); return null; });
+        assertTrue(onEdt(gc::isAiThinking));
+        Thread.sleep(AI_WAIT_MS);
+        assertEquals(1, (int) onEdt(() -> gc.getModel().getMoveCount()));
+    }
+
     @Test
     void twoPlayerUndoTakesBackOneMove() throws Exception {
         GameController gc = onEdt(() -> new GameController(3, GameMode.TWO_PLAYERS));
