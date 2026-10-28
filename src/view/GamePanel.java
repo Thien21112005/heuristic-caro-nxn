@@ -42,6 +42,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final JLabel status = new JLabel("", SwingConstants.CENTER);
     private final AppButton undo;
     private final AppButton hint;
+    private final AppButton resign;
 
     private final int[] scores = new int[2];
     private int draws;
@@ -97,12 +98,16 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         hint.setToolTipText(I18n.t("game.hint.tooltip"));
         hint.addActionListener(e -> showHint());
         hint.setVisible(Settings.get().isHintsEnabled());
+        resign = new AppButton(I18n.t("game.resign"), AppButton.Variant.GHOST).setAccent(Theme.DANGER);
+        resign.setToolTipText(I18n.t("game.resign.tooltip"));
+        resign.addActionListener(e -> requestResign());
         AppButton restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
         restart.setToolTipText(I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actions.setOpaque(false);
+        actions.add(resign);
         actions.add(hint);
         actions.add(undo);
         actions.add(restart);
@@ -212,6 +217,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
         undo.setEnabled(controller.canUndo());
         hint.setEnabled(controller.acceptsInput());
+        resign.setEnabled(inProgress());
         if (model.getMoveCount() == 0) hintsUsed = 0;
         board.stateChanged();
         lastTickSecond = -1;
@@ -295,6 +301,16 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         }
         cancelGameOverDialog();
         controller.undo();
+    }
+
+    private void requestResign() {
+        if (!inProgress()) return;
+        int loser = mode == GameMode.VS_AI ? controller.getHumanSide() : model.getCurrentPlayer();
+        controller.pauseClock();
+        int option = CustomDialog.confirm(window, I18n.t("game.resign.title", nameOf(loser)),
+                I18n.t("game.resign.message"), I18n.t("game.resign.confirm"), I18n.t("common.cancel"), true);
+        controller.resumeClock();
+        if (option == CustomDialog.YES_OPTION) controller.resign();
     }
 
     private void requestRestart() {
@@ -393,6 +409,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int winner = model.getWinner();
         if (winner == GameModel.EMPTY) return I18n.t("game.status.draw");
         if (model.getEndReason() == EndReason.TIMEOUT) return I18n.t("game.result.timeout", nameOf(winner));
+        if (model.getEndReason() == EndReason.RESIGN) {
+            return I18n.t("game.result.resigned", nameOf(GameModel.opponent(winner)), nameOf(winner));
+        }
         if (mode == GameMode.VS_AI) {
             return I18n.t(winner == controller.getHumanSide() ? "game.result.youWin" : "game.result.aiWins");
         }

@@ -148,6 +148,15 @@ public class GameController {
         maybeStartAi();
     }
 
+    /** The player gives up: the human against the AI, otherwise whoever is to move. */
+    public void resign() {
+        if (model.isOver()) return;
+        cancelAi();
+        int loser = mode == GameMode.VS_AI ? humanSide : model.getCurrentPlayer();
+        model.forfeit(loser, EndReason.RESIGN);
+        afterMove();
+    }
+
     public void restart() {
         cancelAi();
         model.reset();

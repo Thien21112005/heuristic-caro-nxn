@@ -183,6 +183,23 @@ class GameControllerTest {
     }
 
     @Test
+    void resignAgainstTheAiAlwaysLosesForTheHuman() throws Exception {
+        GameController gc = onEdt(() -> new GameController(10, GameMode.VS_AI));
+        onEdt(() -> { gc.play(5, 5); gc.resign(); return null; }); // AI is thinking right now
+        assertEquals(GameModel.O, (int) onEdt(() -> gc.getModel().getWinner()));
+        assertEquals(model.EndReason.RESIGN, onEdt(() -> gc.getModel().getEndReason()));
+        Thread.sleep(AI_WAIT_MS);
+        assertEquals(1, (int) onEdt(() -> gc.getModel().getMoveCount()), "the AI must not move after a resignation");
+    }
+
+    @Test
+    void twoPlayerResignLosesForThePlayerToMove() throws Exception {
+        GameController gc = onEdt(() -> new GameController(10, GameMode.TWO_PLAYERS));
+        onEdt(() -> { gc.play(0, 0); gc.resign(); return null; }); // O to move resigns
+        assertEquals(GameModel.X, (int) onEdt(() -> gc.getModel().getWinner()));
+    }
+
+    @Test
     void twoPlayerUndoTakesBackOneMove() throws Exception {
         GameController gc = onEdt(() -> new GameController(3, GameMode.TWO_PLAYERS));
         onEdt(() -> { gc.play(0, 0); gc.play(1, 1); gc.undo(); return null; });
