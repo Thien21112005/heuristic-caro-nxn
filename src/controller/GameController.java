@@ -1,8 +1,9 @@
 package controller;
 
-import model.GameAI;
 import model.GameMode;
 import model.GameModel;
+import model.ai.AiStrategy;
+import model.ai.Difficulty;
 
 import javax.swing.Timer;
 import java.util.Random;
@@ -27,7 +28,7 @@ public class GameController {
 
     private final GameModel model;
     private final GameMode mode;
-    private final GameAI ai;
+    private final AiStrategy ai;
     private final Random random = new Random();
     private Listener listener;
     private Timer aiTimer;
@@ -35,7 +36,7 @@ public class GameController {
     public GameController(int size, GameMode mode) {
         this.model = new GameModel(size);
         this.mode = mode;
-        this.ai = mode == GameMode.VS_AI ? new GameAI(size, AI_PLAYER, HUMAN_PLAYER) : null;
+        this.ai = mode == GameMode.VS_AI ? Difficulty.NORMAL.createAi() : null;
     }
 
     public void setListener(Listener listener) { this.listener = listener; }
@@ -90,7 +91,7 @@ public class GameController {
             aiTimer = null;
             if (listener != null) listener.onAiThinking(false);
             if (model.isOver() || model.getCurrentPlayer() != AI_PLAYER) return;
-            int[] move = ai.getBestMove(model.getBoard());
+            int[] move = ai.chooseMove(model.getBoard(), AI_PLAYER);
             if (model.play(move[0], move[1])) afterMove();
         });
         aiTimer.setRepeats(false);

@@ -20,7 +20,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 1.7 Test hai bundle đủ key
 
 ## Giai đoạn 2: Độ khó AI (`feat/ai-difficulty`)
-- ⬜ 2.1 Tách `AiStrategy`, `HeuristicAi`
+- ✅ 2.1 Tách `AiStrategy`, `HeuristicAi`
 - ⬜ 2.2 AI chạy ở luồng nền
 - ⬜ 2.3 AI Dễ
 - ⬜ 2.4 `PatternEvaluator`
