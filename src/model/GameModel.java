@@ -46,6 +46,12 @@ public class GameModel {
     public int getMoveCount() { return moves.size(); }
     public boolean canUndo() { return !moves.isEmpty(); }
 
+    public int movesBy(int player) {
+        int count = 0;
+        for (int[] m : moves) if (m[2] == player) count++;
+        return count;
+    }
+
     /** Last move as {row, col, player}, or null on an empty board. */
     public int[] getLastMove() { return moves.peek(); }
 

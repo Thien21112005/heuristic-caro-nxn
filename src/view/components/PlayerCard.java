@@ -17,10 +17,10 @@ public class PlayerCard extends JComponent {
     private static final int WIDTH = 180;
     private static final int HEIGHT = 260;
 
-    private final int player;
+    private int player;
     private final String name;
     private String tag; // optional prefix for the "Plays X" line, e.g. the AI level
-    private final Color color;
+    private Color color;
     private int score;
     private Status status = Status.WAITING;
     private int dots = 0;
@@ -34,6 +34,14 @@ public class PlayerCard extends JComponent {
             dots = (dots + 1) % 4;
             repaint();
         });
+    }
+
+    /** Which piece this player has this round (sides can swap between rounds). */
+    public void setPiece(int player) {
+        if (this.player == player) return;
+        this.player = player;
+        this.color = player == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
+        repaint();
     }
 
     public void setTag(String tag) {
