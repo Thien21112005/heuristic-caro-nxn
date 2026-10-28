@@ -216,6 +216,14 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), this::requestLeave);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), fit::doClick);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0), this::toggleMoveNumbers);
+        // Replay controls; they only act while the replay bar is showing
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), () -> replayStep(() -> replayIndex - 1));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), () -> replayStep(() -> replayIndex + 1));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), () -> replayStep(() -> 0));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), () -> replayStep(() -> Integer.MAX_VALUE));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), () -> {
+            if (ensureReplay()) toggleReplayPlayback();
+        });
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0), () -> zoomBy(1));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), () -> zoomBy(1));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), () -> zoomBy(-1));
@@ -317,6 +325,19 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         revalidate();
     }
 
+    /** Opens the replay if the round is over; false while a game is still running. */
+    private boolean ensureReplay() {
+        if (!model.isOver()) return false;
+        enterReplay();
+        return true;
+    }
+
+    private void replayStep(java.util.function.IntSupplier target) {
+        if (!ensureReplay()) return;
+        stopReplayPlayback();
+        seekReplay(target.getAsInt());
+    }
+
     private void exitReplay() {
         if (!replayBar.isVisible()) return;
         stopReplayPlayback();
@@ -336,6 +357,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     }
 
     private void toggleReplayPlayback() {
+        if (replayMoves == null) return;
         if (replayTimer.isRunning()) {
             stopReplayPlayback();
             return;
