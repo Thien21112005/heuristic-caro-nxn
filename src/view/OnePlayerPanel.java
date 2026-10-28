@@ -55,7 +55,7 @@ public class OnePlayerPanel extends JPanel {
         backButton.addMouseListener(new ButtonHoverEffect(backButton, scrollPath));
         backButton.addActionListener(e -> {
             new SoundPlayer(selectPath).playOnce();
-            gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "NewGame");
+            gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
         });
 
         backgroundPanel.add(textField);

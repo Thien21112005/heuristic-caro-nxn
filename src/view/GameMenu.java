@@ -1,113 +1,72 @@
 package view;
 
-import controller.*;
 import model.Settings;
 import utils.SoundManager;
-import utils.SoundPlayer;
+
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class GameMenu extends JFrame {
-    private CardLayout cardLayout;
-    private JPanel cardPanel;
-    private int gridSize = 3;
+    public static final String MAIN_MENU = "MainMenu";
+    public static final String SETUP_AI = "OnePlayerPanel";
+    public static final String SETUP_TWO = "TwoPlayerPanel";
+    public static final String SETTINGS = "Setting";
+    public static final String ABOUT = "AboutGame";
+
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel cardPanel = new JPanel(cardLayout);
     private JPanel currentGamePanel;
 
-    private String selectPath = "/assets/Select.wav";
-    private String scrollPath = "/assets/Scroll.wav";
-    private String backgroundPath = "/assets/Background.jpg";
+    private static final String BACKGROUND_PATH = "/assets/Background.jpg";
 
-    public GameMenu(String title, String filePath) {
-        this.setTitle(title);
-        this.setSize(800, 600);
-        this.setResizable(false);
-        this.setUndecorated(true);
+    public GameMenu(String title, String musicPath) {
+        setTitle(title);
+        setSize(800, 600);
+        setResizable(false);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         SoundManager.startMusic();
 
-        cardLayout = new CardLayout();
-        cardPanel = new JPanel(cardLayout);
+        BackgroundPanel bgabout = new BackgroundPanel(BACKGROUND_PATH);
+        BackgroundPanel bgtwoplayer = new BackgroundPanel(BACKGROUND_PATH);
+        BackgroundPanel bgoneplayer = new BackgroundPanel(BACKGROUND_PATH);
+        BackgroundPanel bgsetting = new BackgroundPanel(BACKGROUND_PATH);
 
-        BackgroundPanel bgmenu = new BackgroundPanel(backgroundPath);
-        BackgroundPanel bgabout = new BackgroundPanel(backgroundPath);
-        BackgroundPanel bgnewgame = new BackgroundPanel(backgroundPath);
-        BackgroundPanel bgtwoplayer = new BackgroundPanel(backgroundPath);
-        BackgroundPanel bgoneplayer = new BackgroundPanel(backgroundPath);
-        BackgroundPanel bgsetting = new BackgroundPanel(backgroundPath);
+        new AboutGamePanel(this, bgabout);
+        new TwoPlayerPanel(this, bgtwoplayer);
+        new OnePlayerPanel(this, bgoneplayer);
+        new SettingPanel(this, bgsetting);
 
-        bgmenu.setLayout(null);
+        cardPanel.add(new MainMenuPanel(this), MAIN_MENU);
+        cardPanel.add(bgabout, ABOUT);
+        cardPanel.add(bgtwoplayer, SETUP_TWO);
+        cardPanel.add(bgoneplayer, SETUP_AI);
+        cardPanel.add(bgsetting, SETTINGS);
 
-        JButton newGameButton = new CustomButton("New Game");
-        JButton settingButton = new CustomButton("Setting");
-        JButton multiplayerButton = new CustomButton("Multiplayer");
-        JButton aboutGameButton = new CustomButton("About Game");
-        JButton exitButton = new CustomButton("Exit");
+        setContentPane(cardPanel);
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
 
-        settingButton.addActionListener(e -> {
-            new SoundPlayer(selectPath).playOnce();
-            cardLayout.show(cardPanel, "Setting");
-        });
-        multiplayerButton.addActionListener(new UnderConstructionAction(this));
+    public void showScreen(String name) {
+        cardLayout.show(cardPanel, name);
+    }
 
-        newGameButton.setBounds(250, 160, 300, 60);
-        settingButton.setBounds(250, 250, 300, 60);
-        multiplayerButton.setBounds(250, 340, 300, 60);
-        aboutGameButton.setBounds(250, 430, 300, 60);
-        exitButton.setBounds(50, 530, 100, 30);
-
-        newGameButton.addMouseListener(new ButtonHoverEffect(newGameButton, scrollPath));
-        newGameButton.addActionListener(new NewGameAction(this, selectPath));
-
-        aboutGameButton.addMouseListener(new ButtonHoverEffect(aboutGameButton, scrollPath));
-        aboutGameButton.addActionListener(new AboutGameAction(this, selectPath));
-
-        exitButton.addMouseListener(new ButtonHoverEffect(exitButton, scrollPath));
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int confirm = CustomDialog.showDialog(GameMenu.this, "Are you sure you want to quit the game?", "Exit Confirmation", CustomDialog.YES_NO_OPTION);
-                if (confirm == CustomDialog.YES_OPTION) {
-                    System.exit(0);
-                }
-            }
-        });
-
-        bgmenu.add(newGameButton);
-        bgmenu.add(settingButton);
-        bgmenu.add(multiplayerButton);
-        bgmenu.add(aboutGameButton);
-        bgmenu.add(exitButton);
-
-        AboutGamePanel aboutGamePanel = new AboutGamePanel(this, bgabout);
-        NewGamePanel newGamePanel = new NewGamePanel(this, bgnewgame);
-        TwoPlayerPanel twoPlayerPanel = new TwoPlayerPanel(this, bgtwoplayer);
-        OnePlayerPanel onePlayerPanel = new OnePlayerPanel(this, bgoneplayer);
-        SettingPanel settingPanel = new SettingPanel(this, bgsetting);
-
-        cardPanel.add(bgmenu, "MainMenu");
-        cardPanel.add(bgabout, "AboutGame");
-        cardPanel.add(bgnewgame, "NewGame");
-        cardPanel.add(bgtwoplayer, "TwoPlayerPanel");
-        cardPanel.add(bgoneplayer, "OnePlayerPanel");
-        cardPanel.add(bgsetting, "Setting");
-
-        this.add(cardPanel);
-        this.setLocationRelativeTo(null);
-        this.setVisible(true);
+    public void requestQuit() {
+        int confirm = CustomDialog.confirm(this, "Quit the game?", "See you next time!", "Quit", "Cancel", true);
+        if (confirm == CustomDialog.YES_OPTION) {
+            System.exit(0);
+        }
     }
 
     public void setGridSize(int gridSize) {
-        this.gridSize = gridSize;
-        BackgroundPanel bgnxntwoplayer = new BackgroundPanel(backgroundPath);
-        new TwoPlayerNxnPanel(this, bgnxntwoplayer, this.gridSize);
+        BackgroundPanel bgnxntwoplayer = new BackgroundPanel(BACKGROUND_PATH);
+        new TwoPlayerNxnPanel(this, bgnxntwoplayer, gridSize);
         replaceGamePanel(bgnxntwoplayer, "TwoPlayernxnPanel");
     }
 
     public void setGridSizeVS_AI(int gridSize) {
-        this.gridSize = gridSize;
-        BackgroundPanel bgoneplayernxn = new BackgroundPanel(backgroundPath);
-        new TwoPlayerNxnPanel(this, bgoneplayernxn, this.gridSize, true);
+        BackgroundPanel bgoneplayernxn = new BackgroundPanel(BACKGROUND_PATH);
+        new TwoPlayerNxnPanel(this, bgoneplayernxn, gridSize, true);
         replaceGamePanel(bgoneplayernxn, "OnePlayerNxnPanel");
     }
 
@@ -122,7 +81,7 @@ public class GameMenu extends JFrame {
 
     public CardLayout getCardLayout() { return cardLayout; }
     public JPanel getCardPanel() { return cardPanel; }
-    
+
     public boolean isCheatModeEnabled() { return Settings.get().isUndoEnabled(); }
     public void setCheatModeEnabled(boolean enabled) { Settings.get().setUndoEnabled(enabled); }
 }

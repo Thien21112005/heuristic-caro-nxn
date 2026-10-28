@@ -76,7 +76,7 @@ public class TwoPlayerPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 SoundPlayer sound = new SoundPlayer(selectPath);
                 sound.playOnce();
-                gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "NewGame");
+                gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
             }
         });
 
