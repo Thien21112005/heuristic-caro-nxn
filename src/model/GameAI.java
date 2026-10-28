@@ -38,7 +38,7 @@ public class GameAI {
             }
         }
         
-        if (bestScore == 0) {
+        if (bestScore == 0 && board[n / 2][n / 2] == 0) {
             bestMove[0] = n / 2;
             bestMove[1] = n / 2;
         }
