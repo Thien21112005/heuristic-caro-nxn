@@ -106,4 +106,36 @@ class GameModelTest {
         drawn.forfeit(GameModel.X, EndReason.TIMEOUT);
         assertEquals(EndReason.DRAW, drawn.getEndReason(), "a finished game cannot be forfeited");
     }
+
+    @Test
+    void movesAreReturnedOldestFirstAsCopies() {
+        GameModel model = play(10, new int[]{1, 1}, new int[]{2, 2}, new int[]{3, 3});
+        java.util.List<int[]> moves = model.getMoves();
+        assertEquals(3, moves.size());
+        assertArrayEquals(new int[]{1, 1, GameModel.X}, moves.get(0));
+        assertArrayEquals(new int[]{3, 3, GameModel.X}, moves.get(2));
+        moves.get(0)[0] = 9;
+        assertArrayEquals(new int[]{1, 1, GameModel.X}, model.getMoves().get(0), "callers must not mutate history");
+    }
+
+    @Test
+    void replayRebuildsEveryIntermediatePosition() {
+        GameModel game = play(3, new int[]{0, 0}, new int[]{1, 0}, new int[]{0, 1}, new int[]{1, 1}, new int[]{0, 2});
+        java.util.List<int[]> moves = game.getMoves();
+
+        GameModel start = GameModel.replay(3, moves, 0);
+        assertEquals(0, start.getMoveCount());
+
+        GameModel middle = GameModel.replay(3, moves, 3);
+        assertEquals(GameModel.X, middle.getCell(0, 1));
+        assertEquals(GameModel.EMPTY, middle.getCell(1, 1));
+        assertEquals(GameModel.O, middle.getCurrentPlayer());
+        assertFalse(middle.isOver());
+
+        GameModel end = GameModel.replay(3, moves, moves.size());
+        assertEquals(GameModel.X, end.getWinner());
+        assertArrayEquals(game.getWinningLine(), end.getWinningLine());
+
+        assertEquals(moves.size(), GameModel.replay(3, moves, 99).getMoveCount(), "count is clamped");
+    }
 }
