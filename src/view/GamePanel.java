@@ -92,6 +92,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         hint = new AppButton(I18n.t("game.hint"), AppButton.Variant.SECONDARY);
         hint.setToolTipText(I18n.t("game.hint.tooltip"));
         hint.addActionListener(e -> showHint());
+        hint.setVisible(Settings.get().isHintsEnabled());
         AppButton restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
         restart.setToolTipText(I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());

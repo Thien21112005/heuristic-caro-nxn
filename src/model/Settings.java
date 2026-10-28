@@ -13,6 +13,7 @@ public final class Settings {
     private static final String KEY_MUSIC = "musicEnabled";
     private static final String KEY_SFX = "sfxEnabled";
     private static final String KEY_UNDO = "undoEnabled";
+    private static final String KEY_HINTS = "hintsEnabled";
     private static final String KEY_BOARD_SIZE = "boardSize.";
     private static final String KEY_LANGUAGE = "language";
     private static final String KEY_DIFFICULTY = "difficulty";
@@ -33,6 +34,9 @@ public final class Settings {
 
     public boolean isUndoEnabled() { return prefs.getBoolean(KEY_UNDO, false); }
     public void setUndoEnabled(boolean enabled) { prefs.putBoolean(KEY_UNDO, enabled); }
+
+    public boolean isHintsEnabled() { return prefs.getBoolean(KEY_HINTS, true); }
+    public void setHintsEnabled(boolean enabled) { prefs.putBoolean(KEY_HINTS, enabled); }
 
     /** "en" or "vi"; defaults to Vietnamese on a Vietnamese system, English otherwise. */
     public String getLanguage() {

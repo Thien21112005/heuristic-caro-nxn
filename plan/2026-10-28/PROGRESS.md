@@ -40,7 +40,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 ## Giai đoạn 4: Gợi ý (`feat/hint`)
 - ✅ 4.1 Marker gợi ý trên bàn
 - ✅ 4.2 Nút Hint + phím H
-- ⬜ 4.3 Tắt gợi ý trong Settings
+- ✅ 4.3 Tắt gợi ý trong Settings
 
 ## Giai đoạn 5: Thống kê (`feat/stats`)
 - ⬜ 5.1 `Stats` store
