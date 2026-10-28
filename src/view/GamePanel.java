@@ -230,7 +230,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         if (!isShowing() || !model.isOver()) return;
         int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
                 I18n.t("game.over.viewBoard"), false);
-        if (option == CustomDialog.YES_OPTION) controller.restart();
+        if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
     }
 
     private void undoMove() {
@@ -252,7 +252,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             if (option != CustomDialog.YES_OPTION) return;
         }
         cancelGameOverDialog();
-        controller.restart();
+        // After a finished round "restart" means the next round; mid-game it replays the same one
+        if (model.isOver()) controller.newRound(config.alternateFirst());
+        else controller.restart();
     }
 
     private void requestLeave() {

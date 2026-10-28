@@ -38,6 +38,7 @@ public class SetupPanel extends BackgroundPanel {
     private SegmentedControl<Difficulty> difficulty;
     private JLabel difficultyHint;
     private SegmentedControl<Integer> side;
+    private SegmentedControl<Boolean> alternate;
 
     public SetupPanel(MainWindow window, GameMode mode) {
         super("/assets/Background.jpg");
@@ -49,8 +50,9 @@ public class SetupPanel extends BackgroundPanel {
 
         JPanel left = column();
         buildBoardColumn(left);
-        JPanel right = mode == GameMode.VS_AI ? column() : null;
-        if (right != null) buildAiOptions(right);
+        JPanel right = column();
+        if (mode == GameMode.VS_AI) buildAiOptions(right);
+        buildRoundOptions(right, mode == GameMode.VS_AI ? 24 : 0);
         refresh(); // fill dynamic text before the card measures itself
 
         RoundedPanel card = new RoundedPanel(new BorderLayout(0, 0));
@@ -68,26 +70,26 @@ public class SetupPanel extends BackgroundPanel {
         addRow(header, subtitle, 8);
         header.setBorder(BorderFactory.createEmptyBorder(0, 0, 26, 0));
 
-        JPanel body = new JPanel(new GridLayout(1, right == null ? 1 : 2, COLUMN_GAP, 0));
+        JPanel body = new JPanel(new GridLayout(1, 2, COLUMN_GAP, 0));
         body.setOpaque(false);
         left.add(Box.createVerticalGlue());
+        right.add(Box.createVerticalGlue());
         body.add(left);
-        if (right != null) {
-            right.add(Box.createVerticalGlue());
-            body.add(right);
-        }
+        body.add(right);
 
         AppButton start = new AppButton(I18n.t("setup.start"), AppButton.Variant.PRIMARY);
         start.setFont(Theme.semibold(20f));
         start.setPreferredSize(new Dimension(10, 62));
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
+            boolean swap = alternate.getSelected();
+            Settings.get().setAlternateFirst(mode, swap);
             if (mode == GameMode.VS_AI) {
                 Settings.get().setDifficulty(difficulty.getSelected());
                 Settings.get().setHumanSide(side.getSelected());
-                window.startGame(GameConfig.vsAi(size, difficulty.getSelected(), side.getSelected()));
+                window.startGame(GameConfig.vsAi(size, difficulty.getSelected(), side.getSelected(), swap));
             } else {
-                window.startGame(GameConfig.twoPlayers(size));
+                window.startGame(GameConfig.twoPlayers(size, swap));
             }
         });
         JPanel footer = new JPanel(new BorderLayout());
@@ -98,8 +100,7 @@ public class SetupPanel extends BackgroundPanel {
         card.add(header, BorderLayout.NORTH);
         card.add(body, BorderLayout.CENTER);
         card.add(footer, BorderLayout.SOUTH);
-        int columns = right == null ? 1 : 2;
-        int width = columns * COLUMN_WIDTH + (columns - 1) * COLUMN_GAP + 2 * PADDING;
+        int width = 2 * COLUMN_WIDTH + COLUMN_GAP + 2 * PADDING;
         card.setPreferredSize(new Dimension(width, card.getPreferredSize().height));
 
         JPanel center = new JPanel(new GridBagLayout());
@@ -187,6 +188,19 @@ public class SetupPanel extends BackgroundPanel {
         addRow(col, sectionLabel(I18n.t("setup.side")), 24);
         addRow(col, side, 12);
         refreshDifficultyHint();
+    }
+
+    private void buildRoundOptions(JPanel col, int gapBefore) {
+        alternate = new SegmentedControl<>();
+        alternate.add(false, I18n.t("setup.firstMove.same")).add(true, I18n.t("setup.firstMove.alternate"));
+        alternate.setSelected(Settings.get().isAlternateFirst(mode));
+        JLabel hint = new JLabel("<html><div style='width:300px'>" + I18n.t("setup.firstMove.desc") + "</div></html>");
+        hint.setFont(Theme.font(Font.PLAIN, 14f));
+        hint.setForeground(Theme.TEXT_MUTED);
+
+        addRow(col, sectionLabel(I18n.t("setup.firstMove")), gapBefore);
+        addRow(col, alternate, 12);
+        addRow(col, hint, 10);
     }
 
     private void refreshDifficultyHint() {

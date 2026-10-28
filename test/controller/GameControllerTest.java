@@ -159,6 +159,30 @@ class GameControllerTest {
     }
 
     @Test
+    void newRoundWithSwapHandsXToTheAi() throws Exception {
+        GameController gc = onEdt(() -> new GameController(10, GameMode.VS_AI));
+        onEdt(() -> { gc.play(5, 5); return null; });
+        Thread.sleep(AI_WAIT_MS);
+        onEdt(() -> { gc.newRound(true); return null; });
+        assertEquals(GameModel.O, (int) onEdt(gc::getHumanSide));
+        assertEquals(GameModel.X, (int) onEdt(gc::getAiSide));
+        assertTrue(onEdt(gc::isAiThinking), "AI now plays X and must open");
+        Thread.sleep(AI_WAIT_MS);
+        assertEquals(1, (int) onEdt(() -> gc.getModel().movesBy(GameModel.X)));
+        onEdt(() -> { gc.newRound(true); return null; });
+        assertEquals(GameModel.X, (int) onEdt(gc::getHumanSide), "sides swap back the next round");
+        assertTrue(onEdt(gc::acceptsInput));
+    }
+
+    @Test
+    void newRoundWithoutSwapKeepsSides() throws Exception {
+        GameController gc = onEdt(() -> new GameController(3, GameMode.TWO_PLAYERS));
+        onEdt(() -> { gc.play(0, 0); gc.newRound(false); return null; });
+        assertEquals(GameModel.X, (int) onEdt(gc::getHumanSide));
+        assertEquals(0, (int) onEdt(() -> gc.getModel().getMoveCount()));
+    }
+
+    @Test
     void twoPlayerUndoTakesBackOneMove() throws Exception {
         GameController gc = onEdt(() -> new GameController(3, GameMode.TWO_PLAYERS));
         onEdt(() -> { gc.play(0, 0); gc.play(1, 1); gc.undo(); return null; });

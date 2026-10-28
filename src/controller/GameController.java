@@ -31,8 +31,9 @@ public class GameController {
     private final GameModel model;
     private final GameMode mode;
     private final AiStrategy ai;
-    private final int humanSide;
-    private final int aiSide;
+    // Seat 0's piece (you / Player 1); swaps between rounds when alternating
+    private int humanSide;
+    private int aiSide;
     // One background thread shared by all games; search can take a few hundred ms
     private static final ExecutorService AI_THREAD = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "ai");
@@ -115,6 +116,17 @@ public class GameController {
         model.reset();
         fireStateChanged();
         maybeStartAi();
+    }
+
+    /**
+     * Starts the next round, optionally swapping pieces so the other side moves first.
+     */
+    public void newRound(boolean swapSides) {
+        if (swapSides) {
+            humanSide = GameModel.opponent(humanSide);
+            aiSide = GameModel.opponent(aiSide);
+        }
+        restart();
     }
 
     private void maybeStartAi() {
