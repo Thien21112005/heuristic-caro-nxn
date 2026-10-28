@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import view.components.RoundedPanel;
 import view.theme.Theme;
 
@@ -26,7 +27,7 @@ public class AboutPanel extends BackgroundPanel {
 
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         header.setOpaque(false);
-        JLabel title = new JLabel("About Caro");
+        JLabel title = new JLabel(I18n.t("about.title"));
         title.setFont(Theme.font(Font.BOLD, 28f));
         title.setForeground(Theme.TEXT);
         header.add(title);
@@ -35,21 +36,15 @@ public class AboutPanel extends BackgroundPanel {
         left(header);
         card.add(header);
 
-        card.add(paragraph("A Gomoku / Tic-Tac-Toe game for any board from 3×3 to 20×20, "
-                + "with a heuristic AI that answers instantly. Built with Java Swing and FlatLaf "
-                + "as an academic project.", 10));
+        card.add(paragraph(I18n.t("about.intro"), 10));
 
-        card.add(section("HOW TO PLAY"));
-        card.add(paragraph("<b>3×3 to 5×5:</b> fill a whole row, column or diagonal.<br>"
-                + "<b>6×6 and up:</b> line up 5 pieces in a row in any direction.<br>"
-                + "X always moves first. Against the AI you are X.", 0));
+        card.add(section(I18n.t("about.howToPlay")));
+        card.add(paragraph(I18n.t("about.rules"), 0));
 
-        card.add(section("CONTROLS"));
-        card.add(paragraph("<b>Mouse wheel</b> zoom &nbsp;·&nbsp; <b>Drag</b> pan the board<br>"
-                + "<b>Ctrl+Z</b> undo (when enabled) &nbsp;·&nbsp; <b>R</b> restart &nbsp;·&nbsp; "
-                + "<b>Esc</b> back", 0));
+        card.add(section(I18n.t("about.controls")));
+        card.add(paragraph(I18n.t("about.controls.body"), 0));
 
-        JLabel team = new JLabel("Team “Nhà Chợt Lét”  ·  © 2024  ·  For educational use only");
+        JLabel team = new JLabel(I18n.t("about.team"));
         team.setFont(Theme.font(Font.PLAIN, 12f));
         team.setForeground(Theme.TEXT_MUTED);
         team.setBorder(BorderFactory.createEmptyBorder(24, 0, 0, 0));

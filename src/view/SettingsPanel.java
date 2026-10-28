@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import model.Settings;
 import utils.SoundManager;
 import view.components.RoundedPanel;
@@ -31,27 +32,27 @@ public class SettingsPanel extends BackgroundPanel {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(BorderFactory.createEmptyBorder(32, 36, 28, 36));
 
-        JLabel title = new JLabel("Settings");
+        JLabel title = new JLabel(I18n.t("settings.title"));
         title.setFont(Theme.font(Font.BOLD, 28f));
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(title);
 
-        card.add(section("SOUND", 24));
-        card.add(row("Background music", "Loop the soundtrack while you play", settings.isMusicEnabled(), on -> {
+        card.add(section(I18n.t("settings.sound"), 24));
+        card.add(row(I18n.t("settings.music"), I18n.t("settings.music.desc"), settings.isMusicEnabled(), on -> {
             settings.setMusicEnabled(on);
             if (on) SoundManager.startMusic();
             else SoundManager.stopMusic();
         }));
         card.add(divider());
-        card.add(row("Sound effects", "Clicks, hovers and the victory jingle", settings.isSfxEnabled(),
+        card.add(row(I18n.t("settings.sfx"), I18n.t("settings.sfx.desc"), settings.isSfxEnabled(),
                 settings::setSfxEnabled));
 
-        card.add(section("GAMEPLAY", 24));
-        card.add(row("Allow undo", "Take back moves (Ctrl+Z). Vs AI it also undoes the AI's reply",
+        card.add(section(I18n.t("settings.gameplay"), 24));
+        card.add(row(I18n.t("settings.undo"), I18n.t("settings.undo.desc"),
                 settings.isUndoEnabled(), settings::setUndoEnabled));
 
-        JLabel note = new JLabel("Changes are saved automatically.");
+        JLabel note = new JLabel(I18n.t("settings.saved"));
         note.setFont(Theme.font(Font.PLAIN, 12f));
         note.setForeground(Theme.TEXT_MUTED);
         note.setAlignmentX(Component.LEFT_ALIGNMENT);
