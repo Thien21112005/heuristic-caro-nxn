@@ -46,7 +46,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 5.1 `Stats` store
 - ✅ 5.2 Test Stats
 - ✅ 5.3 Ghi kết quả ván
-- ⬜ 5.4 Màn hình Stats
+- ✅ 5.4 Màn hình Stats
 - ⬜ 5.5 Xóa thống kê
 
 ## Giai đoạn 6: Đồng hồ (`feat/turn-clock`)
