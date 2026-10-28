@@ -39,6 +39,8 @@ public class Connection implements AutoCloseable {
     private final ExecutorService sender = Executors.newSingleThreadExecutor(daemon("lan-send"));
     private final ScheduledExecutorService heartbeat = Executors.newSingleThreadScheduledExecutor(daemon("lan-heartbeat"));
     private final AtomicBoolean closed = new AtomicBoolean();
+    // Set as soon as we start hanging up, so the peer's reaction is not reported as a failure
+    private volatile boolean closingLocally;
     private volatile Listener listener;
     private volatile long lastReceived = System.currentTimeMillis();
 
@@ -105,6 +107,7 @@ public class Connection implements AutoCloseable {
 
     public void close(String byeReason) {
         if (closed.get()) return;
+        closingLocally = true;
         send(new Bye(byeReason));
         sender.shutdown();
         try {
@@ -176,6 +179,7 @@ public class Connection implements AutoCloseable {
 
     private void shutdown(String reason) {
         if (!closed.compareAndSet(false, true)) return;
+        String why = closingLocally ? "local" : reason;
         heartbeat.shutdownNow();
         sender.shutdownNow();
         try {
@@ -185,7 +189,7 @@ public class Connection implements AutoCloseable {
         }
         dispatcher.accept(() -> {
             Listener l = listener;
-            if (l != null) l.onClosed(reason);
+            if (l != null) l.onClosed(why);
         });
     }
 
