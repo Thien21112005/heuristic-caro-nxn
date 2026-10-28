@@ -22,7 +22,8 @@ public class GameModel {
     private int currentPlayer = X;
     private int winner = EMPTY;
     private boolean draw = false;
-    private int[] winningLine = null; // [startRow, startCol, endRow, endCol]
+    private int[] winningLine = null; // [startRow, startCol, endRow, endCol]; null for forfeits
+    private EndReason endReason = EndReason.NONE;
 
     public GameModel(int n) {
         this.n = n;
@@ -41,6 +42,7 @@ public class GameModel {
     public int getCurrentPlayer() { return currentPlayer; }
     public int getWinner() { return winner; }
     public boolean isDraw() { return draw; }
+    public EndReason getEndReason() { return endReason; }
     public boolean isOver() { return winner != EMPTY || draw; }
     public int[] getWinningLine() { return winningLine; }
     public int getMoveCount() { return moves.size(); }
@@ -66,16 +68,37 @@ public class GameModel {
         moves.push(new int[]{r, c, currentPlayer});
         if (checkWin(r, c, currentPlayer)) {
             winner = currentPlayer;
+            endReason = EndReason.LINE;
         } else if (moves.size() == n * n) {
             draw = true;
+            endReason = EndReason.DRAW;
         } else {
             currentPlayer = opponent(currentPlayer);
         }
         return true;
     }
 
-    /** Takes back the last move; it becomes that player's turn again. */
+    /**
+     * Ends the game with {@code loser} losing without a line (timeout, resignation,
+     * disconnect). Does nothing if the game is already over.
+     */
+    public void forfeit(int loser, EndReason reason) {
+        if (isOver()) return;
+        winner = opponent(loser);
+        winningLine = null;
+        endReason = reason;
+    }
+
+    /**
+     * Takes back the last move; it becomes that player's turn again.
+     * After a forfeit, the first undo only cancels the forfeit and keeps the board.
+     */
     public boolean undo() {
+        if (endReason == EndReason.TIMEOUT || endReason == EndReason.RESIGN) {
+            winner = EMPTY;
+            endReason = EndReason.NONE;
+            return true;
+        }
         if (moves.isEmpty()) return false;
         int[] last = moves.pop();
         board[last[0]][last[1]] = EMPTY;
@@ -83,6 +106,7 @@ public class GameModel {
         winner = EMPTY;
         draw = false;
         winningLine = null;
+        endReason = EndReason.NONE;
         return true;
     }
 
@@ -93,6 +117,7 @@ public class GameModel {
         winner = EMPTY;
         draw = false;
         winningLine = null;
+        endReason = EndReason.NONE;
     }
 
     private boolean checkWin(int r, int c, int player) {

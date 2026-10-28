@@ -72,4 +72,38 @@ class GameModelTest {
         assertEquals(GameModel.X, model.getCurrentPlayer());
         assertArrayEquals(new int[]{1, 1, GameModel.O}, model.getLastMove());
     }
+
+    @Test
+    void forfeitEndsTheGameWithoutALine() {
+        GameModel model = play(10, new int[]{0, 0}, new int[]{5, 5});
+        model.forfeit(GameModel.X, EndReason.TIMEOUT);
+        assertTrue(model.isOver());
+        assertEquals(GameModel.O, model.getWinner());
+        assertNull(model.getWinningLine());
+        assertEquals(EndReason.TIMEOUT, model.getEndReason());
+        assertFalse(model.play(1, 1));
+    }
+
+    @Test
+    void undoAfterForfeitOnlyCancelsTheForfeit() {
+        GameModel model = play(10, new int[]{0, 0}, new int[]{5, 5});
+        model.forfeit(GameModel.X, EndReason.RESIGN);
+        assertTrue(model.undo());
+        assertFalse(model.isOver());
+        assertEquals(EndReason.NONE, model.getEndReason());
+        assertEquals(2, model.getMoveCount());
+        assertEquals(GameModel.X, model.getCurrentPlayer());
+    }
+
+    @Test
+    void reportsLineAndDrawReasons() {
+        GameModel won = play(3, new int[]{0, 0}, new int[]{1, 0}, new int[]{0, 1}, new int[]{1, 1}, new int[]{0, 2});
+        assertEquals(EndReason.LINE, won.getEndReason());
+        GameModel drawn = play(3,
+                new int[]{0, 0}, new int[]{0, 1}, new int[]{0, 2}, new int[]{1, 1}, new int[]{1, 0},
+                new int[]{1, 2}, new int[]{2, 1}, new int[]{2, 0}, new int[]{2, 2});
+        assertEquals(EndReason.DRAW, drawn.getEndReason());
+        drawn.forfeit(GameModel.X, EndReason.TIMEOUT);
+        assertEquals(EndReason.DRAW, drawn.getEndReason(), "a finished game cannot be forfeited");
+    }
 }

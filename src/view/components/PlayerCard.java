@@ -25,6 +25,8 @@ public class PlayerCard extends JComponent {
     private Status status = Status.WAITING;
     private int dots = 0;
     private final Timer dotsTimer;
+    private long remainingMs = -1;   // turn clock, -1 when not shown
+    private int totalSeconds;
 
     public PlayerCard(int player, String name) {
         this.player = player;
@@ -41,6 +43,13 @@ public class PlayerCard extends JComponent {
         if (this.player == player) return;
         this.player = player;
         this.color = player == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
+        repaint();
+    }
+
+    /** Shows a countdown ring around the piece; pass -1 to hide it. */
+    public void setCountdown(long remainingMs, int totalSeconds) {
+        this.remainingMs = remainingMs;
+        this.totalSeconds = totalSeconds;
         repaint();
     }
 
@@ -105,6 +114,23 @@ public class PlayerCard extends JComponent {
         g2.setColor(Theme.alpha(color, 120));
         g2.setStroke(new BasicStroke(1.5f));
         g2.drawOval(cx, cy, circle, circle);
+        if (remainingMs >= 0 && totalSeconds > 0) {
+            boolean urgent = remainingMs <= 5_000;
+            Color ring = urgent ? Theme.DANGER : color;
+            float fraction = Math.min(1f, remainingMs / (totalSeconds * 1000f));
+            Composite before = g2.getComposite();
+            g2.setComposite(AlphaComposite.SrcOver);
+            g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.setColor(Theme.alpha(ring, 50));
+            g2.drawOval(cx - 5, cy - 5, circle + 10, circle + 10);
+            g2.setColor(ring);
+            g2.drawArc(cx - 5, cy - 5, circle + 10, circle + 10, 90, Math.round(360 * fraction));
+            String secs = String.valueOf((remainingMs + 999) / 1000);
+            g2.setFont(Theme.font(Font.BOLD, 15f));
+            FontMetrics sfm = g2.getFontMetrics();
+            g2.drawString(secs, w - 16 - sfm.stringWidth(secs), y0 + 26);
+            g2.setComposite(before);
+        }
         int img = 50;
         g2.drawImage(BoardView.pieceImage(player, img), (w - img) / 2, cy + (circle - img) / 2, null);
 

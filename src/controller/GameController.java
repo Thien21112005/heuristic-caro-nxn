@@ -1,6 +1,7 @@
 package controller;
 
 import model.GameConfig;
+import model.EndReason;
 import model.GameMode;
 import model.GameModel;
 import model.ai.AiStrategy;
@@ -13,6 +14,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.LongSupplier;
 
 /**
  * Drives a single game: validates human moves, schedules the AI reply,
@@ -25,6 +27,8 @@ public class GameController {
         /** The game just ended (win or draw). */
         void onGameOver();
         void onAiThinking(boolean thinking);
+        /** Called about ten times a second while a timed turn is running. */
+        default void onClockTick(long remainingMs) {}
     }
 
     private static final int MIN_AI_DELAY = 300;
@@ -51,6 +55,13 @@ public class GameController {
     // Bumped whenever a pending AI move becomes invalid (undo, restart, leave)
     private int generation;
 
+    // Turn clock (human turns only); deadline 0 means no clock is running
+    private int turnSeconds;
+    private LongSupplier now = System::currentTimeMillis;
+    private long deadline;
+    private long pausedRemaining = -1;
+    private Timer clockTimer;
+
     public GameController(int size, GameMode mode) {
         this(size, mode, mode == GameMode.VS_AI ? Difficulty.NORMAL.createAi() : null, GameModel.X);
     }
@@ -58,6 +69,7 @@ public class GameController {
     public GameController(GameConfig config) {
         this(config.size(), config.mode(),
                 config.mode() == GameMode.VS_AI ? config.difficulty().createAi() : null, config.humanSide());
+        this.turnSeconds = config.turnSeconds();
     }
 
     /** For tests and custom opponents: plays VS AI with the given strategy. */
@@ -82,7 +94,28 @@ public class GameController {
 
     /** Call once the listener is attached: lets the AI open when it plays X. */
     public void start() {
+        restartClock();
         maybeStartAi();
+    }
+
+    public int getTurnSeconds() { return turnSeconds; }
+
+    /** Milliseconds left in the current timed turn, or -1 when no clock is running. */
+    public long getRemainingMillis() {
+        if (deadline == 0) return -1;
+        if (pausedRemaining >= 0) return pausedRemaining;
+        return Math.max(0, deadline - now.getAsLong());
+    }
+
+    /** Freezes the clock, e.g. while a confirmation dialog is open. */
+    public void pauseClock() {
+        if (deadline != 0 && pausedRemaining < 0) pausedRemaining = getRemainingMillis();
+    }
+
+    public void resumeClock() {
+        if (pausedRemaining < 0) return;
+        deadline = now.getAsLong() + pausedRemaining;
+        pausedRemaining = -1;
     }
 
     /** Against the AI only the player's own moves can be taken back. */
@@ -110,13 +143,24 @@ public class GameController {
         while (mode == GameMode.VS_AI && model.getCurrentPlayer() != humanSide && model.canUndo()) {
             model.undo();
         }
+        restartClock();
         fireStateChanged();
         maybeStartAi();
+    }
+
+    /** The player gives up: the human against the AI, otherwise whoever is to move. */
+    public void resign() {
+        if (model.isOver()) return;
+        cancelAi();
+        int loser = mode == GameMode.VS_AI ? humanSide : model.getCurrentPlayer();
+        model.forfeit(loser, EndReason.RESIGN);
+        afterMove();
     }
 
     public void restart() {
         cancelAi();
         model.reset();
+        restartClock();
         fireStateChanged();
         maybeStartAi();
     }
@@ -159,6 +203,7 @@ public class GameController {
     /** Stops any pending AI move; call when leaving the screen. */
     public void dispose() {
         cancelAi();
+        stopClock();
         listener = null;
     }
 
@@ -211,6 +256,47 @@ public class GameController {
         }
     }
 
+    // ---- turn clock ----
+
+    /** For tests: replaces the wall clock. */
+    void setTimeSource(LongSupplier source) {
+        this.now = source;
+    }
+
+    private boolean isTimedTurn() {
+        return turnSeconds > 0 && !model.isOver()
+                && (mode == GameMode.TWO_PLAYERS || model.getCurrentPlayer() == humanSide);
+    }
+
+    private void restartClock() {
+        pausedRemaining = -1;
+        if (!isTimedTurn()) {
+            stopClock();
+            return;
+        }
+        deadline = now.getAsLong() + turnSeconds * 1000L;
+        if (clockTimer == null) {
+            clockTimer = new Timer(100, e -> tickClock());
+        }
+        clockTimer.start();
+    }
+
+    private void stopClock() {
+        deadline = 0;
+        pausedRemaining = -1;
+        if (clockTimer != null) clockTimer.stop();
+    }
+
+    /** One clock step; the player to move loses when time is up. Package-private for tests. */
+    void tickClock() {
+        if (deadline == 0) return;
+        long remaining = getRemainingMillis();
+        if (listener != null) listener.onClockTick(remaining);
+        if (remaining > 0 || pausedRemaining >= 0) return;
+        model.forfeit(model.getCurrentPlayer(), EndReason.TIMEOUT);
+        afterMove();
+    }
+
     private static int[][] copy(int[][] board) {
         int[][] out = new int[board.length][];
         for (int i = 0; i < board.length; i++) out[i] = board[i].clone();
@@ -225,6 +311,7 @@ public class GameController {
     }
 
     private void afterMove() {
+        restartClock();
         fireStateChanged();
         if (model.isOver() && listener != null) listener.onGameOver();
     }
