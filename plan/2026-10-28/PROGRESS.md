@@ -20,15 +20,15 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 1.7 Test hai bundle đủ key
 
 ## Giai đoạn 2: Độ khó AI (`feat/ai-difficulty`)
-- ⬜ 2.1 Tách `AiStrategy`, `HeuristicAi`
-- ⬜ 2.2 AI chạy ở luồng nền
-- ⬜ 2.3 AI Dễ
-- ⬜ 2.4 `PatternEvaluator`
-- ⬜ 2.5 AI Khó (alpha-beta)
-- ⬜ 2.6 Test AI Khó
-- ⬜ 2.7 Chọn độ khó ở Setup
-- ⬜ 2.8 Hiện độ khó trong game
-- ⬜ 2.9 Nhớ độ khó
+- ✅ 2.1 Tách `AiStrategy`, `HeuristicAi`
+- ✅ 2.2 AI chạy ở luồng nền
+- ✅ 2.3 AI Dễ
+- ✅ 2.4 `PatternEvaluator`
+- ✅ 2.5 AI Khó (alpha-beta)
+- ✅ 2.6 Test AI Khó
+- ✅ 2.7 Chọn độ khó ở Setup
+- ✅ 2.8 Hiện độ khó trong game
+- ✅ 2.9 Nhớ độ khó
 
 ## Giai đoạn 3: Chọn phe (`feat/sides`)
 - ⬜ 3.1 `humanSide` trong controller

@@ -57,7 +57,12 @@ class I18nTest {
             for (Path file : (Iterable<Path>) files.filter(f -> f.toString().endsWith(".java"))::iterator) {
                 Matcher m = call.matcher(Files.readString(file));
                 while (m.find()) {
-                    if (!keys.contains(m.group(1))) missing.add(m.group(1) + " (" + file.getFileName() + ")");
+                    String key = m.group(1);
+                    // "difficulty." + name is a prefix of a dynamically built key; check it has entries
+                    boolean known = key.endsWith(".")
+                            ? keys.stream().anyMatch(k -> k.startsWith(key))
+                            : keys.contains(key);
+                    if (!known) missing.add(key + " (" + file.getFileName() + ")");
                 }
             }
         }

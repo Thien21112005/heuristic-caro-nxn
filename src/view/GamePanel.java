@@ -2,6 +2,7 @@ package view;
 
 import utils.I18n;
 import controller.GameController;
+import model.GameConfig;
 import model.GameMode;
 import model.GameModel;
 import model.Settings;
@@ -29,6 +30,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final GameController controller;
     private final GameModel model;
     private final GameMode mode;
+    private final GameConfig config;
 
     private final BoardView board;
     private final JScrollPane scroll;
@@ -42,17 +44,21 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private boolean autoFit = true;
     private Timer gameOverTimer;
 
-    public GamePanel(MainWindow window, GameMode mode, int size) {
+    public GamePanel(MainWindow window, GameConfig config) {
         super("/assets/Background.jpg");
         setDim(40, 150);
         this.window = window;
-        this.mode = mode;
-        this.controller = new GameController(size, mode);
+        this.config = config;
+        this.mode = config.mode();
+        int size = config.size();
+        this.controller = new GameController(config);
         this.model = controller.getModel();
         setLayout(new BorderLayout());
 
         cardX = new PlayerCard(GameModel.X, nameOf(GameModel.X));
         cardO = new PlayerCard(GameModel.O, nameOf(GameModel.O));
+        String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty()) : null;
+        cardO.setTag(level);
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -62,7 +68,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         JPanel titles = new JPanel();
         titles.setOpaque(false);
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
-        JLabel title = new JLabel(mode.getLabel());
+        JLabel title = new JLabel(level == null ? mode.getLabel() : mode.getLabel() + "  ·  " + level);
         title.setFont(Theme.font(Font.BOLD, 20f));
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -337,6 +343,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scoreX + " – " + scoreO + "</b>&nbsp;&nbsp;" + b;
         if (draws > 0) line += "\n" + I18n.t("game.result.draws", draws);
         return line;
+    }
+
+    private static String difficultyLabel(model.ai.Difficulty difficulty) {
+        return I18n.t("difficulty." + difficulty.name().toLowerCase());
     }
 
     private String nameOf(int player) {

@@ -1,6 +1,7 @@
 package view;
 
 import utils.I18n;
+import model.GameConfig;
 import model.GameMode;
 import utils.ResourceUtils;
 import utils.SoundManager;
@@ -73,13 +74,13 @@ public class MainWindow extends JFrame {
         cardLayout.show(cardPanel, name);
     }
 
-    public void startGame(GameMode mode, int size) {
+    public void startGame(GameConfig config) {
         // Only one board lives at a time; drop the previous one so games don't pile up in memory
         if (currentGame != null) {
             currentGame.dispose();
             cardPanel.remove(currentGame);
         }
-        currentGame = new GamePanel(this, mode, size);
+        currentGame = new GamePanel(this, config);
         cardPanel.add(currentGame, GAME);
         showScreen(GAME);
     }

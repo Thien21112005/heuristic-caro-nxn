@@ -1,5 +1,7 @@
 package model;
 
+import model.ai.Difficulty;
+
 import java.util.prefs.Preferences;
 
 /**
@@ -13,6 +15,7 @@ public final class Settings {
     private static final String KEY_UNDO = "undoEnabled";
     private static final String KEY_BOARD_SIZE = "boardSize.";
     private static final String KEY_LANGUAGE = "language";
+    private static final String KEY_DIFFICULTY = "difficulty";
 
     private final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
 
@@ -35,6 +38,15 @@ public final class Settings {
         return prefs.get(KEY_LANGUAGE, fallback);
     }
     public void setLanguage(String language) { prefs.put(KEY_LANGUAGE, language); }
+
+    public Difficulty getDifficulty() {
+        try {
+            return Difficulty.valueOf(prefs.get(KEY_DIFFICULTY, Difficulty.NORMAL.name()));
+        } catch (IllegalArgumentException e) {
+            return Difficulty.NORMAL;
+        }
+    }
+    public void setDifficulty(Difficulty difficulty) { prefs.put(KEY_DIFFICULTY, difficulty.name()); }
 
     /** Last board size picked for a mode, so the setup screen remembers it. */
     public int getBoardSize(GameMode mode) { return prefs.getInt(KEY_BOARD_SIZE + mode.name(), 15); }
