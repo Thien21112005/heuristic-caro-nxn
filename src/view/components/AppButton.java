@@ -68,6 +68,12 @@ public class AppButton extends JButton {
         repaint();
     }
 
+    /** Tighter padding for icon-like or chip buttons. */
+    public AppButton compact() {
+        setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        return this;
+    }
+
     public void setSounds(boolean sounds) {
         this.sounds = sounds;
     }

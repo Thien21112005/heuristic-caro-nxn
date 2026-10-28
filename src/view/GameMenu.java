@@ -1,5 +1,6 @@
 package view;
 
+import model.GameMode;
 import model.Settings;
 import utils.SoundManager;
 
@@ -27,19 +28,15 @@ public class GameMenu extends JFrame {
         SoundManager.startMusic();
 
         BackgroundPanel bgabout = new BackgroundPanel(BACKGROUND_PATH);
-        BackgroundPanel bgtwoplayer = new BackgroundPanel(BACKGROUND_PATH);
-        BackgroundPanel bgoneplayer = new BackgroundPanel(BACKGROUND_PATH);
         BackgroundPanel bgsetting = new BackgroundPanel(BACKGROUND_PATH);
 
         new AboutGamePanel(this, bgabout);
-        new TwoPlayerPanel(this, bgtwoplayer);
-        new OnePlayerPanel(this, bgoneplayer);
         new SettingPanel(this, bgsetting);
 
         cardPanel.add(new MainMenuPanel(this), MAIN_MENU);
         cardPanel.add(bgabout, ABOUT);
-        cardPanel.add(bgtwoplayer, SETUP_TWO);
-        cardPanel.add(bgoneplayer, SETUP_AI);
+        cardPanel.add(new SetupPanel(this, GameMode.TWO_PLAYERS), SETUP_TWO);
+        cardPanel.add(new SetupPanel(this, GameMode.VS_AI), SETUP_AI);
         cardPanel.add(bgsetting, SETTINGS);
 
         setContentPane(cardPanel);
@@ -55,6 +52,16 @@ public class GameMenu extends JFrame {
         int confirm = CustomDialog.confirm(this, "Quit the game?", "See you next time!", "Quit", "Cancel", true);
         if (confirm == CustomDialog.YES_OPTION) {
             System.exit(0);
+        }
+    }
+
+    public void startGame(GameMode mode, int size) {
+        if (mode == GameMode.VS_AI) {
+            setGridSizeVS_AI(size);
+            showScreen("OnePlayerNxnPanel");
+        } else {
+            setGridSize(size);
+            showScreen("TwoPlayernxnPanel");
         }
     }
 
