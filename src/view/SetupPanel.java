@@ -81,6 +81,7 @@ public class SetupPanel extends BackgroundPanel {
         start.setPreferredSize(new Dimension(10, 62));
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
+            if (difficulty != null) Settings.get().setDifficulty(difficulty.getSelected());
             window.startGame(mode == GameMode.VS_AI
                     ? GameConfig.vsAi(size, difficulty.getSelected())
                     : GameConfig.twoPlayers(size));
@@ -170,7 +171,7 @@ public class SetupPanel extends BackgroundPanel {
         difficultyHint.setFont(Theme.font(Font.PLAIN, 14f));
         difficultyHint.setForeground(Theme.TEXT_MUTED);
         difficulty.setOnChange(d -> refreshDifficultyHint());
-        difficulty.setSelected(Difficulty.NORMAL);
+        difficulty.setSelected(Settings.get().getDifficulty());
 
         addRow(col, sectionLabel(I18n.t("setup.difficulty")), 0);
         addRow(col, difficulty, 12);

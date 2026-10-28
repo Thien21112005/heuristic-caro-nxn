@@ -28,7 +28,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 2.6 Test AI Khó
 - ✅ 2.7 Chọn độ khó ở Setup
 - ✅ 2.8 Hiện độ khó trong game
-- ⬜ 2.9 Nhớ độ khó
+- ✅ 2.9 Nhớ độ khó
 
 ## Giai đoạn 3: Chọn phe (`feat/sides`)
 - ⬜ 3.1 `humanSide` trong controller
