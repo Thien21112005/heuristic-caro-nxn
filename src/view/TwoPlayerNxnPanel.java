@@ -41,6 +41,7 @@ public class TwoPlayerNxnPanel extends JPanel {
     private JLabel winnerLabelX;
     private JLabel winnerLabelO;
     private int[] aiDelays = {400, 600, 800, 1000, 1200, 1500};
+    private Timer aiTimer;
 
     public TwoPlayerNxnPanel(GameMenu gameMenu, BackgroundPanel backgroundPanel, int n, boolean isVsAI) {
         this.gameMenu = gameMenu;
@@ -127,6 +128,7 @@ public class TwoPlayerNxnPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
+                cancelPendingAIMove();
                 gameModel.toggleTurn();
                 undo();
                 if (isVsAI && !gameModel.isXTurn()) {
@@ -142,7 +144,10 @@ public class TwoPlayerNxnPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
                 int option = CustomDialog.showDialog(gameMenu, "Leaving so soon?\nYour current game progress will be lost.", "Confirm", CustomDialog.YES_NO_OPTION);
-                if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+                if (option == CustomDialog.YES_OPTION) {
+                    cancelPendingAIMove();
+                    gameMenu.getCardLayout().show(gameMenu.getCardPanel(), "MainMenu");
+                }
             }
         });
 
@@ -151,7 +156,10 @@ public class TwoPlayerNxnPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 new SoundPlayer(selectPath).playOnce();
                 int option = CustomDialog.showDialog(gameMenu, "Leaving so soon?\nYour current game progress will be lost.", "Confirm", CustomDialog.YES_NO_OPTION);
-                if (option == CustomDialog.YES_OPTION) gameMenu.getCardLayout().show(gameMenu.getCardPanel(), isVsAI ? "NewGame" : "TwoPlayerPanel");
+                if (option == CustomDialog.YES_OPTION) {
+                    cancelPendingAIMove();
+                    gameMenu.getCardLayout().show(gameMenu.getCardPanel(), isVsAI ? "NewGame" : "TwoPlayerPanel");
+                }
             }
         });
 
@@ -260,9 +268,9 @@ public class TwoPlayerNxnPanel extends JPanel {
                                 if (isVsAI) {
                                     // Simulate AI thinking time with random delay
                                     int randomDelay = aiDelays[new java.util.Random().nextInt(aiDelays.length)];
-                                    Timer timer = new Timer(randomDelay, evt -> makeAIMove());
-                                    timer.setRepeats(false);
-                                    timer.start();
+                                    aiTimer = new Timer(randomDelay, evt -> makeAIMove());
+                                    aiTimer.setRepeats(false);
+                                    aiTimer.start();
                                 }
                             } else if (!isVsAI) {
                                 gameModel.setArrayValue(finalI, finalJ, 2);
@@ -320,7 +328,16 @@ public class TwoPlayerNxnPanel extends JPanel {
         }
     }
     
+    private void cancelPendingAIMove() {
+        if (aiTimer != null) {
+            aiTimer.stop();
+            aiTimer = null;
+        }
+    }
+
     private void makeAIMove() {
+        aiTimer = null;
+        if (gameModel.isXTurn()) return;
         int[] bestMove = ai.getBestMove(gameModel.getArray());
         int r = bestMove[0];
         int c = bestMove[1];
@@ -424,6 +441,7 @@ public class TwoPlayerNxnPanel extends JPanel {
     }
 
     private void resetGame() {
+        cancelPendingAIMove();
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 btn[i][j].setIcon(null);
