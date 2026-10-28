@@ -5,12 +5,14 @@ import model.GameMode;
 import model.GameModel;
 import model.ai.AiStrategy;
 import model.ai.Difficulty;
+import model.ai.SearchAi;
 
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 /**
  * Drives a single game: validates human moves, schedules the AI reply,
@@ -27,6 +29,7 @@ public class GameController {
 
     private static final int MIN_AI_DELAY = 300;
     private static final int MAX_AI_DELAY = 800;
+    private static final long HINT_BUDGET_MS = 300;
 
     private final GameModel model;
     private final GameMode mode;
@@ -127,6 +130,24 @@ public class GameController {
             aiSide = GameModel.opponent(aiSide);
         }
         restart();
+    }
+
+    /**
+     * Asks the hard engine for the best move for whoever is to play, off the EDT.
+     * The callback runs on the EDT, and is skipped if the position changed meanwhile.
+     */
+    public void requestHint(Consumer<int[]> onHint) {
+        if (!acceptsInput()) return;
+        int token = generation;
+        int moves = model.getMoveCount();
+        int side = model.getCurrentPlayer();
+        int[][] snapshot = copy(model.getBoard());
+        AI_THREAD.execute(() -> {
+            int[] move = new SearchAi(HINT_BUDGET_MS, random).chooseMove(snapshot, side);
+            SwingUtilities.invokeLater(() -> {
+                if (token == generation && model.getMoveCount() == moves && !model.isOver()) onHint.accept(move);
+            });
+        });
     }
 
     private void maybeStartAi() {
