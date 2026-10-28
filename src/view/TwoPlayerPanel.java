@@ -40,8 +40,10 @@ public class TwoPlayerPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sound.playOnce();
-                n++;
-                textField.setText(String.valueOf(n));
+                if (n < 20) {
+                    n++;
+                    textField.setText(String.valueOf(n));
+                }
             }
         });
 
