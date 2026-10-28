@@ -14,7 +14,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 1.1 I18n helper + bundle tiếng Anh
 - ✅ 1.2 Chuỗi Main menu + Setup
 - ✅ 1.3 Chuỗi Settings + About
-- ⬜ 1.4 Chuỗi màn hình chơi + hộp thoại
+- ✅ 1.4 Chuỗi màn hình chơi + hộp thoại
 - ⬜ 1.5 Bản dịch tiếng Việt
 - ⬜ 1.6 Chọn ngôn ngữ, đổi ngay
 - ⬜ 1.7 Test hai bundle đủ key

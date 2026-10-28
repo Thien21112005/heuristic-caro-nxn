@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import controller.GameController;
 import model.GameMode;
 import model.GameModel;
@@ -50,9 +51,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         this.model = controller.getModel();
         setLayout(new BorderLayout());
 
-        boolean vsAi = mode == GameMode.VS_AI;
-        cardX = new PlayerCard(GameModel.X, vsAi ? "You" : "Player 1");
-        cardO = new PlayerCard(GameModel.O, vsAi ? "AI" : "Player 2");
+        cardX = new PlayerCard(GameModel.X, nameOf(GameModel.X));
+        cardO = new PlayerCard(GameModel.O, nameOf(GameModel.O));
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -67,20 +67,20 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         int target = model.getTarget();
-        JLabel subtitle = new JLabel(size + " × " + size + "  ·  " + target + " in a row to win");
+        JLabel subtitle = new JLabel(I18n.t("game.subtitle", size, target));
         subtitle.setFont(Theme.font(Font.PLAIN, 13f));
         subtitle.setForeground(Theme.TEXT_MUTED);
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         titles.add(title);
         titles.add(subtitle);
 
-        AppButton menu = TopBar.backButton("Back", this::requestLeave);
-        undo = new AppButton("Undo", AppButton.Variant.SECONDARY);
-        undo.setToolTipText("Take back a move (Ctrl+Z)");
+        AppButton menu = TopBar.backButton(I18n.t("common.back"), this::requestLeave);
+        undo = new AppButton(I18n.t("game.undo"), AppButton.Variant.SECONDARY);
+        undo.setToolTipText(I18n.t("game.undo.tooltip"));
         undo.setVisible(Settings.get().isUndoEnabled());
         undo.addActionListener(e -> undoMove());
-        AppButton restart = new AppButton("Restart", AppButton.Variant.SECONDARY);
-        restart.setToolTipText("Start a new round (R)");
+        AppButton restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
+        restart.setToolTipText(I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
@@ -131,16 +131,16 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         status.setFont(Theme.semibold(17f));
         status.setForeground(Theme.TEXT);
 
-        JLabel hint = new JLabel("Scroll to zoom  ·  Drag to pan");
+        JLabel hint = new JLabel(I18n.t("game.hint.controls"));
         hint.setFont(Theme.font(Font.PLAIN, 12f));
         hint.setForeground(Theme.TEXT_MUTED);
 
-        AppButton zoomOut = zoomButton("−", "Zoom out (−)", () -> zoomBy(-1));
-        AppButton fit = zoomButton("Fit", "Fit board to window (F)", () -> {
+        AppButton zoomOut = zoomButton("−", I18n.t("game.zoomOut.tooltip"), () -> zoomBy(-1));
+        AppButton fit = zoomButton(I18n.t("game.fit"), I18n.t("game.fit.tooltip"), () -> {
             autoFit = true;
             fitBoard();
         });
-        AppButton zoomIn = zoomButton("+", "Zoom in (+)", () -> zoomBy(1));
+        AppButton zoomIn = zoomButton("+", I18n.t("game.zoomIn.tooltip"), () -> zoomBy(1));
         JPanel zoom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         zoom.setOpaque(false);
         zoom.add(zoomOut);
@@ -221,7 +221,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private void showGameOverDialog() {
         gameOverTimer = null;
         if (!isShowing() || !model.isOver()) return;
-        int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), "Play again", "View board", false);
+        int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
+                I18n.t("game.over.viewBoard"), false);
         if (option == CustomDialog.YES_OPTION) controller.restart();
     }
 
@@ -241,8 +242,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private void requestRestart() {
         if (inProgress()) {
-            int option = CustomDialog.confirm(window, "Restart this round?",
-                    "The current board will be cleared. Scores are kept.", "Restart", "Cancel", false);
+            int option = CustomDialog.confirm(window, I18n.t("game.restart.title"),
+                    I18n.t("game.restart.message"), I18n.t("game.restart.confirm"), I18n.t("common.cancel"), false);
             if (option != CustomDialog.YES_OPTION) return;
         }
         cancelGameOverDialog();
@@ -251,8 +252,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private void requestLeave() {
         if (inProgress()) {
-            int option = CustomDialog.confirm(window, "Leave this game?",
-                    "Your current progress and scores will be lost.", "Leave", "Stay", true);
+            int option = CustomDialog.confirm(window, I18n.t("game.leave.title"),
+                    I18n.t("game.leave.message"), I18n.t("game.leave.confirm"), I18n.t("game.leave.stay"), true);
             if (option != CustomDialog.YES_OPTION) return;
         }
         dispose();
@@ -300,16 +301,16 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             text = resultTitle();
             color = Theme.WIN;
         } else if (model.isDraw()) {
-            text = "It's a draw";
+            text = I18n.t("game.status.draw");
         } else if (thinking) {
-            text = "AI is thinking…";
+            text = I18n.t("game.status.aiThinking");
             color = Theme.O_COLOR;
         } else if (mode == GameMode.VS_AI) {
-            text = "Your turn — place an X";
+            text = I18n.t("game.status.yourTurn");
             color = Theme.X_COLOR;
         } else {
             boolean x = current == GameModel.X;
-            text = (x ? "Player 1" : "Player 2") + "'s turn — place " + (x ? "an X" : "an O");
+            text = I18n.t("game.status.turn", nameOf(current), x ? "X" : "O");
             color = x ? Theme.X_COLOR : Theme.O_COLOR;
         }
         status.setText(text);
@@ -324,18 +325,23 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private String resultTitle() {
         int winner = model.getWinner();
-        if (winner == GameModel.EMPTY) return "It's a draw";
-        if (mode == GameMode.VS_AI) return winner == GameModel.X ? "You win!" : "The AI wins";
-        return (winner == GameModel.X ? "Player 1" : "Player 2") + " wins!";
+        if (winner == GameModel.EMPTY) return I18n.t("game.status.draw");
+        if (mode == GameMode.VS_AI) return I18n.t(winner == GameModel.X ? "game.result.youWin" : "game.result.aiWins");
+        return I18n.t("game.result.wins", nameOf(winner));
     }
 
     private String scoreLine() {
-        String a = mode == GameMode.VS_AI ? "You" : "Player 1";
-        String b = mode == GameMode.VS_AI ? "AI" : "Player 2";
+        String a = nameOf(GameModel.X);
+        String b = nameOf(GameModel.O);
         // The dialog renders HTML, so plain double spaces would collapse
         String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scoreX + " – " + scoreO + "</b>&nbsp;&nbsp;" + b;
-        if (draws > 0) line += "\n" + draws + (draws == 1 ? " draw" : " draws");
+        if (draws > 0) line += "\n" + I18n.t("game.result.draws", draws);
         return line;
+    }
+
+    private String nameOf(int player) {
+        if (mode == GameMode.VS_AI) return I18n.t(player == GameModel.X ? "player.you" : "player.ai");
+        return I18n.t(player == GameModel.X ? "player.one" : "player.two");
     }
 
     private static JComponent wrapCard(PlayerCard card) {

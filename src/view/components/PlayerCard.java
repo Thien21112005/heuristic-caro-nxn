@@ -1,5 +1,6 @@
 package view.components;
 
+import utils.I18n;
 import model.GameModel;
 import view.theme.Theme;
 
@@ -97,13 +98,13 @@ public class PlayerCard extends JComponent {
         int y = cy + circle + 30;
         drawCentered(g2, name, Theme.font(Font.BOLD, 18f), Theme.TEXT, w, y);
         y += 20;
-        drawCentered(g2, "Plays " + (player == GameModel.X ? "X" : "O"), Theme.font(Font.PLAIN, 13f), Theme.TEXT_MUTED, w, y);
+        drawCentered(g2, I18n.t("player.plays", player == GameModel.X ? "X" : "O"), Theme.font(Font.PLAIN, 13f), Theme.TEXT_MUTED, w, y);
 
         // Score
         y += 44;
         drawCentered(g2, String.valueOf(score), Theme.font(Font.BOLD, 34f), Theme.TEXT, w, y);
         y += 16;
-        drawCentered(g2, score == 1 ? "WIN" : "WINS", Theme.semibold(11f), Theme.TEXT_MUTED, w, y);
+        drawCentered(g2, I18n.t(score == 1 ? "player.win" : "player.wins"), Theme.semibold(11f), Theme.TEXT_MUTED, w, y);
 
         // Status chip
         g2.setComposite(AlphaComposite.SrcOver);
@@ -111,7 +112,7 @@ public class PlayerCard extends JComponent {
         if (chip != null) {
             Font f = Theme.semibold(12f);
             FontMetrics fm = g2.getFontMetrics(f);
-            int chipW = fm.stringWidth(status == Status.THINKING ? "Thinking..." : chip) + 24;
+            int chipW = fm.stringWidth(status == Status.THINKING ? I18n.t("player.chip.thinking") + "..." : chip) + 24;
             int chipH = 26;
             int chipX = (w - chipW) / 2;
             int chipY = y0 + h - chipH - 14;
@@ -126,9 +127,9 @@ public class PlayerCard extends JComponent {
 
     private String chipText() {
         switch (status) {
-            case TURN: return "Your turn";
-            case THINKING: return "Thinking" + ".".repeat(dots);
-            case WINNER: return "Winner!";
+            case TURN: return I18n.t("player.chip.turn");
+            case THINKING: return I18n.t("player.chip.thinking") + ".".repeat(dots);
+            case WINNER: return I18n.t("player.chip.winner");
             default: return null;
         }
     }
