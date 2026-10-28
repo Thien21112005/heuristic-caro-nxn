@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import model.GameMode;
 import utils.ResourceUtils;
 import utils.SoundManager;
@@ -64,7 +65,8 @@ public class MainWindow extends JFrame {
     }
 
     public void requestQuit() {
-        int confirm = CustomDialog.confirm(this, "Quit the game?", "See you next time!", "Quit", "Cancel", true);
+        int confirm = CustomDialog.confirm(this, I18n.t("menu.quit.title"), I18n.t("menu.quit.message"),
+                I18n.t("menu.quit"), I18n.t("common.cancel"), true);
         if (confirm == CustomDialog.YES_OPTION) {
             System.exit(0);
         }

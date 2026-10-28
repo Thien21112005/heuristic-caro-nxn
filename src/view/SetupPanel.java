@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import model.GameMode;
 import model.GameModel;
 import model.Settings;
@@ -41,13 +42,12 @@ public class SetupPanel extends BackgroundPanel {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(BorderFactory.createEmptyBorder(40, 44, 40, 44));
 
-        JLabel title = new JLabel(mode == GameMode.VS_AI ? "Play vs AI" : "Two players");
+        JLabel title = new JLabel(I18n.t(mode == GameMode.VS_AI ? "setup.title.vsAi" : "setup.title.twoPlayers"));
         title.setFont(Theme.font(Font.BOLD, 36f));
         title.setForeground(Theme.TEXT);
 
-        JLabel subtitle = new JLabel(mode == GameMode.VS_AI
-                ? "You play X and move first. The AI plays O."
-                : "Player 1 is X and moves first, Player 2 is O.");
+        JLabel subtitle = new JLabel(I18n.t(mode == GameMode.VS_AI
+                ? "setup.subtitle.vsAi" : "setup.subtitle.twoPlayers"));
         subtitle.setFont(Theme.font(Font.PLAIN, 17f));
         subtitle.setForeground(Theme.TEXT_MUTED);
 
@@ -56,8 +56,8 @@ public class SetupPanel extends BackgroundPanel {
 
         minus.compact().setFont(Theme.semibold(28f));
         plus.compact().setFont(Theme.semibold(28f));
-        minus.setToolTipText("Smaller board (←)");
-        plus.setToolTipText("Bigger board (→)");
+        minus.setToolTipText(I18n.t("setup.smaller"));
+        plus.setToolTipText(I18n.t("setup.bigger"));
         minus.addActionListener(e -> setSize(size - 1));
         plus.addActionListener(e -> setSize(size + 1));
 
@@ -89,7 +89,7 @@ public class SetupPanel extends BackgroundPanel {
         ruleLabel.setForeground(Theme.TEXT);
         rule.add(ruleLabel);
 
-        AppButton start = new AppButton("Start game", AppButton.Variant.PRIMARY);
+        AppButton start = new AppButton(I18n.t("setup.start"), AppButton.Variant.PRIMARY);
         start.setFont(Theme.semibold(20f));
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
@@ -98,7 +98,7 @@ public class SetupPanel extends BackgroundPanel {
 
         addRow(card, title, 0);
         addRow(card, subtitle, 8);
-        addRow(card, sectionLabel("BOARD SIZE"), 34);
+        addRow(card, sectionLabel(I18n.t("setup.boardSize")), 34);
         addRow(card, stepper, 12);
         addRow(card, presets, 16);
         addRow(card, rule, 24);
@@ -137,9 +137,9 @@ public class SetupPanel extends BackgroundPanel {
             presetButtons[i].setVariant(PRESETS[i] == size ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
         }
         int target = GameModel.winLengthFor(size);
-        ruleLabel.setText("<html><b>Win rule:</b> " + (target == size
-                ? "fill a whole row, column or diagonal."
-                : "line up " + target + " pieces in a row — any direction.") + "</html>");
+        ruleLabel.setText("<html><b>" + I18n.t("setup.rule.label") + "</b> " + (target == size
+                ? I18n.t("setup.rule.fullLine")
+                : I18n.t("setup.rule.inARow", target)) + "</html>");
     }
 
     private static int clamp(int value) {
