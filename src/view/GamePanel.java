@@ -24,7 +24,7 @@ import java.awt.event.KeyEvent;
 public class GamePanel extends BackgroundPanel implements GameController.Listener {
     private static final int GAME_OVER_DELAY_MS = 900;
 
-    private final GameMenu window;
+    private final MainWindow window;
     private final GameController controller;
     private final GameModel model;
     private final GameMode mode;
@@ -41,7 +41,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private boolean autoFit = true;
     private Timer gameOverTimer;
 
-    public GamePanel(GameMenu window, GameMode mode, int size) {
+    public GamePanel(MainWindow window, GameMode mode, int size) {
         super("/assets/Background.jpg");
         this.window = window;
         this.mode = mode;
@@ -255,7 +255,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             if (option != CustomDialog.YES_OPTION) return;
         }
         dispose();
-        window.showScreen(mode == GameMode.VS_AI ? GameMenu.SETUP_AI : GameMenu.SETUP_TWO);
+        window.showScreen(mode == GameMode.VS_AI ? MainWindow.SETUP_AI : MainWindow.SETUP_TWO);
     }
 
     private boolean inProgress() {

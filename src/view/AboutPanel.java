@@ -14,10 +14,10 @@ public class AboutPanel extends BackgroundPanel {
     public static final String VERSION = "1.0.0";
     private static final int CARD_WIDTH = 560;
 
-    public AboutPanel(GameMenu window) {
+    public AboutPanel(MainWindow window) {
         super("/assets/Background.jpg");
         setLayout(new BorderLayout());
-        Runnable back = () -> window.showScreen(GameMenu.MAIN_MENU);
+        Runnable back = () -> window.showScreen(MainWindow.MAIN_MENU);
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
         RoundedPanel card = new RoundedPanel();

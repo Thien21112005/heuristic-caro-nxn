@@ -29,13 +29,13 @@ public class SetupPanel extends BackgroundPanel {
     private final AppButton plus = new AppButton("+", AppButton.Variant.SECONDARY);
     private final AppButton[] presetButtons = new AppButton[PRESETS.length];
 
-    public SetupPanel(GameMenu window, GameMode mode) {
+    public SetupPanel(MainWindow window, GameMode mode) {
         super("/assets/Background.jpg");
         this.mode = mode;
         this.size = clamp(Settings.get().getBoardSize(mode));
         setLayout(new BorderLayout());
 
-        add(TopBar.withBack(() -> window.showScreen(GameMenu.MAIN_MENU)), BorderLayout.NORTH);
+        add(TopBar.withBack(() -> window.showScreen(MainWindow.MAIN_MENU)), BorderLayout.NORTH);
 
         RoundedPanel card = new RoundedPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
@@ -119,7 +119,7 @@ public class SetupPanel extends BackgroundPanel {
         bindKey(KeyEvent.VK_LEFT, () -> setSize(size - 1));
         bindKey(KeyEvent.VK_RIGHT, () -> setSize(size + 1));
         bindKey(KeyEvent.VK_ENTER, start::doClick);
-        bindKey(KeyEvent.VK_ESCAPE, () -> window.showScreen(GameMenu.MAIN_MENU));
+        bindKey(KeyEvent.VK_ESCAPE, () -> window.showScreen(MainWindow.MAIN_MENU));
 
         refresh();
     }

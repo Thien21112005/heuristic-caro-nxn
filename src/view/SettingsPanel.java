@@ -19,10 +19,10 @@ import java.util.function.Consumer;
 public class SettingsPanel extends BackgroundPanel {
     private static final int CARD_WIDTH = 480;
 
-    public SettingsPanel(GameMenu window) {
+    public SettingsPanel(MainWindow window) {
         super("/assets/Background.jpg");
         setLayout(new BorderLayout());
-        Runnable back = () -> window.showScreen(GameMenu.MAIN_MENU);
+        Runnable back = () -> window.showScreen(MainWindow.MAIN_MENU);
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
         Settings settings = Settings.get();

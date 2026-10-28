@@ -13,7 +13,7 @@ import java.awt.*;
 public class MainMenuPanel extends BackgroundPanel {
     private static final int COLUMN_WIDTH = 320;
 
-    public MainMenuPanel(GameMenu window) {
+    public MainMenuPanel(MainWindow window) {
         super("/assets/Background.jpg");
         setLayout(new GridBagLayout());
 
@@ -37,10 +37,10 @@ public class MainMenuPanel extends BackgroundPanel {
         AppButton about = button("About", AppButton.Variant.SECONDARY);
         AppButton quit = button("Quit", AppButton.Variant.GHOST);
 
-        vsAi.addActionListener(e -> window.showScreen(GameMenu.SETUP_AI));
-        twoPlayers.addActionListener(e -> window.showScreen(GameMenu.SETUP_TWO));
-        settings.addActionListener(e -> window.showScreen(GameMenu.SETTINGS));
-        about.addActionListener(e -> window.showScreen(GameMenu.ABOUT));
+        vsAi.addActionListener(e -> window.showScreen(MainWindow.SETUP_AI));
+        twoPlayers.addActionListener(e -> window.showScreen(MainWindow.SETUP_TWO));
+        settings.addActionListener(e -> window.showScreen(MainWindow.SETTINGS));
+        about.addActionListener(e -> window.showScreen(MainWindow.ABOUT));
         quit.addActionListener(e -> window.requestQuit());
 
         column.add(title);

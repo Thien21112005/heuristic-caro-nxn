@@ -6,7 +6,7 @@ import utils.SoundManager;
 import javax.swing.*;
 import java.awt.*;
 
-public class GameMenu extends JFrame {
+public class MainWindow extends JFrame {
     public static final String MAIN_MENU = "MainMenu";
     public static final String SETUP_AI = "SetupAI";
     public static final String SETUP_TWO = "SetupTwo";
@@ -18,7 +18,7 @@ public class GameMenu extends JFrame {
     private final JPanel cardPanel = new JPanel(cardLayout);
     private GamePanel currentGame;
 
-    public GameMenu(String title) {
+    public MainWindow(String title) {
         setTitle(title);
         setSize(1120, 740);
         setMinimumSize(new Dimension(980, 680));
