@@ -32,6 +32,12 @@ public class SegmentedControl<T> extends JPanel {
         return this;
     }
 
+    @Override
+    public void setToolTipText(String text) {
+        super.setToolTipText(text);
+        for (AppButton b : buttons) b.setToolTipText(text);
+    }
+
     public void setOnChange(Consumer<T> onChange) {
         this.onChange = onChange;
     }

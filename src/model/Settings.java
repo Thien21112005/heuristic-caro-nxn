@@ -19,6 +19,7 @@ public final class Settings {
     private static final String KEY_DIFFICULTY = "difficulty";
     private static final String KEY_HUMAN_SIDE = "humanSide";
     private static final String KEY_ALTERNATE = "alternateFirst.";
+    private static final String KEY_TURN_SECONDS = "turnSeconds.";
 
     private final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
 
@@ -62,6 +63,10 @@ public final class Settings {
 
     public boolean isAlternateFirst(GameMode mode) { return prefs.getBoolean(KEY_ALTERNATE + mode.name(), false); }
     public void setAlternateFirst(GameMode mode, boolean on) { prefs.putBoolean(KEY_ALTERNATE + mode.name(), on); }
+
+    /** Seconds per human turn for a mode, 0 when the clock is off. */
+    public int getTurnSeconds(GameMode mode) { return prefs.getInt(KEY_TURN_SECONDS + mode.name(), 0); }
+    public void setTurnSeconds(GameMode mode, int seconds) { prefs.putInt(KEY_TURN_SECONDS + mode.name(), seconds); }
 
     /** Last board size picked for a mode, so the setup screen remembers it. */
     public int getBoardSize(GameMode mode) { return prefs.getInt(KEY_BOARD_SIZE + mode.name(), 15); }

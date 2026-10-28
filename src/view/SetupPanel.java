@@ -8,6 +8,7 @@ import model.ai.Difficulty;
 import utils.I18n;
 import view.components.AppButton;
 import view.components.RoundedPanel;
+import view.components.CenteringScroll;
 import view.components.SegmentedControl;
 import view.theme.Theme;
 
@@ -23,7 +24,7 @@ public class SetupPanel extends BackgroundPanel {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
     private static final int[] PRESETS = {3, 10, 15, 20};
-    private static final int COLUMN_WIDTH = 420;
+    private static final int COLUMN_WIDTH = 400;
     private static final int COLUMN_GAP = 40;
     private static final int PADDING = 40;
 
@@ -39,6 +40,8 @@ public class SetupPanel extends BackgroundPanel {
     private JLabel difficultyHint;
     private SegmentedControl<Integer> side;
     private SegmentedControl<Boolean> alternate;
+    private SegmentedControl<Integer> turnTime;
+    private static final int[] TURN_TIMES = {0, 10, 20, 30, 60};
 
     public SetupPanel(MainWindow window, GameMode mode) {
         super("/assets/Background.jpg");
@@ -52,15 +55,15 @@ public class SetupPanel extends BackgroundPanel {
         buildBoardColumn(left);
         JPanel right = column();
         if (mode == GameMode.VS_AI) buildAiOptions(right);
-        buildRoundOptions(right, mode == GameMode.VS_AI ? 24 : 0);
+        buildRoundOptions(right, mode == GameMode.VS_AI ? 20 : 0);
         refresh(); // fill dynamic text before the card measures itself
 
         RoundedPanel card = new RoundedPanel(new BorderLayout(0, 0));
-        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 4, PADDING, PADDING, PADDING));
+        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 8, PADDING, PADDING - 8, PADDING));
 
         JPanel header = column();
         JLabel title = new JLabel(I18n.t(mode == GameMode.VS_AI ? "setup.title.vsAi" : "setup.title.twoPlayers"));
-        title.setFont(Theme.font(Font.BOLD, 36f));
+        title.setFont(Theme.font(Font.BOLD, 32f));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel(I18n.t(mode == GameMode.VS_AI
                 ? "setup.subtitle.vsAi" : "setup.subtitle.twoPlayers"));
@@ -68,7 +71,7 @@ public class SetupPanel extends BackgroundPanel {
         subtitle.setForeground(Theme.TEXT_MUTED);
         addRow(header, title, 0);
         addRow(header, subtitle, 8);
-        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 26, 0));
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         JPanel body = new JPanel(new GridLayout(1, 2, COLUMN_GAP, 0));
         body.setOpaque(false);
@@ -83,18 +86,21 @@ public class SetupPanel extends BackgroundPanel {
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
             boolean swap = alternate.getSelected();
+            int seconds = turnTime.getSelected();
             Settings.get().setAlternateFirst(mode, swap);
+            Settings.get().setTurnSeconds(mode, seconds);
             if (mode == GameMode.VS_AI) {
                 Settings.get().setDifficulty(difficulty.getSelected());
                 Settings.get().setHumanSide(side.getSelected());
-                window.startGame(GameConfig.vsAi(size, difficulty.getSelected(), side.getSelected(), swap));
+                window.startGame(GameConfig.vsAi(size, difficulty.getSelected(), side.getSelected(), swap)
+                        .withTurnSeconds(seconds));
             } else {
-                window.startGame(GameConfig.twoPlayers(size, swap));
+                window.startGame(GameConfig.twoPlayers(size, swap).withTurnSeconds(seconds));
             }
         });
         JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(false);
-        footer.setBorder(BorderFactory.createEmptyBorder(30, 0, 0, 0));
+        footer.setBorder(BorderFactory.createEmptyBorder(24, 0, 0, 0));
         footer.add(start);
 
         card.add(header, BorderLayout.NORTH);
@@ -103,10 +109,7 @@ public class SetupPanel extends BackgroundPanel {
         int width = 2 * COLUMN_WIDTH + COLUMN_GAP + 2 * PADDING;
         card.setPreferredSize(new Dimension(width, card.getPreferredSize().height));
 
-        JPanel center = new JPanel(new GridBagLayout());
-        center.setOpaque(false);
-        center.add(card);
-        add(center, BorderLayout.CENTER);
+        add(CenteringScroll.wrap(card), BorderLayout.CENTER);
 
         bindKey(KeyEvent.VK_LEFT, () -> setSize(size - 1));
         bindKey(KeyEvent.VK_RIGHT, () -> setSize(size + 1));
@@ -185,7 +188,7 @@ public class SetupPanel extends BackgroundPanel {
         addRow(col, sectionLabel(I18n.t("setup.difficulty")), 0);
         addRow(col, difficulty, 12);
         addRow(col, difficultyHint, 10);
-        addRow(col, sectionLabel(I18n.t("setup.side")), 24);
+        addRow(col, sectionLabel(I18n.t("setup.side")), 20);
         addRow(col, side, 12);
         refreshDifficultyHint();
     }
@@ -194,13 +197,20 @@ public class SetupPanel extends BackgroundPanel {
         alternate = new SegmentedControl<>();
         alternate.add(false, I18n.t("setup.firstMove.same")).add(true, I18n.t("setup.firstMove.alternate"));
         alternate.setSelected(Settings.get().isAlternateFirst(mode));
-        JLabel hint = new JLabel("<html><div style='width:300px'>" + I18n.t("setup.firstMove.desc") + "</div></html>");
-        hint.setFont(Theme.font(Font.PLAIN, 14f));
-        hint.setForeground(Theme.TEXT_MUTED);
+        alternate.setToolTipText(I18n.t("setup.firstMove.desc"));
+
+        turnTime = new SegmentedControl<>();
+        for (int seconds : TURN_TIMES) {
+            turnTime.add(seconds, seconds == 0 ? I18n.t("setup.turnTime.off") : I18n.t("setup.turnTime.seconds", seconds));
+        }
+        int saved = Settings.get().getTurnSeconds(mode);
+        turnTime.setSelected(java.util.Arrays.stream(TURN_TIMES).anyMatch(t -> t == saved) ? saved : 0);
+        turnTime.setToolTipText(I18n.t("setup.turnTime.desc"));
 
         addRow(col, sectionLabel(I18n.t("setup.firstMove")), gapBefore);
         addRow(col, alternate, 12);
-        addRow(col, hint, 10);
+        addRow(col, sectionLabel(I18n.t("setup.turnTime")), 20);
+        addRow(col, turnTime, 12);
     }
 
     private void refreshDifficultyHint() {

@@ -54,7 +54,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 6.2 Đồng hồ trong controller
 - ✅ 6.3 Test đồng hồ
 - ✅ 6.4 Vòng đếm ngược trên PlayerCard
-- ⬜ 6.5 Chọn thời gian ở Setup
+- ✅ 6.5 Chọn thời gian ở Setup
 - ⬜ 6.6 Nút Đầu hàng
 
 ## Giai đoạn 7: Replay (`feat/replay`)
