@@ -50,7 +50,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 5.5 Xóa thống kê
 
 ## Giai đoạn 6: Đồng hồ (`feat/turn-clock`)
-- ⬜ 6.1 `EndReason` + forfeit
+- ✅ 6.1 `EndReason` + forfeit
 - ⬜ 6.2 Đồng hồ trong controller
 - ⬜ 6.3 Test đồng hồ
 - ⬜ 6.4 Vòng đếm ngược trên PlayerCard
