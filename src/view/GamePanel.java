@@ -39,9 +39,11 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final PlayerCard[] cards = new PlayerCard[2];
     private final JLabel status = new JLabel("", SwingConstants.CENTER);
     private final AppButton undo;
+    private final AppButton hint;
 
     private final int[] scores = new int[2];
     private int draws;
+    private int hintsUsed;
     private int lastMoveCount;
     private boolean autoFit = true;
     private Timer gameOverTimer;
@@ -87,12 +89,17 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         undo.setToolTipText(I18n.t("game.undo.tooltip"));
         undo.setVisible(Settings.get().isUndoEnabled());
         undo.addActionListener(e -> undoMove());
+        hint = new AppButton(I18n.t("game.hint"), AppButton.Variant.SECONDARY);
+        hint.setToolTipText(I18n.t("game.hint.tooltip"));
+        hint.addActionListener(e -> showHint());
+        hint.setVisible(Settings.get().isHintsEnabled());
         AppButton restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
         restart.setToolTipText(I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());
 
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actions.setOpaque(false);
+        actions.add(hint);
         actions.add(undo);
         actions.add(restart);
 
@@ -100,7 +107,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         left.setOpaque(false);
         left.add(menu);
-        Dimension side = new Dimension(260, actions.getPreferredSize().height);
+        Dimension side = new Dimension(Math.max(260, actions.getPreferredSize().width), actions.getPreferredSize().height);
         left.setPreferredSize(side);
         actions.setPreferredSize(side);
 
@@ -170,6 +177,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), () -> {
             if (undo.isVisible()) undoMove();
         });
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_H, 0), () -> {
+            if (hint.isVisible()) showHint();
+        });
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), this::requestRestart);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), this::requestLeave);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), fit::doClick);
@@ -197,6 +207,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         lastMoveCount = model.getMoveCount();
 
         undo.setEnabled(controller.canUndo());
+        hint.setEnabled(controller.acceptsInput());
+        if (model.getMoveCount() == 0) hintsUsed = 0;
         board.stateChanged();
         refreshStatus();
     }
@@ -220,6 +232,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     @Override
     public void onAiThinking(boolean thinking) {
+        hint.setEnabled(controller.acceptsInput());
         refreshStatus();
     }
 
@@ -231,6 +244,16 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
                 I18n.t("game.over.viewBoard"), false);
         if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
+    }
+
+    private void showHint() {
+        if (!controller.acceptsInput()) return;
+        hint.setEnabled(false);
+        controller.requestHint(move -> {
+            hintsUsed++;
+            board.flashHint(move[0], move[1]);
+            hint.setEnabled(controller.acceptsInput());
+        });
     }
 
     private void undoMove() {
@@ -353,6 +376,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         // The dialog renders HTML, so plain double spaces would collapse
         String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scores[0] + " – " + scores[1] + "</b>&nbsp;&nbsp;" + b;
         if (draws > 0) line += "\n" + I18n.t("game.result.draws", draws);
+        if (hintsUsed > 0) line += "\n" + I18n.t("game.result.hints", hintsUsed);
         return line;
     }
 
@@ -388,9 +412,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private static AppButton zoomButton(String text, String tooltip, Runnable action) {
         AppButton b = new AppButton(text, AppButton.Variant.SECONDARY).compact();
         b.setToolTipText(tooltip);
-        b.setFont(Theme.semibold(text.length() > 1 ? 13f : 18f));
-        int width = text.length() > 1 ? Math.max(52, b.getPreferredSize().width) : 40;
-        b.setPreferredSize(new Dimension(width, 40));
+        boolean icon = text.length() == 1;
+        b.setFont(Theme.semibold(icon ? 18f : 13f));
+        // Text buttons measure themselves so translations never get clipped
+        if (icon) b.setPreferredSize(new Dimension(44, 44));
         b.addActionListener(e -> action.run());
         return b;
     }

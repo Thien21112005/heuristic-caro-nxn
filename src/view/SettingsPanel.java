@@ -52,6 +52,9 @@ public class SettingsPanel extends BackgroundPanel {
         card.add(section(I18n.t("settings.gameplay"), 24));
         card.add(row(I18n.t("settings.undo"), I18n.t("settings.undo.desc"),
                 settings.isUndoEnabled(), settings::setUndoEnabled));
+        card.add(divider());
+        card.add(row(I18n.t("settings.hints"), I18n.t("settings.hints.desc"),
+                settings.isHintsEnabled(), settings::setHintsEnabled));
 
         card.add(section(I18n.t("settings.language"), 24));
         card.add(languagePicker(window));
