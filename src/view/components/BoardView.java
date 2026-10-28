@@ -45,6 +45,11 @@ public class BoardView extends JComponent {
     private boolean dragged;
     private Runnable onZoom = () -> {};
 
+    private static final int HINT_MS = 2500;
+    private int[] hint;          // {row, col} being suggested, or null
+    private long hintStart;
+    private final Timer hintTimer;
+
     public BoardView(GameController controller) {
         this.controller = controller;
         this.model = controller.getModel();
@@ -56,6 +61,11 @@ public class BoardView extends JComponent {
                 animatedMove = null;
                 ((Timer) e.getSource()).stop();
             }
+            repaint();
+        });
+
+        hintTimer = new Timer(30, e -> {
+            if (System.currentTimeMillis() - hintStart >= HINT_MS) clearHint();
             repaint();
         });
 
@@ -117,7 +127,29 @@ public class BoardView extends JComponent {
     public int getCellSize() { return cell; }
 
     /** Call after every model change; animates the newest piece. */
+    /** Pulses a suggested cell for a few seconds (cleared by the next move). */
+    public void flashHint(int row, int col) {
+        hint = new int[]{row, col};
+        hintStart = System.currentTimeMillis();
+        hintTimer.restart();
+        scrollToCell(row, col);
+        repaint();
+    }
+
+    public void clearHint() {
+        if (hint == null) return;
+        hint = null;
+        hintTimer.stop();
+        repaint();
+    }
+
+    private void scrollToCell(int row, int col) {
+        Rectangle cellRect = new Rectangle(PAD + col * cell - cell, PAD + row * cell - cell, cell * 3, cell * 3);
+        scrollRectToVisible(cellRect);
+    }
+
     public void stateChanged() {
+        clearHint();
         int[] last = model.getLastMove();
         if (last != null && (animatedMove == null || last[0] != animatedMove[0] || last[1] != animatedMove[1])) {
             animatedMove = last;
@@ -284,6 +316,21 @@ public class BoardView extends JComponent {
                 drawPiece(g2, v, PAD + c * cell, PAD + r * cell, scale);
                 g2.setComposite(oldComposite);
             }
+        }
+
+        // Hint: ghost of the suggested piece inside a pulsing ring
+        if (hint != null && model.getCell(hint[0], hint[1]) == GameModel.EMPTY) {
+            int x = PAD + hint[1] * cell, y = PAD + hint[0] * cell;
+            double phase = (System.currentTimeMillis() - hintStart) / 400.0;
+            float pulse = (float) (0.5 + 0.5 * Math.sin(phase * Math.PI));
+            Composite oldComposite = g2.getComposite();
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+            drawPiece(g2, model.getCurrentPlayer(), x, y, 1f);
+            g2.setComposite(oldComposite);
+            int grow = Math.round(pulse * cell * 0.12f);
+            g2.setColor(Theme.alpha(Theme.WIN, 90 + (int) (120 * pulse)));
+            g2.setStroke(new BasicStroke(Math.max(2f, cell / 16f)));
+            g2.drawRoundRect(x + 2 - grow, y + 2 - grow, cell - 4 + 2 * grow, cell - 4 + 2 * grow, 12, 12);
         }
 
         // Last move marker
