@@ -2,6 +2,7 @@ package view;
 
 import utils.I18n;
 import controller.GameController;
+import model.EndReason;
 import model.GameConfig;
 import model.GameMode;
 import model.GameModel;
@@ -45,6 +46,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final int[] scores = new int[2];
     private int draws;
     private int hintsUsed;
+    private long lastTickSecond = -1;
     private Stats.Entry statsBeforeLastGame; // lets an undone winning move un-record the result
     private int lastMoveCount;
     private boolean autoFit = true;
@@ -212,6 +214,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         hint.setEnabled(controller.acceptsInput());
         if (model.getMoveCount() == 0) hintsUsed = 0;
         board.stateChanged();
+        lastTickSecond = -1;
+        showCountdown(controller.getRemainingMillis());
         refreshStatus();
     }
 
@@ -233,6 +237,22 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         gameOverTimer = new Timer(GAME_OVER_DELAY_MS, e -> showGameOverDialog());
         gameOverTimer.setRepeats(false);
         gameOverTimer.start();
+    }
+
+    @Override
+    public void onClockTick(long remainingMs) {
+        showCountdown(remainingMs);
+        long second = (remainingMs + 999) / 1000;
+        // Tick during the last five seconds, once per second
+        if (second <= 5 && second > 0 && second != lastTickSecond) SoundManager.play(SoundManager.HOVER);
+        lastTickSecond = second;
+    }
+
+    private void showCountdown(long remainingMs) {
+        int current = seatOf(model.getCurrentPlayer());
+        for (int seat = 0; seat < 2; seat++) {
+            cards[seat].setCountdown(seat == current ? remainingMs : -1, controller.getTurnSeconds());
+        }
     }
 
     @Override
@@ -279,8 +299,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private void requestRestart() {
         if (inProgress()) {
+            controller.pauseClock();
             int option = CustomDialog.confirm(window, I18n.t("game.restart.title"),
                     I18n.t("game.restart.message"), I18n.t("game.restart.confirm"), I18n.t("common.cancel"), false);
+            controller.resumeClock();
             if (option != CustomDialog.YES_OPTION) return;
         }
         cancelGameOverDialog();
@@ -291,8 +313,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private void requestLeave() {
         if (inProgress()) {
+            controller.pauseClock();
             int option = CustomDialog.confirm(window, I18n.t("game.leave.title"),
                     I18n.t("game.leave.message"), I18n.t("game.leave.confirm"), I18n.t("game.leave.stay"), true);
+            controller.resumeClock();
             if (option != CustomDialog.YES_OPTION) return;
         }
         dispose();
@@ -368,6 +392,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private String resultTitle() {
         int winner = model.getWinner();
         if (winner == GameModel.EMPTY) return I18n.t("game.status.draw");
+        if (model.getEndReason() == EndReason.TIMEOUT) return I18n.t("game.result.timeout", nameOf(winner));
         if (mode == GameMode.VS_AI) {
             return I18n.t(winner == controller.getHumanSide() ? "game.result.youWin" : "game.result.aiWins");
         }
