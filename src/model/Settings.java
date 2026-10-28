@@ -16,6 +16,7 @@ public final class Settings {
     private static final String KEY_BOARD_SIZE = "boardSize.";
     private static final String KEY_LANGUAGE = "language";
     private static final String KEY_DIFFICULTY = "difficulty";
+    private static final String KEY_HUMAN_SIDE = "humanSide";
 
     private final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
 
@@ -47,6 +48,12 @@ public final class Settings {
         }
     }
     public void setDifficulty(Difficulty difficulty) { prefs.put(KEY_DIFFICULTY, difficulty.name()); }
+
+    /** GameModel.X or GameModel.O when playing against the AI. */
+    public int getHumanSide() {
+        return prefs.getInt(KEY_HUMAN_SIDE, GameModel.X) == GameModel.O ? GameModel.O : GameModel.X;
+    }
+    public void setHumanSide(int side) { prefs.putInt(KEY_HUMAN_SIDE, side); }
 
     /** Last board size picked for a mode, so the setup screen remembers it. */
     public int getBoardSize(GameMode mode) { return prefs.getInt(KEY_BOARD_SIZE + mode.name(), 15); }

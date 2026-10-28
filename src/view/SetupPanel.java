@@ -37,6 +37,7 @@ public class SetupPanel extends BackgroundPanel {
     private final AppButton[] presetButtons = new AppButton[PRESETS.length];
     private SegmentedControl<Difficulty> difficulty;
     private JLabel difficultyHint;
+    private SegmentedControl<Integer> side;
 
     public SetupPanel(MainWindow window, GameMode mode) {
         super("/assets/Background.jpg");
@@ -81,10 +82,13 @@ public class SetupPanel extends BackgroundPanel {
         start.setPreferredSize(new Dimension(10, 62));
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
-            if (difficulty != null) Settings.get().setDifficulty(difficulty.getSelected());
-            window.startGame(mode == GameMode.VS_AI
-                    ? GameConfig.vsAi(size, difficulty.getSelected())
-                    : GameConfig.twoPlayers(size));
+            if (mode == GameMode.VS_AI) {
+                Settings.get().setDifficulty(difficulty.getSelected());
+                Settings.get().setHumanSide(side.getSelected());
+                window.startGame(GameConfig.vsAi(size, difficulty.getSelected(), side.getSelected()));
+            } else {
+                window.startGame(GameConfig.twoPlayers(size));
+            }
         });
         JPanel footer = new JPanel(new BorderLayout());
         footer.setOpaque(false);
@@ -173,9 +177,15 @@ public class SetupPanel extends BackgroundPanel {
         difficulty.setOnChange(d -> refreshDifficultyHint());
         difficulty.setSelected(Settings.get().getDifficulty());
 
+        side = new SegmentedControl<>();
+        side.add(GameModel.X, I18n.t("setup.side.x")).add(GameModel.O, I18n.t("setup.side.o"));
+        side.setSelected(Settings.get().getHumanSide());
+
         addRow(col, sectionLabel(I18n.t("setup.difficulty")), 0);
         addRow(col, difficulty, 12);
         addRow(col, difficultyHint, 10);
+        addRow(col, sectionLabel(I18n.t("setup.side")), 24);
+        addRow(col, side, 12);
         refreshDifficultyHint();
     }
 
