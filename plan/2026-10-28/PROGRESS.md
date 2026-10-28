@@ -35,7 +35,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 3.2 Test AI cầm X
 - ✅ 3.3 Chọn X/O khi đấu AI
 - ⬜ 3.4 Đổi lượt đi trước mỗi ván
-- ⬜ 3.5 Tỉ số theo người chơi
+- ✅ 3.5 Tỉ số theo người chơi — làm trước 3.4 và đổi thành `refactor`, để không có commit nào chứa lỗi tỉ số khi đổi lượt
 
 ## Giai đoạn 4: Gợi ý (`feat/hint`)
 - ⬜ 4.1 Marker gợi ý trên bàn

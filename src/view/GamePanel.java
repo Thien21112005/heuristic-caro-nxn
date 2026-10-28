@@ -34,12 +34,14 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private final BoardView board;
     private final JScrollPane scroll;
-    private final PlayerCard cardX;
-    private final PlayerCard cardO;
+    // Seat 0 is "You" / Player 1 (left card), seat 1 is the AI / Player 2 (right card).
+    // Seats keep their score even if their pieces change between rounds.
+    private final PlayerCard[] cards = new PlayerCard[2];
     private final JLabel status = new JLabel("", SwingConstants.CENTER);
     private final AppButton undo;
 
-    private int scoreX, scoreO, draws;
+    private final int[] scores = new int[2];
+    private int draws;
     private int lastMoveCount;
     private boolean autoFit = true;
     private Timer gameOverTimer;
@@ -55,10 +57,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         this.model = controller.getModel();
         setLayout(new BorderLayout());
 
-        cardX = new PlayerCard(GameModel.X, nameOf(GameModel.X));
-        cardO = new PlayerCard(GameModel.O, nameOf(GameModel.O));
+        cards[0] = new PlayerCard(sideOf(0), seatName(0));
+        cards[1] = new PlayerCard(sideOf(1), seatName(1));
         String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty()) : null;
-        (controller.getAiSide() == GameModel.X ? cardX : cardO).setTag(level);
+        cards[1].setTag(level);
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -125,9 +127,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         JPanel center = new JPanel(new BorderLayout(20, 0));
         center.setOpaque(false);
         center.setBorder(BorderFactory.createEmptyBorder(6, 24, 0, 24));
-        center.add(wrapCard(cardX), BorderLayout.WEST);
+        center.add(wrapCard(cards[0]), BorderLayout.WEST);
         center.add(scroll, BorderLayout.CENTER);
-        center.add(wrapCard(cardO), BorderLayout.EAST);
+        center.add(wrapCard(cards[1]), BorderLayout.EAST);
         add(center, BorderLayout.CENTER);
 
         // Status bar
@@ -202,11 +204,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     @Override
     public void onGameOver() {
         int winner = model.getWinner();
-        if (winner == GameModel.X) scoreX++;
-        else if (winner == GameModel.O) scoreO++;
-        else draws++;
-        cardX.setScore(scoreX);
-        cardO.setScore(scoreO);
+        if (winner == GameModel.EMPTY) draws++;
+        else scores[seatOf(winner)]++;
+        refreshScores();
         refreshStatus();
 
         boolean humanLost = mode == GameMode.VS_AI && winner == controller.getAiSide();
@@ -237,11 +237,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         // Taking back the winning move also takes back the point it scored
         if (model.isOver()) {
             int winner = model.getWinner();
-            if (winner == GameModel.X) scoreX--;
-            else if (winner == GameModel.O) scoreO--;
-            else draws--;
-            cardX.setScore(scoreX);
-            cardO.setScore(scoreO);
+            if (winner == GameModel.EMPTY) draws--;
+            else scores[seatOf(winner)]--;
+            refreshScores();
         }
         cancelGameOverDialog();
         controller.undo();
@@ -299,8 +297,11 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int winner = model.getWinner();
         boolean thinking = controller.isAiThinking();
 
-        cardX.setStatus(statusFor(GameModel.X, current, winner, thinking && controller.getAiSide() == GameModel.X));
-        cardO.setStatus(statusFor(GameModel.O, current, winner, thinking && controller.getAiSide() == GameModel.O));
+        for (int seat = 0; seat < 2; seat++) {
+            cards[seat].setPiece(sideOf(seat));
+            boolean seatThinking = thinking && mode == GameMode.VS_AI && seat == 1;
+            cards[seat].setStatus(statusFor(sideOf(seat), current, winner, seatThinking));
+        }
 
         String text;
         Color color = Theme.TEXT;
@@ -339,11 +340,16 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         return I18n.t("game.result.wins", nameOf(winner));
     }
 
+    private void refreshScores() {
+        cards[0].setScore(scores[0]);
+        cards[1].setScore(scores[1]);
+    }
+
     private String scoreLine() {
-        String a = nameOf(GameModel.X);
-        String b = nameOf(GameModel.O);
+        String a = seatName(0);
+        String b = seatName(1);
         // The dialog renders HTML, so plain double spaces would collapse
-        String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scoreX + " – " + scoreO + "</b>&nbsp;&nbsp;" + b;
+        String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scores[0] + " – " + scores[1] + "</b>&nbsp;&nbsp;" + b;
         if (draws > 0) line += "\n" + I18n.t("game.result.draws", draws);
         return line;
     }
@@ -352,9 +358,22 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         return I18n.t("difficulty." + difficulty.name().toLowerCase());
     }
 
-    private String nameOf(int player) {
-        if (mode == GameMode.VS_AI) return I18n.t(player == controller.getHumanSide() ? "player.you" : "player.ai");
-        return I18n.t(player == GameModel.X ? "player.one" : "player.two");
+    /** Piece played by a seat this round; seat 0 always holds the controller's human side. */
+    private int sideOf(int seat) {
+        return seat == 0 ? controller.getHumanSide() : GameModel.opponent(controller.getHumanSide());
+    }
+
+    private int seatOf(int piece) {
+        return piece == controller.getHumanSide() ? 0 : 1;
+    }
+
+    private String seatName(int seat) {
+        if (mode == GameMode.VS_AI) return I18n.t(seat == 0 ? "player.you" : "player.ai");
+        return I18n.t(seat == 0 ? "player.one" : "player.two");
+    }
+
+    private String nameOf(int piece) {
+        return seatName(seatOf(piece));
     }
 
     private static JComponent wrapCard(PlayerCard card) {
