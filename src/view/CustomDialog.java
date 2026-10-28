@@ -1,93 +1,128 @@
 package view;
 
-import utils.SoundPlayer;
+import utils.SoundManager;
+import view.components.AppButton;
+import view.components.RoundedPanel;
+import view.theme.Theme;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 
+/**
+ * Modal dialog drawn as a card over a dimmed copy of the window.
+ * Enter confirms, Escape cancels.
+ */
 public class CustomDialog extends JDialog {
     public static final int YES_NO_OPTION = 1;
     public static final int MESSAGE_OPTION = 2;
-    
+
     public static final int YES_OPTION = 1;
     public static final int NO_OPTION = 0;
-    
+
     private int result = NO_OPTION;
 
-    public CustomDialog(JFrame parent, String message, String title, int optionType) {
+    private CustomDialog(JFrame parent, String title, String message, String yesLabel, String noLabel,
+                         AppButton.Variant yesVariant, Color accent) {
         super(parent, title, true);
         setUndecorated(true);
-        setSize(450, 220);
-        setLocationRelativeTo(parent);
-        
-        JPanel panel = new JPanel() {
+
+        boolean translucent = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()
+                .isWindowTranslucencySupported(GraphicsDevice.WindowTranslucency.PERPIXEL_TRANSLUCENT);
+        if (translucent) {
+            setBackground(new Color(0, 0, 0, 0));
+        }
+
+        JPanel backdrop = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Cyberpunk style gradient background
-                GradientPaint gp = new GradientPaint(0, 0, new Color(15, 15, 25, 240), getWidth(), getHeight(), new Color(30, 10, 40, 240));
-                g2d.setPaint(gp);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-                
-                // Neon Border
-                g2d.setColor(new Color(0, 255, 255, 200));
-                g2d.setStroke(new BasicStroke(3f));
-                g2d.drawRect(1, 1, getWidth() - 2, getHeight() - 2);
+                g.setColor(translucent ? Theme.alpha(Theme.BG, 170) : Theme.BG);
+                g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        panel.setLayout(null);
-        panel.setOpaque(false);
-        
-        JLabel titleLabel = new JLabel(title, SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        titleLabel.setForeground(new Color(0, 255, 255));
-        titleLabel.setBounds(20, 15, 410, 30);
-        panel.add(titleLabel);
-        
-        String htmlMessage = "<html><div style='text-align: center;'>" + message.replaceAll("\n", "<br>") + "</div></html>";
-        JLabel messageLabel = new JLabel(htmlMessage, SwingConstants.CENTER);
-        messageLabel.setFont(new Font("Segoe UI", Font.PLAIN, 18));
-        messageLabel.setForeground(Color.WHITE);
-        messageLabel.setBounds(20, 50, 410, 90);
-        panel.add(messageLabel);
-        
-        if (optionType == YES_NO_OPTION) {
-            JButton yesBtn = new CustomButton("Yes");
-            yesBtn.setBounds(100, 150, 100, 40);
-            yesBtn.addActionListener(e -> {
-                new SoundPlayer("/assets/Select.wav").playOnce();
-                result = YES_OPTION;
-                dispose();
-            });
-            
-            JButton noBtn = new CustomButton("No");
-            noBtn.setBounds(250, 150, 100, 40);
-            noBtn.addActionListener(e -> {
-                new SoundPlayer("/assets/Select.wav").playOnce();
-                result = NO_OPTION;
-                dispose();
-            });
-            
-            panel.add(yesBtn);
-            panel.add(noBtn);
-        } else {
-            JButton okBtn = new CustomButton("OK");
-            okBtn.setBounds(175, 150, 100, 40);
-            okBtn.addActionListener(e -> {
-                new SoundPlayer("/assets/Select.wav").playOnce();
-                result = YES_OPTION;
-                dispose();
-            });
-            panel.add(okBtn);
+        backdrop.setOpaque(false);
+
+        RoundedPanel card = new RoundedPanel(new BorderLayout(0, 18));
+        card.setFill(Theme.SURFACE);
+        card.setBorderColor(Theme.alpha(accent, 140));
+        card.setBorder(BorderFactory.createEmptyBorder(28, 32, 24, 32));
+
+        JPanel text = new JPanel();
+        text.setOpaque(false);
+        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(Theme.font(Font.BOLD, 22f));
+        titleLabel.setForeground(Theme.TEXT);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel messageLabel = new JLabel("<html><div style='text-align:center;width:300px'>"
+                + message.replace("\n", "<br>") + "</div></html>");
+        messageLabel.setFont(Theme.font(Font.PLAIN, 15f));
+        messageLabel.setForeground(Theme.TEXT_MUTED);
+        messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+
+        text.add(titleLabel);
+        text.add(messageLabel);
+
+        JPanel buttons = new JPanel(new GridLayout(1, 0, 12, 0));
+        buttons.setOpaque(false);
+        AppButton yesBtn = new AppButton(yesLabel, yesVariant);
+        yesBtn.addActionListener(e -> close(YES_OPTION));
+        if (noLabel != null) {
+            AppButton noBtn = new AppButton(noLabel, AppButton.Variant.SECONDARY);
+            noBtn.addActionListener(e -> close(NO_OPTION));
+            buttons.add(noBtn);
         }
-        
-        add(panel);
+        buttons.add(yesBtn);
+
+        card.add(text, BorderLayout.CENTER);
+        card.add(buttons, BorderLayout.SOUTH);
+        backdrop.add(card);
+        setContentPane(backdrop);
+
+        getRootPane().setDefaultButton(yesBtn);
+        getRootPane().registerKeyboardAction(e -> close(noLabel != null ? NO_OPTION : YES_OPTION),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+        if (parent != null && parent.isShowing()) {
+            setBounds(parent.getBounds());
+        } else {
+            pack();
+            setLocationRelativeTo(parent);
+        }
     }
-    
-    public static int showDialog(JFrame parent, String message, String title, int optionType) {
-        CustomDialog dialog = new CustomDialog(parent, message, title, optionType);
+
+    private void close(int value) {
+        result = value;
+        dispose();
+    }
+
+    /** Yes/No question with custom button labels. Returns YES_OPTION or NO_OPTION. */
+    public static int confirm(JFrame parent, String title, String message, String yesLabel, String noLabel,
+                              boolean destructive) {
+        CustomDialog dialog = new CustomDialog(parent, title, message, yesLabel, noLabel,
+                destructive ? AppButton.Variant.DANGER : AppButton.Variant.PRIMARY,
+                destructive ? Theme.DANGER : Theme.ACCENT);
         dialog.setVisible(true);
         return dialog.result;
+    }
+
+    /** Informational message with a single button. */
+    public static void message(JFrame parent, String title, String message) {
+        SoundManager.play(SoundManager.ALERT);
+        new CustomDialog(parent, title, message, "Got it", null, AppButton.Variant.PRIMARY, Theme.ACCENT)
+                .setVisible(true);
+    }
+
+    /** Legacy API kept for existing callers. */
+    public static int showDialog(JFrame parent, String message, String title, int optionType) {
+        if (optionType == YES_NO_OPTION) {
+            return confirm(parent, title, message, "Yes", "No", false);
+        }
+        new CustomDialog(parent, title, message, "OK", null, AppButton.Variant.PRIMARY, Theme.ACCENT)
+                .setVisible(true);
+        return YES_OPTION;
     }
 }
