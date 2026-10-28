@@ -4,6 +4,7 @@ import model.GameMode;
 import model.Stats;
 import model.ai.Difficulty;
 import utils.I18n;
+import view.components.AppButton;
 import view.components.RoundedPanel;
 import view.theme.Theme;
 
@@ -54,8 +55,23 @@ public class StatsPanel extends BackgroundPanel {
         grid.setOpaque(false);
         for (Tile tile : tiles) grid.add(tile);
 
+        AppButton reset = new AppButton(I18n.t("stats.reset"), AppButton.Variant.GHOST);
+        reset.setAccent(Theme.DANGER);
+        reset.addActionListener(e -> {
+            int option = CustomDialog.confirm(window, I18n.t("stats.reset.title"), I18n.t("stats.reset.message"),
+                    I18n.t("stats.reset.confirm"), I18n.t("common.cancel"), true);
+            if (option == CustomDialog.YES_OPTION) {
+                Stats.get().reset();
+                refresh();
+            }
+        });
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        footer.setOpaque(false);
+        footer.add(reset);
+
         card.add(header, BorderLayout.NORTH);
         card.add(grid, BorderLayout.CENTER);
+        card.add(footer, BorderLayout.SOUTH);
 
         JPanel center = new JPanel(new GridBagLayout());
         center.setOpaque(false);
