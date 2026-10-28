@@ -25,14 +25,14 @@ public class GameController {
         void onAiThinking(boolean thinking);
     }
 
-    private static final int AI_PLAYER = GameModel.O;
-    private static final int HUMAN_PLAYER = GameModel.X;
     private static final int MIN_AI_DELAY = 300;
     private static final int MAX_AI_DELAY = 800;
 
     private final GameModel model;
     private final GameMode mode;
     private final AiStrategy ai;
+    private final int humanSide;
+    private final int aiSide;
     // One background thread shared by all games; search can take a few hundred ms
     private static final ExecutorService AI_THREAD = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "ai");
@@ -48,59 +48,79 @@ public class GameController {
     private int generation;
 
     public GameController(int size, GameMode mode) {
-        this(size, mode, mode == GameMode.VS_AI ? Difficulty.NORMAL.createAi() : null);
+        this(size, mode, mode == GameMode.VS_AI ? Difficulty.NORMAL.createAi() : null, GameModel.X);
     }
 
     public GameController(GameConfig config) {
         this(config.size(), config.mode(),
-                config.mode() == GameMode.VS_AI ? config.difficulty().createAi() : null);
+                config.mode() == GameMode.VS_AI ? config.difficulty().createAi() : null, config.humanSide());
     }
 
     /** For tests and custom opponents: plays VS AI with the given strategy. */
     GameController(int size, GameMode mode, AiStrategy ai) {
+        this(size, mode, ai, GameModel.X);
+    }
+
+    GameController(int size, GameMode mode, AiStrategy ai, int humanSide) {
         this.model = new GameModel(size);
         this.mode = mode;
         this.ai = ai;
+        this.humanSide = humanSide;
+        this.aiSide = GameModel.opponent(humanSide);
     }
 
     public void setListener(Listener listener) { this.listener = listener; }
     public GameModel getModel() { return model; }
     public GameMode getMode() { return mode; }
     public boolean isAiThinking() { return aiThinking; }
+    public int getHumanSide() { return humanSide; }
+    public int getAiSide() { return aiSide; }
+
+    /** Call once the listener is attached: lets the AI open when it plays X. */
+    public void start() {
+        maybeStartAi();
+    }
+
+    /** Against the AI only the player's own moves can be taken back. */
+    public boolean canUndo() {
+        return mode == GameMode.TWO_PLAYERS ? model.canUndo() : model.movesBy(humanSide) > 0;
+    }
 
     /** True when a click on the board should be accepted right now. */
     public boolean acceptsInput() {
         return !model.isOver() && !isAiThinking()
-                && (mode == GameMode.TWO_PLAYERS || model.getCurrentPlayer() == HUMAN_PLAYER);
+                && (mode == GameMode.TWO_PLAYERS || model.getCurrentPlayer() == humanSide);
     }
 
     public void play(int r, int c) {
         if (!acceptsInput() || !model.play(r, c)) return;
         afterMove();
-        if (!model.isOver() && mode == GameMode.VS_AI) {
-            scheduleAiMove();
-        }
+        maybeStartAi();
     }
 
     public void undo() {
+        if (!canUndo()) return;
         cancelAi();
-        if (!model.canUndo()) return;
         model.undo();
         // Against the AI, roll back to the human's turn so they can actually replay
-        if (mode == GameMode.VS_AI && model.getCurrentPlayer() == AI_PLAYER && model.canUndo()) {
+        while (mode == GameMode.VS_AI && model.getCurrentPlayer() != humanSide && model.canUndo()) {
             model.undo();
         }
-        // If the AI had opened the game, let it move again
-        if (mode == GameMode.VS_AI && model.getCurrentPlayer() == AI_PLAYER) {
-            scheduleAiMove();
-        }
         fireStateChanged();
+        maybeStartAi();
     }
 
     public void restart() {
         cancelAi();
         model.reset();
         fireStateChanged();
+        maybeStartAi();
+    }
+
+    private void maybeStartAi() {
+        if (mode == GameMode.VS_AI && !model.isOver() && model.getCurrentPlayer() == aiSide && !aiThinking) {
+            scheduleAiMove();
+        }
     }
 
     /** Stops any pending AI move; call when leaving the screen. */
@@ -120,7 +140,7 @@ public class GameController {
         AI_THREAD.execute(() -> {
             int[] move;
             try {
-                move = ai.chooseMove(snapshot, AI_PLAYER);
+                move = ai.chooseMove(snapshot, aiSide);
             } catch (RuntimeException ex) {
                 ex.printStackTrace();
                 move = firstEmpty(snapshot);
@@ -142,7 +162,7 @@ public class GameController {
         aiTimer = null;
         aiThinking = false;
         if (listener != null) listener.onAiThinking(false);
-        if (model.isOver() || model.getCurrentPlayer() != AI_PLAYER) return;
+        if (model.isOver() || model.getCurrentPlayer() != aiSide) return;
         if (model.play(move[0], move[1])) afterMove();
     }
 

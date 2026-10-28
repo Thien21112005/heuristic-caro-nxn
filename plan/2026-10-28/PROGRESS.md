@@ -31,7 +31,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 2.9 Nhớ độ khó
 
 ## Giai đoạn 3: Chọn phe (`feat/sides`)
-- ⬜ 3.1 `humanSide` trong controller
+- ✅ 3.1 `humanSide` trong controller
 - ⬜ 3.2 Test AI cầm X
 - ⬜ 3.3 Chọn X/O khi đấu AI
 - ⬜ 3.4 Đổi lượt đi trước mỗi ván

@@ -58,7 +58,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         cardX = new PlayerCard(GameModel.X, nameOf(GameModel.X));
         cardO = new PlayerCard(GameModel.O, nameOf(GameModel.O));
         String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty()) : null;
-        cardO.setTag(level);
+        (controller.getAiSide() == GameModel.X ? cardX : cardO).setTag(level);
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -178,6 +178,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
         controller.setListener(this);
         onStateChanged();
+        controller.start();
     }
 
     /** Stops timers; call when the screen is discarded. */
@@ -193,7 +194,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         if (model.getMoveCount() > lastMoveCount) SoundManager.play(SoundManager.CLICK);
         lastMoveCount = model.getMoveCount();
 
-        undo.setEnabled(model.canUndo());
+        undo.setEnabled(controller.canUndo());
         board.stateChanged();
         refreshStatus();
     }
@@ -208,7 +209,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         cardO.setScore(scoreO);
         refreshStatus();
 
-        boolean humanLost = mode == GameMode.VS_AI && winner == GameModel.O;
+        boolean humanLost = mode == GameMode.VS_AI && winner == controller.getAiSide();
         SoundManager.play(winner == GameModel.EMPTY || humanLost ? SoundManager.ALERT : SoundManager.WIN);
 
         // Give the player a moment to see the winning line before the dialog covers it
@@ -298,8 +299,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int winner = model.getWinner();
         boolean thinking = controller.isAiThinking();
 
-        cardX.setStatus(statusFor(GameModel.X, current, winner, false));
-        cardO.setStatus(statusFor(GameModel.O, current, winner, thinking));
+        cardX.setStatus(statusFor(GameModel.X, current, winner, thinking && controller.getAiSide() == GameModel.X));
+        cardO.setStatus(statusFor(GameModel.O, current, winner, thinking && controller.getAiSide() == GameModel.O));
 
         String text;
         Color color = Theme.TEXT;
@@ -310,10 +311,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             text = I18n.t("game.status.draw");
         } else if (thinking) {
             text = I18n.t("game.status.aiThinking");
-            color = Theme.O_COLOR;
+            color = controller.getAiSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
         } else if (mode == GameMode.VS_AI) {
-            text = I18n.t("game.status.yourTurn");
-            color = Theme.X_COLOR;
+            text = I18n.t("game.status.yourTurn", controller.getHumanSide() == GameModel.X ? "X" : "O");
+            color = controller.getHumanSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
         } else {
             boolean x = current == GameModel.X;
             text = I18n.t("game.status.turn", nameOf(current), x ? "X" : "O");
@@ -332,7 +333,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private String resultTitle() {
         int winner = model.getWinner();
         if (winner == GameModel.EMPTY) return I18n.t("game.status.draw");
-        if (mode == GameMode.VS_AI) return I18n.t(winner == GameModel.X ? "game.result.youWin" : "game.result.aiWins");
+        if (mode == GameMode.VS_AI) {
+            return I18n.t(winner == controller.getHumanSide() ? "game.result.youWin" : "game.result.aiWins");
+        }
         return I18n.t("game.result.wins", nameOf(winner));
     }
 
@@ -350,7 +353,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     }
 
     private String nameOf(int player) {
-        if (mode == GameMode.VS_AI) return I18n.t(player == GameModel.X ? "player.you" : "player.ai");
+        if (mode == GameMode.VS_AI) return I18n.t(player == controller.getHumanSide() ? "player.you" : "player.ai");
         return I18n.t(player == GameModel.X ? "player.one" : "player.two");
     }
 
