@@ -11,7 +11,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 0.4 Icon ứng dụng
 
 ## Giai đoạn 1: Song ngữ (`feat/i18n`)
-- ⬜ 1.1 I18n helper + bundle tiếng Anh
+- ✅ 1.1 I18n helper + bundle tiếng Anh
 - ⬜ 1.2 Chuỗi Main menu + Setup
 - ⬜ 1.3 Chuỗi Settings + About
 - ⬜ 1.4 Chuỗi màn hình chơi + hộp thoại

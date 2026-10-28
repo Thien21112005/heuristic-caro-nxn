@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import utils.SoundManager;
 import view.components.AppButton;
 import view.components.RoundedPanel;
@@ -112,16 +113,16 @@ public class CustomDialog extends JDialog {
     /** Informational message with a single button. */
     public static void message(JFrame parent, String title, String message) {
         SoundManager.play(SoundManager.ALERT);
-        new CustomDialog(parent, title, message, "Got it", null, AppButton.Variant.PRIMARY, Theme.ACCENT)
+        new CustomDialog(parent, title, message, I18n.t("common.gotIt"), null, AppButton.Variant.PRIMARY, Theme.ACCENT)
                 .setVisible(true);
     }
 
     /** Legacy API kept for existing callers. */
     public static int showDialog(JFrame parent, String message, String title, int optionType) {
         if (optionType == YES_NO_OPTION) {
-            return confirm(parent, title, message, "Yes", "No", false);
+            return confirm(parent, title, message, I18n.t("common.yes"), I18n.t("common.no"), false);
         }
-        new CustomDialog(parent, title, message, "OK", null, AppButton.Variant.PRIMARY, Theme.ACCENT)
+        new CustomDialog(parent, title, message, I18n.t("common.ok"), null, AppButton.Variant.PRIMARY, Theme.ACCENT)
                 .setVisible(true);
         return YES_OPTION;
     }
