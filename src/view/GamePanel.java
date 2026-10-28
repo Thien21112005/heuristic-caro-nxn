@@ -2,6 +2,7 @@ package view;
 
 import utils.I18n;
 import controller.GameController;
+import controller.GameSession;
 import model.EndReason;
 import model.GameConfig;
 import model.GameMode;
@@ -26,11 +27,11 @@ import java.awt.event.KeyEvent;
  * The in-game screen: header with actions, player cards either side of the
  * board, and a status bar with zoom controls.
  */
-public class GamePanel extends BackgroundPanel implements GameController.Listener {
+public class GamePanel extends BackgroundPanel implements GameSession.Listener {
     private static final int GAME_OVER_DELAY_MS = 900;
 
     private final MainWindow window;
-    private final GameController controller;
+    private final GameSession controller;
     private final GameModel model;
     private final GameMode mode;
     private final GameConfig config;
@@ -241,7 +242,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         controller.dispose();
     }
 
-    // ---- GameController.Listener ----
+    // ---- GameSession.Listener ----
 
     @Override
     public void onStateChanged() {
@@ -270,7 +271,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         statsBeforeLastGame = Stats.get().record(Stats.bucket(config), outcome, model.getMoveCount());
         refreshStatus();
 
-        boolean humanLost = mode == GameMode.VS_AI && winner == controller.getAiSide();
+        boolean humanLost = mode == GameMode.VS_AI && winner == GameModel.opponent(controller.getHumanSide());
         SoundManager.play(winner == GameModel.EMPTY || humanLost ? SoundManager.ALERT : SoundManager.WIN);
 
         // Give the player a moment to see the winning line before the dialog covers it
@@ -487,7 +488,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             text = I18n.t("game.status.draw");
         } else if (thinking) {
             text = I18n.t("game.status.aiThinking");
-            color = controller.getAiSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
+            color = GameModel.opponent(controller.getHumanSide()) == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
         } else if (mode == GameMode.VS_AI) {
             text = I18n.t("game.status.yourTurn", controller.getHumanSide() == GameModel.X ? "X" : "O");
             color = controller.getHumanSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;

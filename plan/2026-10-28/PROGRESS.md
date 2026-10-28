@@ -66,7 +66,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 7.6 Phím ←/→ + tự phát
 
 ## Giai đoạn 8: LAN (`feat/lan`)
-- ⬜ 8.1 `GameSession` interface
+- ✅ 8.1 `GameSession` interface
 - ⬜ 8.2 Protocol
 - ⬜ 8.3 Test protocol
 - ⬜ 8.4 Connection + heartbeat
