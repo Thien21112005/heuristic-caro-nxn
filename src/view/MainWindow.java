@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import model.GameMode;
 import utils.ResourceUtils;
 import utils.SoundManager;
@@ -29,15 +30,35 @@ public class MainWindow extends JFrame {
         setIconImages(loadIcons());
         SoundManager.startMusic();
 
+        buildScreens();
+        setContentPane(cardPanel);
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+
+    private void buildScreens() {
         cardPanel.add(new MainMenuPanel(this), MAIN_MENU);
         cardPanel.add(new SetupPanel(this, GameMode.VS_AI), SETUP_AI);
         cardPanel.add(new SetupPanel(this, GameMode.TWO_PLAYERS), SETUP_TWO);
         cardPanel.add(new SettingsPanel(this), SETTINGS);
         cardPanel.add(new AboutPanel(this), ABOUT);
+    }
 
-        setContentPane(cardPanel);
-        setLocationRelativeTo(null);
-        setVisible(true);
+    /**
+     * Recreates every screen so they pick up a new language. Only reachable from
+     * Settings (via the main menu), so no game is in progress.
+     */
+    public void rebuildScreens(String showAfter) {
+        if (currentGame != null) {
+            currentGame.dispose();
+            currentGame = null;
+        }
+        cardPanel.removeAll();
+        buildScreens();
+        setTitle(I18n.t("app.title"));
+        cardPanel.revalidate();
+        showScreen(showAfter);
+        cardPanel.repaint();
     }
 
     private static List<Image> loadIcons() {
@@ -64,7 +85,8 @@ public class MainWindow extends JFrame {
     }
 
     public void requestQuit() {
-        int confirm = CustomDialog.confirm(this, "Quit the game?", "See you next time!", "Quit", "Cancel", true);
+        int confirm = CustomDialog.confirm(this, I18n.t("menu.quit.title"), I18n.t("menu.quit.message"),
+                I18n.t("menu.quit"), I18n.t("common.cancel"), true);
         if (confirm == CustomDialog.YES_OPTION) {
             System.exit(0);
         }

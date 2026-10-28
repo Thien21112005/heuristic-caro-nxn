@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import view.components.AppButton;
 import view.components.GradientTitle;
 import view.theme.Theme;
@@ -24,18 +25,18 @@ public class MainMenuPanel extends BackgroundPanel {
         GradientTitle title = new GradientTitle("CARO", 84f);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel subtitle = new JLabel("Gomoku on any board size  ·  Heuristic AI");
+        JLabel subtitle = new JLabel(I18n.t("menu.subtitle"));
         subtitle.setFont(Theme.font(Font.PLAIN, 15f));
         subtitle.setForeground(Theme.TEXT_MUTED);
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        AppButton vsAi = button("Play vs AI", AppButton.Variant.PRIMARY);
-        vsAi.setToolTipText("You play X and move first");
-        AppButton twoPlayers = button("Two players", AppButton.Variant.SECONDARY);
-        twoPlayers.setToolTipText("Take turns on the same computer");
-        AppButton settings = button("Settings", AppButton.Variant.SECONDARY);
-        AppButton about = button("About", AppButton.Variant.SECONDARY);
-        AppButton quit = button("Quit", AppButton.Variant.GHOST);
+        AppButton vsAi = button(I18n.t("menu.vsAi"), AppButton.Variant.PRIMARY);
+        vsAi.setToolTipText(I18n.t("menu.vsAi.tooltip"));
+        AppButton twoPlayers = button(I18n.t("menu.twoPlayers"), AppButton.Variant.SECONDARY);
+        twoPlayers.setToolTipText(I18n.t("menu.twoPlayers.tooltip"));
+        AppButton settings = button(I18n.t("menu.settings"), AppButton.Variant.SECONDARY);
+        AppButton about = button(I18n.t("menu.about"), AppButton.Variant.SECONDARY);
+        AppButton quit = button(I18n.t("menu.quit"), AppButton.Variant.GHOST);
 
         vsAi.addActionListener(e -> window.showScreen(MainWindow.SETUP_AI));
         twoPlayers.addActionListener(e -> window.showScreen(MainWindow.SETUP_TWO));

@@ -46,6 +46,7 @@
                 <directory>src</directory>
                 <includes>
                     <include>assets/**</include>
+                    <include>i18n/**</include>
                 </includes>
             </resource>
         </resources>

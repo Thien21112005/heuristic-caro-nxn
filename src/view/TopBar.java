@@ -1,5 +1,6 @@
 package view;
 
+import utils.I18n;
 import view.components.AppButton;
 
 import javax.swing.*;
@@ -15,7 +16,7 @@ public final class TopBar {
         JPanel bar = new JPanel(new BorderLayout());
         bar.setOpaque(false);
         bar.setBorder(BorderFactory.createEmptyBorder(16, 20, 0, 20));
-        bar.add(backButton("Back", onBack), BorderLayout.WEST);
+        bar.add(backButton(I18n.t("common.back"), onBack), BorderLayout.WEST);
         return bar;
     }
 

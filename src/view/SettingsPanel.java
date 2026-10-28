@@ -1,7 +1,9 @@
 package view;
 
+import utils.I18n;
 import model.Settings;
 import utils.SoundManager;
+import view.components.AppButton;
 import view.components.RoundedPanel;
 import view.components.ToggleSwitch;
 import view.theme.Theme;
@@ -31,27 +33,30 @@ public class SettingsPanel extends BackgroundPanel {
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(BorderFactory.createEmptyBorder(32, 36, 28, 36));
 
-        JLabel title = new JLabel("Settings");
+        JLabel title = new JLabel(I18n.t("settings.title"));
         title.setFont(Theme.font(Font.BOLD, 28f));
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(title);
 
-        card.add(section("SOUND", 24));
-        card.add(row("Background music", "Loop the soundtrack while you play", settings.isMusicEnabled(), on -> {
+        card.add(section(I18n.t("settings.sound"), 24));
+        card.add(row(I18n.t("settings.music"), I18n.t("settings.music.desc"), settings.isMusicEnabled(), on -> {
             settings.setMusicEnabled(on);
             if (on) SoundManager.startMusic();
             else SoundManager.stopMusic();
         }));
         card.add(divider());
-        card.add(row("Sound effects", "Clicks, hovers and the victory jingle", settings.isSfxEnabled(),
+        card.add(row(I18n.t("settings.sfx"), I18n.t("settings.sfx.desc"), settings.isSfxEnabled(),
                 settings::setSfxEnabled));
 
-        card.add(section("GAMEPLAY", 24));
-        card.add(row("Allow undo", "Take back moves (Ctrl+Z). Vs AI it also undoes the AI's reply",
+        card.add(section(I18n.t("settings.gameplay"), 24));
+        card.add(row(I18n.t("settings.undo"), I18n.t("settings.undo.desc"),
                 settings.isUndoEnabled(), settings::setUndoEnabled));
 
-        JLabel note = new JLabel("Changes are saved automatically.");
+        card.add(section(I18n.t("settings.language"), 24));
+        card.add(languagePicker(window));
+
+        JLabel note = new JLabel(I18n.t("settings.saved"));
         note.setFont(Theme.font(Font.PLAIN, 12f));
         note.setForeground(Theme.TEXT_MUTED);
         note.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -72,6 +77,26 @@ public class SettingsPanel extends BackgroundPanel {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) { back.run(); }
         });
+    }
+
+    private static JComponent languagePicker(MainWindow window) {
+        JPanel picker = new JPanel(new GridLayout(1, 2, 10, 0));
+        picker.setOpaque(false);
+        picker.setAlignmentX(Component.LEFT_ALIGNMENT);
+        String[][] options = { {I18n.ENGLISH, "English"}, {I18n.VIETNAMESE, "Tiếng Việt"} };
+        for (String[] option : options) {
+            boolean selected = option[0].equals(I18n.getLanguage());
+            AppButton b = new AppButton(option[1], selected ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
+            b.addActionListener(e -> {
+                if (option[0].equals(I18n.getLanguage())) return;
+                Settings.get().setLanguage(option[0]);
+                I18n.setLanguage(option[0]);
+                window.rebuildScreens(MainWindow.SETTINGS);
+            });
+            picker.add(b);
+        }
+        picker.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        return picker;
     }
 
     private static JComponent section(String text, int gapTop) {
