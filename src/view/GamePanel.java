@@ -64,13 +64,18 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
     private Timer gameOverTimer;
 
     public GamePanel(MainWindow window, GameConfig config) {
+        this(window, config, new GameController(config));
+    }
+
+    /** Plays an already prepared session (e.g. a connected LAN game). */
+    public GamePanel(MainWindow window, GameConfig config, GameSession session) {
         super("/assets/Background.jpg");
         setDim(40, 150);
         this.window = window;
         this.config = config;
         this.mode = config.mode();
         int size = config.size();
-        this.controller = new GameController(config);
+        this.controller = session;
         this.model = controller.getModel();
         setLayout(new BorderLayout());
 
@@ -438,7 +443,8 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
             if (option != CustomDialog.YES_OPTION) return;
         }
         dispose();
-        window.showScreen(mode == GameMode.VS_AI ? MainWindow.SETUP_AI : MainWindow.SETUP_TWO);
+        window.showScreen(mode == GameMode.VS_AI ? MainWindow.SETUP_AI
+                : mode == GameMode.LAN ? MainWindow.LAN : MainWindow.SETUP_TWO);
     }
 
     private boolean inProgress() {

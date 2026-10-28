@@ -18,6 +18,7 @@ public class MainWindow extends JFrame {
     public static final String SETTINGS = "Settings";
     public static final String ABOUT = "About";
     public static final String STATS = "Stats";
+    public static final String LAN = "Lan";
     private static final String GAME = "Game";
 
     private final CardLayout cardLayout = new CardLayout();
@@ -45,6 +46,7 @@ public class MainWindow extends JFrame {
         cardPanel.add(new SettingsPanel(this), SETTINGS);
         cardPanel.add(new AboutPanel(this), ABOUT);
         cardPanel.add(new StatsPanel(this), STATS);
+        cardPanel.add(new LanLobbyPanel(this), LAN);
     }
 
     /**
@@ -77,12 +79,23 @@ public class MainWindow extends JFrame {
     }
 
     public void startGame(GameConfig config) {
+        show(new GamePanel(this, config));
+    }
+
+    /** Starts a LAN game that the lobby has already connected. */
+    public void startLanGame(controller.NetworkGameController game) {
+        GameConfig config = new GameConfig(GameMode.LAN, game.getModel().getSize(), model.ai.Difficulty.NORMAL,
+                game.getHumanSide(), true, game.getTurnSeconds());
+        show(new GamePanel(this, config, game));
+    }
+
+    private void show(GamePanel game) {
         // Only one board lives at a time; drop the previous one so games don't pile up in memory
         if (currentGame != null) {
             currentGame.dispose();
             cardPanel.remove(currentGame);
         }
-        currentGame = new GamePanel(this, config);
+        currentGame = game;
         cardPanel.add(currentGame, GAME);
         showScreen(GAME);
     }
