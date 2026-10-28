@@ -27,12 +27,10 @@ public class GameMenu extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         SoundManager.startMusic();
 
-        BackgroundPanel bgabout = new BackgroundPanel(BACKGROUND_PATH);
 
-        new AboutGamePanel(this, bgabout);
 
         cardPanel.add(new MainMenuPanel(this), MAIN_MENU);
-        cardPanel.add(bgabout, ABOUT);
+        cardPanel.add(new AboutPanel(this), ABOUT);
         cardPanel.add(new SetupPanel(this, GameMode.TWO_PLAYERS), SETUP_TWO);
         cardPanel.add(new SetupPanel(this, GameMode.VS_AI), SETUP_AI);
         cardPanel.add(new SettingsPanel(this), SETTINGS);
