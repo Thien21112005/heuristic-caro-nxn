@@ -35,9 +35,14 @@ public class SoundPlayer {
         if (soundFileUrl == null) return;
         try {
             AudioInputStream audioIn = AudioSystem.getAudioInputStream(soundFileUrl);
-            clip = AudioSystem.getClip();
-            clip.open(audioIn);
-            clip.start();
+            Clip oneShot = AudioSystem.getClip();
+            oneShot.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    oneShot.close();
+                }
+            });
+            oneShot.open(audioIn);
+            oneShot.start();
         } catch (IOException | UnsupportedAudioFileException | LineUnavailableException e) {
             e.printStackTrace();
         }
