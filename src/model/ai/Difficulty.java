@@ -7,6 +7,8 @@ public enum Difficulty {
         switch (this) {
             case EASY:
                 return new EasyAi();
+            case HARD:
+                return new SearchAi();
             default:
                 return new HeuristicAi();
         }
