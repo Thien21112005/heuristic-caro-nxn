@@ -6,6 +6,8 @@
 
 <h1 id="english">Cyberpunk Gomoku AI (Caro NxN)</h1>
 
+[![CI](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml/badge.svg)](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml)
+
 A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). This project features a modern dark, neon-accented user interface, dynamic NxN board generation, and a highly competitive Artificial Intelligence opponent powered by a custom **Heuristic Pattern Matching** algorithm.
 
 ## Table of Contents
