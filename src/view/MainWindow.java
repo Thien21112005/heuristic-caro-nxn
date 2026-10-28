@@ -30,15 +30,35 @@ public class MainWindow extends JFrame {
         setIconImages(loadIcons());
         SoundManager.startMusic();
 
+        buildScreens();
+        setContentPane(cardPanel);
+        setLocationRelativeTo(null);
+        setVisible(true);
+    }
+
+    private void buildScreens() {
         cardPanel.add(new MainMenuPanel(this), MAIN_MENU);
         cardPanel.add(new SetupPanel(this, GameMode.VS_AI), SETUP_AI);
         cardPanel.add(new SetupPanel(this, GameMode.TWO_PLAYERS), SETUP_TWO);
         cardPanel.add(new SettingsPanel(this), SETTINGS);
         cardPanel.add(new AboutPanel(this), ABOUT);
+    }
 
-        setContentPane(cardPanel);
-        setLocationRelativeTo(null);
-        setVisible(true);
+    /**
+     * Recreates every screen so they pick up a new language. Only reachable from
+     * Settings (via the main menu), so no game is in progress.
+     */
+    public void rebuildScreens(String showAfter) {
+        if (currentGame != null) {
+            currentGame.dispose();
+            currentGame = null;
+        }
+        cardPanel.removeAll();
+        buildScreens();
+        setTitle(I18n.t("app.title"));
+        cardPanel.revalidate();
+        showScreen(showAfter);
+        cardPanel.repaint();
     }
 
     private static List<Image> loadIcons() {

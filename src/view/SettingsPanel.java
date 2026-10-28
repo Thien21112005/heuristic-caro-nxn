@@ -3,6 +3,7 @@ package view;
 import utils.I18n;
 import model.Settings;
 import utils.SoundManager;
+import view.components.AppButton;
 import view.components.RoundedPanel;
 import view.components.ToggleSwitch;
 import view.theme.Theme;
@@ -52,6 +53,9 @@ public class SettingsPanel extends BackgroundPanel {
         card.add(row(I18n.t("settings.undo"), I18n.t("settings.undo.desc"),
                 settings.isUndoEnabled(), settings::setUndoEnabled));
 
+        card.add(section(I18n.t("settings.language"), 24));
+        card.add(languagePicker(window));
+
         JLabel note = new JLabel(I18n.t("settings.saved"));
         note.setFont(Theme.font(Font.PLAIN, 12f));
         note.setForeground(Theme.TEXT_MUTED);
@@ -73,6 +77,26 @@ public class SettingsPanel extends BackgroundPanel {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) { back.run(); }
         });
+    }
+
+    private static JComponent languagePicker(MainWindow window) {
+        JPanel picker = new JPanel(new GridLayout(1, 2, 10, 0));
+        picker.setOpaque(false);
+        picker.setAlignmentX(Component.LEFT_ALIGNMENT);
+        String[][] options = { {I18n.ENGLISH, "English"}, {I18n.VIETNAMESE, "Tiếng Việt"} };
+        for (String[] option : options) {
+            boolean selected = option[0].equals(I18n.getLanguage());
+            AppButton b = new AppButton(option[1], selected ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
+            b.addActionListener(e -> {
+                if (option[0].equals(I18n.getLanguage())) return;
+                Settings.get().setLanguage(option[0]);
+                I18n.setLanguage(option[0]);
+                window.rebuildScreens(MainWindow.SETTINGS);
+            });
+            picker.add(b);
+        }
+        picker.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        return picker;
     }
 
     private static JComponent section(String text, int gapTop) {
