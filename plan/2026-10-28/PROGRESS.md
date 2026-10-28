@@ -61,7 +61,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 7.1 Lịch sử nước đi + replay trong model
 - ✅ 7.2 Test replay
 - ✅ 7.3 BoardView vẽ từ display model
-- ⬜ 7.4 Số thứ tự nước đi
+- ✅ 7.4 Số thứ tự nước đi
 - ⬜ 7.5 Thanh Replay
 - ⬜ 7.6 Phím ←/→ + tự phát
 

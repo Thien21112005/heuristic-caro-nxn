@@ -27,6 +27,7 @@ public class BoardView extends JComponent {
     private final GameController controller;
     private final GameModel liveModel;
     private GameModel display; // a replayed position shown instead of the live game, or null
+    private boolean showMoveNumbers;
     private final int n;
 
     private static final Image X_IMAGE = ResourceUtils.getImageIcon("/assets/x_image_funny.png").getImage();
@@ -138,6 +139,13 @@ public class BoardView extends JComponent {
     }
 
     public boolean isShowingReplay() { return display != null; }
+
+    public void setShowMoveNumbers(boolean show) {
+        showMoveNumbers = show;
+        repaint();
+    }
+
+    public boolean isShowingMoveNumbers() { return showMoveNumbers; }
 
     private GameModel shown() {
         return display != null ? display : liveModel;
@@ -381,7 +389,30 @@ public class BoardView extends JComponent {
                 g2.draw(stroke);
             }
         }
+        // Numbers go on top of everything, including the win line, so they stay readable
+        if (showMoveNumbers) drawMoveNumbers(g2);
         g2.dispose();
+    }
+
+    /** Small numbered badge in the corner of every piece, in the order they were played. */
+    private void drawMoveNumbers(Graphics2D g2) {
+        java.util.List<int[]> moves = shown().getMoves();
+        int d = Math.max(14, Math.round(cell * 0.36f));
+        Font font = Theme.semibold(Math.max(9f, d * 0.55f));
+        g2.setFont(font);
+        FontMetrics fm = g2.getFontMetrics();
+        for (int i = 0; i < moves.size(); i++) {
+            int[] m = moves.get(i);
+            int x = PAD + m[1] * cell + cell - d - 1;
+            int y = PAD + m[0] * cell + cell - d - 1;
+            String text = String.valueOf(i + 1);
+            int w = Math.max(d, fm.stringWidth(text) + 6);
+            x -= w - d;
+            g2.setColor(Theme.alpha(Theme.BG, 225));
+            g2.fillRoundRect(x, y, w, d, d, d);
+            g2.setColor(colorOf(m[2]));
+            g2.drawString(text, x + (w - fm.stringWidth(text)) / 2, y + (d - fm.getHeight()) / 2 + fm.getAscent());
+        }
     }
 
     private void drawPiece(Graphics2D g2, int player, int x, int y, float scale) {

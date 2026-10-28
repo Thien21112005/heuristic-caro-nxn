@@ -43,6 +43,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final AppButton undo;
     private final AppButton hint;
     private final AppButton resign;
+    private final AppButton numbers;
 
     private final int[] scores = new int[2];
     private int draws;
@@ -165,8 +166,10 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             fitBoard();
         });
         AppButton zoomIn = zoomButton("+", I18n.t("game.zoomIn.tooltip"), () -> zoomBy(1));
+        numbers = zoomButton("#", I18n.t("game.numbers.tooltip"), this::toggleMoveNumbers);
         JPanel zoom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         zoom.setOpaque(false);
+        zoom.add(numbers);
         zoom.add(zoomOut);
         zoom.add(fit);
         zoom.add(zoomIn);
@@ -192,6 +195,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), this::requestRestart);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), this::requestLeave);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), fit::doClick);
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0), this::toggleMoveNumbers);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, 0), () -> zoomBy(1));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_ADD, 0), () -> zoomBy(1));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), () -> zoomBy(-1));
@@ -275,6 +279,12 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
                 I18n.t("game.over.viewBoard"), false);
         if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
+    }
+
+    private void toggleMoveNumbers() {
+        boolean on = !board.isShowingMoveNumbers();
+        board.setShowMoveNumbers(on);
+        numbers.setVariant(on ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
     }
 
     private void showHint() {
