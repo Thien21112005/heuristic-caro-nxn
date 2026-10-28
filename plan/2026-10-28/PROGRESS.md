@@ -69,7 +69,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 8.1 `GameSession` interface
 - ✅ 8.2 Protocol — bỏ lệnh `START`: phe mỗi ván suy ra từ số ván (host cầm X ở ván lẻ) trên cả hai máy
 - ✅ 8.3 Test protocol
-- ⬜ 8.4 Connection + heartbeat
+- ✅ 8.4 Connection + heartbeat
 - ⬜ 8.5 LanHost / LanClient
 - ⬜ 8.6 Test loopback cả ván
 - ⬜ 8.7 UDP discovery
