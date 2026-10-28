@@ -71,7 +71,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 8.3 Test protocol
 - ✅ 8.4 Connection + heartbeat
 - ✅ 8.5 LanHost / LanClient
-- ⬜ 8.6 Test loopback cả ván
+- ✅ 8.6 Test loopback cả ván
 - ⬜ 8.7 UDP discovery
 - ⬜ 8.8 NetworkGameController
 - ⬜ 8.9 Lobby: tab Tạo phòng
