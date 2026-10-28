@@ -5,6 +5,8 @@ public enum Difficulty {
 
     public AiStrategy createAi() {
         switch (this) {
+            case EASY:
+                return new EasyAi();
             default:
                 return new HeuristicAi();
         }
