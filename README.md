@@ -23,7 +23,13 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 - **Dynamic Board Sizing:** Any NxN board from 3x3 to 20x20, with quick presets and the last size remembered.
 - **Clear win rule:** 3x3 to 5x5 need a full row, column or diagonal; 6x6 and up need 5 in a row. The rule is shown before and during the game.
 - **Zoom & Pan:** Mouse-wheel zoom anchored at the cursor, drag to pan, plus zoom/fit buttons; the board auto-fits the window.
-- **Two Game Modes:** Local Two Players and VS AI, with a running score across rounds.
+- **Three ways to play:** VS AI, two players on one computer, or two computers on the same Wi-Fi (LAN).
+- **AI levels:** Easy (misses threats on purpose), Normal (the original heuristic) and Hard (alpha-beta search that sets up double threats).
+- **Choose your side:** play X (move first) or O against the AI, and optionally alternate who starts every round.
+- **Turn clock & resign:** optional 10–60 s per turn (running out loses the round) and a Resign button.
+- **Hints:** ask the Hard engine for the best move (`H`); can be turned off in Settings.
+- **Replay:** after a round, step through it move by move or let it play back; optional move numbers on the pieces.
+- **Statistics:** win rate, streaks and fastest win per AI level, plus the two-player head-to-head, kept between launches.
 - **Undo (optional):** Enable "Allow undo" in Settings; against the AI it takes back your move and the AI's reply.
 
 ### User Interface (UI/UX)
@@ -31,7 +37,7 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 - **Custom-painted board:** Hover preview of your next piece, pop-in animation, last-move marker and a glowing winning line.
 - **Player cards:** Highlight whose turn it is, show an animated "Thinking..." state for the AI and each side's wins.
 - **Friendly dialogs:** Centered cards over a dimmed window; "Play again" or "View board" after a game.
-- **Keyboard shortcuts:** `Ctrl+Z` undo, `R` restart, `F` fit board, `+`/`-` zoom, `Esc` back.
+- **Keyboard shortcuts:** `Ctrl+Z` undo, `H` hint, `R` restart, `N` move numbers, `F` fit board, `+`/`-` zoom, `←`/`→`/`Space` replay, `Esc` back.
 - **Audio settings:** Background music and sound effects can be switched off; clips load on a background thread.
 - **English & Tiếng Việt:** switch language in Settings; every screen reloads instantly.
 
@@ -78,13 +84,21 @@ When a pattern reaches the target winning length (e.g., 5 in a row), exponential
 ### 6. Complexity Analysis
 By scanning only from empty cells and limiting the ray cast distance to the target winning length (max 5 steps per direction), the time complexity per AI turn is strictly $\mathcal{O}(N^2)$, where $N$ is the board dimension. This guarantees a stable `~1ms` calculation time even on a 100x100 grid. To prevent the AI from feeling overly robotic, a randomized artificial delay (300ms - 800ms) is injected to simulate "thinking" time.
 
+### 7. Difficulty Levels
+- **Easy** (`EasyAi`): always takes a win, but blocks your winning move only 60% of the time and picks among its top six cells 35% of the time.
+- **Normal** (`HeuristicAi`): the single-ply heuristic described above.
+- **Hard** (`SearchAi`): negamax with alpha-beta and iterative deepening for ~250 ms, scored by `PatternEvaluator`, which counts every 5-cell window holding only one player's stones (so gapped shapes like `XX_X` count). A side that can complete a line wins at once and a side facing a winning threat may only block it, which lets it see about six moves ahead. In local tests it never lost to Normal.
+
+The AI runs on a background thread, so the window never freezes while it thinks.
+
 ## Architecture & Design
 
 The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
-- **Model (`src/model`):** `GameModel` (board, turns, win/draw detection, move history for undo), `GameAI` (heuristic engine), `Settings` (persisted preferences).
-- **Controller (`src/controller`):** `GameController` validates moves, schedules and cancels the AI reply, and handles undo/restart.
+- **Model (`src/model`):** `GameModel` (board, turns, win/draw/forfeit, move history for undo and replay), `model/ai` (Easy, Normal and Hard engines), `Settings` and `Stats` (persisted with `java.util.prefs`).
+- **Controller (`src/controller`):** the `GameSession` interface, implemented by `GameController` (local games: AI thread, undo, turn clock) and `NetworkGameController` (LAN games); `LanMatchmaker` sets up LAN connections.
+- **Network (`src/net`):** the line-based `Protocol`, `Connection` (reader thread, send queue, heartbeat), `LanHost`/`LanClient` and UDP `LanDiscovery`.
 - **View (`src/view`):** `MainWindow` hosts the screens in a `CardLayout`; reusable components live in `view/components` and the design tokens in `view/theme/Theme`.
-- **Tests (`test`):** JUnit 5 tests for the rules, the AI and the controller.
+- **Tests (`test`):** JUnit 5 tests for the rules, every AI level, the controllers, statistics, translations and the network code (over loopback).
 
 ## Prerequisites & Installation
 
@@ -126,6 +140,8 @@ The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
 **Settings** (saved automatically between launches):
 - **Background music** / **Sound effects:** turn audio on or off.
 - **Allow undo:** off by default (no take-backs). When on, an Undo button (`Ctrl+Z`) appears in the game. Against the AI it reverts both your move and the AI's reply.
+- **Allow hints:** on by default; shows the Hint button.
+- **Language:** English or Tiếng Việt.
 
 **Controls:** mouse wheel to zoom, drag to pan, `F` to fit the board, `R` to restart, `Esc` to go back.
 
@@ -150,15 +166,21 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 - **Kích thước bàn linh hoạt:** Mọi bàn NxN từ 3x3 đến 20x20, có nút chọn nhanh và nhớ kích thước lần trước.
 - **Luật thắng rõ ràng:** Bàn 3x3 đến 5x5 phải đủ cả hàng/cột/đường chéo; từ 6x6 trở lên cần 5 quân liên tiếp. Luật được hiển thị trước và trong ván.
 - **Zoom & kéo bàn cờ:** Lăn chuột để zoom quanh con trỏ, kéo để di chuyển, có nút zoom/vừa khung; bàn cờ tự co giãn theo cửa sổ.
-- **Hai chế độ chơi:** Hai người trên cùng một máy và Đấu với AI, có tính tỉ số qua các ván.
-- **Đi lại (tuỳ chọn):** Bật "Allow undo" trong Settings; khi đấu với AI sẽ lùi cả nước của bạn lẫn nước của AI.
+- **Ba cách chơi:** Đấu với máy, hai người trên cùng một máy, hoặc hai máy chung Wi-Fi (LAN).
+- **Độ khó AI:** Dễ (cố tình bỏ sót đòn), Thường (thuật toán heuristic gốc) và Khó (tìm kiếm alpha-beta, biết tạo nước đôi).
+- **Chọn phe:** cầm X (đi trước) hoặc O khi đấu với máy, và có thể đổi người đi trước sau mỗi ván.
+- **Đồng hồ & đầu hàng:** tuỳ chọn 10–60 giây mỗi lượt (hết giờ là thua ván) và nút Đầu hàng.
+- **Gợi ý:** hỏi AI mức Khó nước đi mạnh nhất (`H`); có thể tắt trong Cài đặt.
+- **Xem lại ván:** sau mỗi ván có thể xem từng nước hoặc cho tự phát; có thể hiện số thứ tự nước đi trên quân.
+- **Thống kê:** tỉ lệ thắng, chuỗi thắng và ván thắng nhanh nhất cho từng độ khó, cộng tỉ số đối đầu hai người, lưu lại giữa các lần mở game.
+- **Đi lại (tuỳ chọn):** Bật "Cho phép đi lại" trong Cài đặt; khi đấu với AI sẽ lùi cả nước của bạn lẫn nước của AI.
 
 ### Giao diện & Trải nghiệm (UI/UX)
 - **Giao diện tối hiện đại:** FlatLaf với font Inter, thẻ bo góc, nút có hiệu ứng chuyển động và công tắc bật/tắt.
 - **Bàn cờ tự vẽ:** Xem trước quân khi rê chuột, hiệu ứng đặt quân, đánh dấu nước vừa đi và đường thắng phát sáng.
 - **Thẻ người chơi:** Làm nổi bật người đến lượt, hiển thị "Thinking..." khi AI đang nghĩ và số ván thắng của mỗi bên.
 - **Hộp thoại thân thiện:** Hiện giữa màn hình trên nền mờ; sau ván có "Play again" hoặc "View board".
-- **Phím tắt:** `Ctrl+Z` đi lại, `R` chơi lại, `F` vừa khung, `+`/`-` zoom, `Esc` quay lại.
+- **Phím tắt:** `Ctrl+Z` đi lại, `H` gợi ý, `R` chơi lại, `N` số thứ tự nước đi, `F` vừa khung, `+`/`-` zoom, `←`/`→`/`Space` xem lại ván, `Esc` quay lại.
 - **Cài đặt âm thanh:** Bật/tắt nhạc nền và hiệu ứng; âm thanh được nạp ở luồng riêng nên không làm giật giao diện.
 - **Tiếng Việt & English:** đổi ngôn ngữ trong Cài đặt, mọi màn hình cập nhật ngay.
 
@@ -207,12 +229,20 @@ Bằng cách chỉ quét từ các ô trống và giới hạn khoảng cách qu
 
 *Lưu ý: Để tránh AI đánh quá nhanh gây cảm giác "máy móc", code đã cố tình chèn thêm độ trễ ngẫu nhiên (300ms - 800ms) để giả lập thời gian "suy nghĩ" của con người.*
 
+### 7. Các mức độ khó
+- **Dễ** (`EasyAi`): luôn đánh nước thắng nếu có, nhưng chỉ chặn nước thắng của bạn 60% số lần và 35% số lần chọn ngẫu nhiên trong 6 ô tốt nhất.
+- **Thường** (`HeuristicAi`): thuật toán heuristic một nước như mô tả ở trên.
+- **Khó** (`SearchAi`): negamax + alpha-beta, đào sâu dần trong khoảng 250 ms, chấm điểm bằng `PatternEvaluator` (đếm mọi cửa sổ 5 ô chỉ chứa quân của một bên, nên nhận ra cả thế có ô trống như `XX_X`). Bên nào có nước thắng ngay thì thắng luôn, bên đang bị dọa thua thì chỉ được chặn, nhờ vậy AI nhìn trước khoảng 6 nước. Trong các lần thử, AI Khó chưa thua AI Thường ván nào.
+
+AI chạy ở luồng riêng nên cửa sổ không bao giờ bị đơ khi máy đang nghĩ.
+
 ## Kiến trúc & Thiết kế
 Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controller (MVC)**:
-- **Model (`src/model`):** `GameModel` (bàn cờ, lượt đi, kiểm tra thắng/hoà, lịch sử nước đi để Undo), `GameAI` (engine heuristic), `Settings` (lưu cài đặt).
-- **Controller (`src/controller`):** `GameController` kiểm tra nước đi, hẹn giờ/huỷ nước của AI, xử lý Undo và chơi lại.
+- **Model (`src/model`):** `GameModel` (bàn cờ, lượt đi, thắng/hoà/xử thua, lịch sử nước đi để Undo và xem lại), `model/ai` (AI Dễ, Thường, Khó), `Settings` và `Stats` (lưu bằng `java.util.prefs`).
+- **Controller (`src/controller`):** interface `GameSession`, được hiện thực bởi `GameController` (ván local: luồng AI, Undo, đồng hồ) và `NetworkGameController` (ván LAN); `LanMatchmaker` lo việc kết nối LAN.
+- **Mạng (`src/net`):** giao thức dạng dòng `Protocol`, `Connection` (luồng đọc, hàng đợi gửi, heartbeat), `LanHost`/`LanClient` và `LanDiscovery` qua UDP.
 - **View (`src/view`):** `MainWindow` chứa các màn hình bằng `CardLayout`; component dùng chung nằm trong `view/components`, màu sắc/font ở `view/theme/Theme`.
-- **Tests (`test`):** Unit test JUnit 5 cho luật chơi, AI và controller.
+- **Tests (`test`):** Unit test JUnit 5 cho luật chơi, cả ba mức AI, controller, thống kê, bản dịch và phần mạng (chạy qua loopback).
 
 ## Hướng dẫn cài đặt
 
@@ -254,5 +284,7 @@ Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controll
 **Settings** (tự lưu giữa các lần mở game):
 - **Background music** / **Sound effects:** bật/tắt nhạc nền và hiệu ứng âm thanh.
 - **Allow undo:** mặc định tắt (hạ thủ bất hoàn). Khi bật, nút Undo (`Ctrl+Z`) sẽ xuất hiện trong ván. Khi đánh với AI, Undo lùi cả lượt của bạn và lượt của AI.
+- **Cho phép gợi ý:** mặc định bật; hiện nút Gợi ý.
+- **Ngôn ngữ:** English hoặc Tiếng Việt.
 
 **Điều khiển:** lăn chuột để zoom, kéo để di chuyển bàn cờ, `F` vừa khung, `R` chơi lại, `Esc` quay lại.
