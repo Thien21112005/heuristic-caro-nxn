@@ -79,7 +79,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 8.11 GamePanel chế độ LAN
 - ✅ 8.12 Bắt tay chơi lại
 - ✅ 8.13 Mất kết nối / đầu hàng
-- ⬜ 8.14 Tài liệu LAN + firewall
+- ✅ 8.14 Tài liệu LAN + firewall
 
 ## Giai đoạn 9: Tiện ích (`feat/polish`)
 - ⬜ 9.1 Âm lượng qua master gain

@@ -145,6 +145,17 @@ The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
 
 **Controls:** mouse wheel to zoom, drag to pan, `F` to fit the board, `R` to restart, `Esc` to go back.
 
+### Playing over LAN
+Both computers must be on the same Wi-Fi or wired network.
+
+1. **Host:** Main menu → **Play over LAN** → enter your name, pick the board size and turn time → **Create room**. The screen shows the address others can use, e.g. `192.168.1.23 · port 45678`.
+2. **Join:** on the other computer open **Play over LAN**. The room appears in the list after a second or two; click it. If it does not show up, type the host's address (`192.168.1.23`, or `192.168.1.23:45678` if the port differs) and press **Connect**.
+3. The host plays X in the first round; pieces swap every round. **Play again** asks the opponent first. Undo and hints are disabled in LAN games, and a dropped connection ends the round without counting it.
+
+**Firewall:** the first time you create a room, Windows may ask whether Java may use the network. Choose **Allow** (private networks are enough), or nobody can join. The game uses TCP port **45678** for the match (another free port if that one is busy) and UDP port **45679** to announce rooms.
+
+**If joining fails:** check both machines are on the same network, try typing the address by hand, and note that some public or school Wi-Fi networks block devices from talking to each other (client isolation). In that case, turn on a phone hotspot or one laptop's hotspot and connect both computers to it.
+
 ---
 
 <br><br>
@@ -288,3 +299,14 @@ Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controll
 - **Ngôn ngữ:** English hoặc Tiếng Việt.
 
 **Điều khiển:** lăn chuột để zoom, kéo để di chuyển bàn cờ, `F` vừa khung, `R` chơi lại, `Esc` quay lại.
+
+### Chơi qua LAN
+Hai máy phải dùng chung một mạng Wi-Fi hoặc mạng dây.
+
+1. **Tạo phòng:** Menu chính → **Chơi qua LAN** → nhập tên, chọn kích thước bàn và thời gian mỗi lượt → **Tạo phòng**. Màn hình sẽ hiện địa chỉ để người khác vào, ví dụ `192.168.1.23 · cổng 45678`.
+2. **Vào phòng:** trên máy kia mở **Chơi qua LAN**. Sau một hai giây phòng sẽ hiện trong danh sách, bấm vào là vào. Nếu không thấy, hãy nhập địa chỉ của máy tạo phòng (`192.168.1.23`, hoặc `192.168.1.23:45678` nếu cổng khác) rồi bấm **Kết nối**.
+3. Người tạo phòng cầm X ở ván đầu, hai bên đổi quân sau mỗi ván. **Chơi ván mới** sẽ hỏi ý đối thủ trước. Ván LAN không có Đi lại và Gợi ý, và nếu mất kết nối thì ván đó không được tính.
+
+**Tường lửa:** lần đầu tạo phòng, Windows có thể hỏi có cho Java dùng mạng không. Hãy chọn **Allow** (chỉ cần mạng riêng/Private), nếu không thì không ai vào được. Game dùng cổng TCP **45678** cho ván đấu (tự đổi sang cổng trống nếu cổng này bận) và cổng UDP **45679** để thông báo phòng.
+
+**Nếu không vào được phòng:** kiểm tra hai máy cùng mạng, thử nhập địa chỉ bằng tay. Một số Wi-Fi công cộng hoặc Wi-Fi trường học chặn các máy nói chuyện với nhau (client isolation). Khi đó hãy bật điểm phát Wi-Fi (hotspot) trên điện thoại hoặc trên một laptop rồi cho cả hai máy kết nối vào đó.
