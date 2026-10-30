@@ -20,16 +20,7 @@ import java.util.function.LongSupplier;
  * Drives a single game: validates human moves, schedules the AI reply,
  * and handles undo/restart. The view only renders and forwards input.
  */
-public class GameController {
-    public interface Listener {
-        /** Board, turn or result changed — redraw. */
-        void onStateChanged();
-        /** The game just ended (win or draw). */
-        void onGameOver();
-        void onAiThinking(boolean thinking);
-        /** Called about ten times a second while a timed turn is running. */
-        default void onClockTick(long remainingMs) {}
-    }
+public class GameController implements GameSession {
 
     private static final int MIN_AI_DELAY = 300;
     private static final int MAX_AI_DELAY = 800;
@@ -49,7 +40,7 @@ public class GameController {
     });
 
     private final Random random = new Random();
-    private Listener listener;
+    private GameSession.Listener listener;
     private Timer aiTimer;
     private boolean aiThinking;
     // Bumped whenever a pending AI move becomes invalid (undo, restart, leave)
@@ -85,7 +76,8 @@ public class GameController {
         this.aiSide = GameModel.opponent(humanSide);
     }
 
-    public void setListener(Listener listener) { this.listener = listener; }
+    @Override
+    public void setListener(GameSession.Listener listener) { this.listener = listener; }
     public GameModel getModel() { return model; }
     public GameMode getMode() { return mode; }
     public boolean isAiThinking() { return aiThinking; }

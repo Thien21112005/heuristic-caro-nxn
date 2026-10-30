@@ -2,6 +2,8 @@ package view;
 
 import utils.I18n;
 import controller.GameController;
+import controller.GameSession;
+import controller.NetworkGameController;
 import model.EndReason;
 import model.GameConfig;
 import model.GameMode;
@@ -26,11 +28,11 @@ import java.awt.event.KeyEvent;
  * The in-game screen: header with actions, player cards either side of the
  * board, and a status bar with zoom controls.
  */
-public class GamePanel extends BackgroundPanel implements GameController.Listener {
+public class GamePanel extends BackgroundPanel implements GameSession.Listener {
     private static final int GAME_OVER_DELAY_MS = 900;
 
     private final MainWindow window;
-    private final GameController controller;
+    private final GameSession controller;
     private final GameModel model;
     private final GameMode mode;
     private final GameConfig config;
@@ -44,6 +46,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private final AppButton undo;
     private final AppButton hint;
     private final AppButton resign;
+    private final AppButton restart;
     private final AppButton numbers;
 
     // Replay of a finished game
@@ -63,20 +66,26 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private Timer gameOverTimer;
 
     public GamePanel(MainWindow window, GameConfig config) {
+        this(window, config, new GameController(config));
+    }
+
+    /** Plays an already prepared session (e.g. a connected LAN game). */
+    public GamePanel(MainWindow window, GameConfig config, GameSession session) {
         super("/assets/Background.jpg");
         setDim(40, 150);
         this.window = window;
         this.config = config;
         this.mode = config.mode();
         int size = config.size();
-        this.controller = new GameController(config);
+        this.controller = session;
         this.model = controller.getModel();
         setLayout(new BorderLayout());
 
         cards[0] = new PlayerCard(sideOf(0), seatName(0));
         cards[1] = new PlayerCard(sideOf(1), seatName(1));
-        String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty()) : null;
-        cards[1].setTag(level);
+        String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty())
+                : mode == GameMode.LAN ? I18n.t("game.lan.vs", seatName(1)) : null;
+        if (mode == GameMode.VS_AI) cards[1].setTag(level);
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -101,16 +110,17 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         AppButton menu = TopBar.backButton(I18n.t("common.back"), this::requestLeave);
         undo = new AppButton(I18n.t("game.undo"), AppButton.Variant.SECONDARY);
         undo.setToolTipText(I18n.t("game.undo.tooltip"));
-        undo.setVisible(Settings.get().isUndoEnabled());
+        // Taking moves back or asking the engine would be unfair against a person on another machine
+        undo.setVisible(Settings.get().isUndoEnabled() && mode != GameMode.LAN);
         undo.addActionListener(e -> undoMove());
         hint = new AppButton(I18n.t("game.hint"), AppButton.Variant.SECONDARY);
         hint.setToolTipText(I18n.t("game.hint.tooltip"));
         hint.addActionListener(e -> showHint());
-        hint.setVisible(Settings.get().isHintsEnabled());
+        hint.setVisible(Settings.get().isHintsEnabled() && mode != GameMode.LAN);
         resign = new AppButton(I18n.t("game.resign"), AppButton.Variant.GHOST).setAccent(Theme.DANGER);
         resign.setToolTipText(I18n.t("game.resign.tooltip"));
         resign.addActionListener(e -> requestResign());
-        AppButton restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
+        restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
         restart.setToolTipText(I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());
 
@@ -241,7 +251,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         controller.dispose();
     }
 
-    // ---- GameController.Listener ----
+    // ---- GameSession.Listener ----
 
     @Override
     public void onStateChanged() {
@@ -251,7 +261,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
         undo.setEnabled(controller.canUndo());
         hint.setEnabled(controller.acceptsInput());
-        resign.setEnabled(inProgress());
+        boolean linked = !(controller instanceof NetworkGameController lan) || lan.isConnected();
+        resign.setEnabled(inProgress() && linked);
+        restart.setEnabled(linked);
         if (model.getMoveCount() == 0) hintsUsed = 0;
         board.stateChanged();
         lastTickSecond = -1;
@@ -270,7 +282,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         statsBeforeLastGame = Stats.get().record(Stats.bucket(config), outcome, model.getMoveCount());
         refreshStatus();
 
-        boolean humanLost = mode == GameMode.VS_AI && winner == controller.getAiSide();
+        boolean humanLost = mode == GameMode.VS_AI && winner == GameModel.opponent(controller.getHumanSide());
         SoundManager.play(winner == GameModel.EMPTY || humanLost ? SoundManager.ALERT : SoundManager.WIN);
 
         // Give the player a moment to see the winning line before the dialog covers it
@@ -306,10 +318,53 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
     private void showGameOverDialog() {
         gameOverTimer = null;
         if (!isShowing() || !model.isOver()) return;
+        int moves = model.getMoveCount();
         int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
                 I18n.t("game.over.viewBoard"), false);
+        // In a LAN game the opponent may have started the next round while this dialog was open
+        if (!model.isOver() || model.getMoveCount() != moves) return;
         if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
         else enterReplay();
+    }
+
+    // ---- LAN: new-round handshake ----
+
+    @Override
+    public void onRestartRequested() {
+        if (!(controller instanceof NetworkGameController lan)) return;
+        cancelGameOverDialog();
+        SoundManager.play(SoundManager.ALERT);
+        int option = CustomDialog.confirm(window, I18n.t("lan.restart.title", seatName(1)),
+                I18n.t("lan.restart.message"), I18n.t("lan.restart.accept"), I18n.t("lan.restart.decline"), false);
+        lan.answerRestart(option == CustomDialog.YES_OPTION);
+    }
+
+    @Override
+    public void onConnectionLost(String reason) {
+        cancelGameOverDialog();
+        refreshStatus();
+        if (!isShowing()) return;
+        SoundManager.play(SoundManager.ALERT);
+        String key = switch (reason) {
+            case "bye" -> "lan.lost.left";
+            case "desync" -> "lan.lost.desync";
+            default -> "lan.lost.connection";
+        };
+        // The interrupted round counts for nobody, so it is not added to scores or statistics
+        int option = CustomDialog.confirm(window, I18n.t(key, seatName(1)), I18n.t("lan.lost.message"),
+                I18n.t("lan.lost.lobby"), I18n.t("game.over.viewBoard"), false);
+        if (option == CustomDialog.YES_OPTION) {
+            dispose();
+            window.showScreen(MainWindow.LAN);
+        } else {
+            enterReplay();
+        }
+    }
+
+    @Override
+    public void onRestartDeclined() {
+        CustomDialog.message(window, I18n.t("lan.restart.declined.title", seatName(1)),
+                I18n.t("lan.restart.declined.message"));
     }
 
     // ---- Replay ----
@@ -406,7 +461,7 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private void requestResign() {
         if (!inProgress()) return;
-        int loser = mode == GameMode.VS_AI ? controller.getHumanSide() : model.getCurrentPlayer();
+        int loser = mode == GameMode.TWO_PLAYERS ? model.getCurrentPlayer() : controller.getHumanSide();
         controller.pauseClock();
         int option = CustomDialog.confirm(window, I18n.t("game.resign.title", nameOf(loser)),
                 I18n.t("game.resign.message"), I18n.t("game.resign.confirm"), I18n.t("common.cancel"), true);
@@ -437,7 +492,8 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
             if (option != CustomDialog.YES_OPTION) return;
         }
         dispose();
-        window.showScreen(mode == GameMode.VS_AI ? MainWindow.SETUP_AI : MainWindow.SETUP_TWO);
+        window.showScreen(mode == GameMode.VS_AI ? MainWindow.SETUP_AI
+                : mode == GameMode.LAN ? MainWindow.LAN : MainWindow.SETUP_TWO);
     }
 
     private boolean inProgress() {
@@ -475,20 +531,26 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         for (int seat = 0; seat < 2; seat++) {
             cards[seat].setPiece(sideOf(seat));
             boolean seatThinking = thinking && mode == GameMode.VS_AI && seat == 1;
-            cards[seat].setStatus(statusFor(sideOf(seat), current, winner, seatThinking));
+            // An interrupted LAN round has no real winner, so neither card claims the win
+            boolean interrupted = model.getEndReason() == EndReason.DISCONNECT;
+            cards[seat].setStatus(interrupted ? PlayerCard.Status.WAITING
+                    : statusFor(sideOf(seat), current, winner, seatThinking));
         }
 
         String text;
         Color color = Theme.TEXT;
-        if (winner != GameModel.EMPTY) {
+        if (controller instanceof NetworkGameController lan && lan.isRestartPending()) {
+            text = I18n.t("lan.restart.waiting", seatName(1));
+            color = Theme.TEXT_MUTED;
+        } else if (winner != GameModel.EMPTY) {
             text = resultTitle();
             color = Theme.WIN;
         } else if (model.isDraw()) {
             text = I18n.t("game.status.draw");
         } else if (thinking) {
             text = I18n.t("game.status.aiThinking");
-            color = controller.getAiSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
-        } else if (mode == GameMode.VS_AI) {
+            color = GameModel.opponent(controller.getHumanSide()) == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
+        } else if (mode == GameMode.VS_AI || (mode == GameMode.LAN && current == controller.getHumanSide())) {
             text = I18n.t("game.status.yourTurn", controller.getHumanSide() == GameModel.X ? "X" : "O");
             color = controller.getHumanSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
         } else {
@@ -510,12 +572,14 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
         int winner = model.getWinner();
         if (winner == GameModel.EMPTY) return I18n.t("game.status.draw");
         if (model.getEndReason() == EndReason.TIMEOUT) return I18n.t("game.result.timeout", nameOf(winner));
+        if (model.getEndReason() == EndReason.DISCONNECT) return I18n.t("lan.result.disconnect", seatName(1));
         if (model.getEndReason() == EndReason.RESIGN) {
             return I18n.t("game.result.resigned", nameOf(GameModel.opponent(winner)), nameOf(winner));
         }
         if (mode == GameMode.VS_AI) {
             return I18n.t(winner == controller.getHumanSide() ? "game.result.youWin" : "game.result.aiWins");
         }
+        if (mode == GameMode.LAN && winner == controller.getHumanSide()) return I18n.t("game.result.youWin");
         return I18n.t("game.result.wins", nameOf(winner));
     }
 
@@ -549,6 +613,9 @@ public class GamePanel extends BackgroundPanel implements GameController.Listene
 
     private String seatName(int seat) {
         if (mode == GameMode.VS_AI) return I18n.t(seat == 0 ? "player.you" : "player.ai");
+        if (controller instanceof NetworkGameController lan) {
+            return seat == 0 ? I18n.t("player.you") : lan.getOpponentName();
+        }
         return I18n.t(seat == 0 ? "player.one" : "player.two");
     }
 

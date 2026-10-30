@@ -1,6 +1,6 @@
 package view.components;
 
-import controller.GameController;
+import controller.GameSession;
 import model.GameModel;
 import utils.ResourceUtils;
 import view.theme.Theme;
@@ -24,7 +24,7 @@ public class BoardView extends JComponent {
     private static final int PAD = 14;
     private static final int ANIM_MS = 220;
 
-    private final GameController controller;
+    private final GameSession controller;
     private final GameModel liveModel;
     private GameModel display; // a replayed position shown instead of the live game, or null
     private boolean showMoveNumbers;
@@ -52,7 +52,7 @@ public class BoardView extends JComponent {
     private long hintStart;
     private final Timer hintTimer;
 
-    public BoardView(GameController controller) {
+    public BoardView(GameSession controller) {
         this.controller = controller;
         this.liveModel = controller.getModel();
         this.n = liveModel.getSize();

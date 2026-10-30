@@ -66,20 +66,20 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 7.6 Phím ←/→ + tự phát
 
 ## Giai đoạn 8: LAN (`feat/lan`)
-- ⬜ 8.1 `GameSession` interface
-- ⬜ 8.2 Protocol
-- ⬜ 8.3 Test protocol
-- ⬜ 8.4 Connection + heartbeat
-- ⬜ 8.5 LanHost / LanClient
-- ⬜ 8.6 Test loopback cả ván
-- ⬜ 8.7 UDP discovery
-- ⬜ 8.8 NetworkGameController
-- ⬜ 8.9 Lobby: tab Tạo phòng
-- ⬜ 8.10 Lobby: tab Vào phòng
-- ⬜ 8.11 GamePanel chế độ LAN
-- ⬜ 8.12 Bắt tay chơi lại
-- ⬜ 8.13 Mất kết nối / đầu hàng
-- ⬜ 8.14 Tài liệu LAN + firewall
+- ✅ 8.1 `GameSession` interface
+- ✅ 8.2 Protocol — bỏ lệnh `START`: phe mỗi ván suy ra từ số ván (host cầm X ở ván lẻ) trên cả hai máy
+- ✅ 8.3 Test protocol
+- ✅ 8.4 Connection + heartbeat
+- ✅ 8.5 LanHost / LanClient
+- ✅ 8.6 Test loopback cả ván
+- ✅ 8.7 UDP discovery
+- ✅ 8.8 NetworkGameController
+- ✅ 8.9 Lobby: tab Tạo phòng
+- ✅ 8.10 Lobby: tab Vào phòng
+- ✅ 8.11 GamePanel chế độ LAN
+- ✅ 8.12 Bắt tay chơi lại
+- ✅ 8.13 Mất kết nối / đầu hàng
+- ✅ 8.14 Tài liệu LAN + firewall
 
 ## Giai đoạn 9: Tiện ích (`feat/polish`)
 - ⬜ 9.1 Âm lượng qua master gain

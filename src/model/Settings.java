@@ -20,6 +20,7 @@ public final class Settings {
     private static final String KEY_HUMAN_SIDE = "humanSide";
     private static final String KEY_ALTERNATE = "alternateFirst.";
     private static final String KEY_TURN_SECONDS = "turnSeconds.";
+    private static final String KEY_PLAYER_NAME = "playerName";
 
     private final Preferences prefs = Preferences.userNodeForPackage(Settings.class);
 
@@ -67,6 +68,13 @@ public final class Settings {
     /** Seconds per human turn for a mode, 0 when the clock is off. */
     public int getTurnSeconds(GameMode mode) { return prefs.getInt(KEY_TURN_SECONDS + mode.name(), 0); }
     public void setTurnSeconds(GameMode mode, int seconds) { prefs.putInt(KEY_TURN_SECONDS + mode.name(), seconds); }
+
+    /** Name shown to the opponent in LAN games. */
+    public String getPlayerName() {
+        String fallback = System.getProperty("user.name", "Player");
+        return prefs.get(KEY_PLAYER_NAME, fallback == null || fallback.isBlank() ? "Player" : fallback);
+    }
+    public void setPlayerName(String name) { prefs.put(KEY_PLAYER_NAME, name); }
 
     /** Last board size picked for a mode, so the setup screen remembers it. */
     public int getBoardSize(GameMode mode) { return prefs.getInt(KEY_BOARD_SIZE + mode.name(), 15); }

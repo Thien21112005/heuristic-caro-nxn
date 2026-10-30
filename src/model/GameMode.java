@@ -2,7 +2,8 @@ package model;
 
 public enum GameMode {
     VS_AI("mode.vsAi"),
-    TWO_PLAYERS("mode.twoPlayers");
+    TWO_PLAYERS("mode.twoPlayers"),
+    LAN("mode.lan");
 
     private final String labelKey;
 
