@@ -41,6 +41,7 @@ public class MainWindow extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
         if (Settings.get().isFullScreen()) setFullScreen(true);
+        SwingUtilities.invokeLater(() -> WalkthroughDialog.showIfFirstLaunch(this));
     }
 
     private void buildScreens() {
