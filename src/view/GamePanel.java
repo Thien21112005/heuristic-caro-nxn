@@ -315,10 +315,31 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
     private void showGameOverDialog() {
         gameOverTimer = null;
         if (!isShowing() || !model.isOver()) return;
+        int moves = model.getMoveCount();
         int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
                 I18n.t("game.over.viewBoard"), false);
+        // In a LAN game the opponent may have started the next round while this dialog was open
+        if (!model.isOver() || model.getMoveCount() != moves) return;
         if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
         else enterReplay();
+    }
+
+    // ---- LAN: new-round handshake ----
+
+    @Override
+    public void onRestartRequested() {
+        if (!(controller instanceof NetworkGameController lan)) return;
+        cancelGameOverDialog();
+        SoundManager.play(SoundManager.ALERT);
+        int option = CustomDialog.confirm(window, I18n.t("lan.restart.title", seatName(1)),
+                I18n.t("lan.restart.message"), I18n.t("lan.restart.accept"), I18n.t("lan.restart.decline"), false);
+        lan.answerRestart(option == CustomDialog.YES_OPTION);
+    }
+
+    @Override
+    public void onRestartDeclined() {
+        CustomDialog.message(window, I18n.t("lan.restart.declined.title", seatName(1)),
+                I18n.t("lan.restart.declined.message"));
     }
 
     // ---- Replay ----
@@ -490,7 +511,10 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
 
         String text;
         Color color = Theme.TEXT;
-        if (winner != GameModel.EMPTY) {
+        if (controller instanceof NetworkGameController lan && lan.isRestartPending()) {
+            text = I18n.t("lan.restart.waiting", seatName(1));
+            color = Theme.TEXT_MUTED;
+        } else if (winner != GameModel.EMPTY) {
             text = resultTitle();
             color = Theme.WIN;
         } else if (model.isDraw()) {
