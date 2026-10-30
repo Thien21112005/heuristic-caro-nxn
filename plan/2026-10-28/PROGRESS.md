@@ -94,6 +94,6 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 10.1 Profile jpackage
 - ✅ 10.2 Icon .ico
 - ✅ 10.3 Workflow release
-- ⬜ 10.4 CHANGELOG
+- ✅ 10.4 CHANGELOG
 - ⬜ 10.5 Version 2.0.0
 - ⬜ 10.6 Hướng dẫn tải và cài
