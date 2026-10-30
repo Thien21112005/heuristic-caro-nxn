@@ -26,6 +26,7 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 - [Features](#features)
 - [In-Depth AI Algorithm](#in-depth-ai-algorithm)
 - [Architecture & Design](#architecture--design)
+- [Download](#download)
 - [Prerequisites & Installation](#prerequisites--installation)
 - [Usage & Configuration](#usage--configuration)
 
@@ -112,6 +113,15 @@ The project strictly adheres to the **Model-View-Controller (MVC)** pattern:
 - **View (`src/view`):** `MainWindow` hosts the screens in a `CardLayout`; reusable components live in `view/components` and the design tokens in `view/theme/Theme`.
 - **Tests (`test`):** JUnit 5 tests for the rules, every AI level, the controllers, statistics, translations and the network code (over loopback).
 
+## Download
+
+Get the latest version from the [Releases page](https://github.com/Thien21112005/heuristic-caro-nxn/releases/latest):
+
+- **Windows (no Java needed):** download `Caro-windows.zip`, extract it anywhere and run `Caro\Caro.exe`. It carries its own Java runtime. Windows SmartScreen may warn that the app is from an unknown publisher because it is not code-signed: click **More info → Run anyway**.
+- **Any OS with Java 17+:** download `caro-nxn.jar` and run `java -jar caro-nxn.jar` (or double-click it if `.jar` files open with Java).
+
+To build the Windows app yourself, run `mvn -Ppackage-win package` (JDK 17+ with `jpackage`); the result is in `target/dist/Caro`.
+
 ## Prerequisites & Installation
 
 ### Requirements
@@ -192,6 +202,7 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 - [Tính năng nổi bật](#tính-năng-nổi-bật)
 - [Phân tích sâu Thuật toán AI](#phân-tích-sâu-thuật-toán-ai)
 - [Kiến trúc & Thiết kế](#kiến-trúc--thiết-kế)
+- [Tải game](#tải-game)
 - [Hướng dẫn cài đặt](#hướng-dẫn-cài-đặt)
 - [Sử dụng & Cấu hình](#sử-dụng--cấu-hình)
 
@@ -278,6 +289,15 @@ Dự án tuân thủ nghiêm ngặt mô hình kiến trúc **Model-View-Controll
 - **Mạng (`src/net`):** giao thức dạng dòng `Protocol`, `Connection` (luồng đọc, hàng đợi gửi, heartbeat), `LanHost`/`LanClient` và `LanDiscovery` qua UDP.
 - **View (`src/view`):** `MainWindow` chứa các màn hình bằng `CardLayout`; component dùng chung nằm trong `view/components`, màu sắc/font ở `view/theme/Theme`.
 - **Tests (`test`):** Unit test JUnit 5 cho luật chơi, cả ba mức AI, controller, thống kê, bản dịch và phần mạng (chạy qua loopback).
+
+## Tải game
+
+Tải phiên bản mới nhất ở [trang Releases](https://github.com/Thien21112005/heuristic-caro-nxn/releases/latest):
+
+- **Windows (không cần cài Java):** tải `Caro-windows.zip`, giải nén ở đâu cũng được rồi chạy `Caro\Caro.exe`. Bản này đã kèm sẵn Java. Vì chưa được ký số, Windows SmartScreen có thể cảnh báo "nhà phát hành không xác định": bấm **More info → Run anyway** (Thông tin thêm → Vẫn chạy).
+- **Mọi hệ điều hành có Java 17+:** tải `caro-nxn.jar` rồi chạy `java -jar caro-nxn.jar` (hoặc nhấp đúp nếu máy đã gắn file `.jar` với Java).
+
+Muốn tự đóng gói bản Windows thì chạy `mvn -Ppackage-win package` (JDK 17+ có `jpackage`); kết quả nằm ở `target/dist/Caro`.
 
 ## Hướng dẫn cài đặt
 
