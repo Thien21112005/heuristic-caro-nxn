@@ -47,6 +47,13 @@ public class AppButton extends JButton {
             repaint();
         });
 
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) { repaint(); }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) { repaint(); }
+        });
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -143,6 +150,7 @@ public class AppButton extends JButton {
                 break;
             }
         }
+        if (FocusRing.shouldPaint(this)) FocusRing.paint(g2, 0, 0, w, h - 2, Theme.RADIUS);
         g2.dispose();
 
         // Let Swing draw the text (and icon) on top, nudged up to sit inside the shape

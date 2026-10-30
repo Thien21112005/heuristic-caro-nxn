@@ -87,7 +87,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 9.3 Toàn màn hình F11
 - ✅ 9.4 Hướng dẫn lần đầu
 - ✅ 9.5 Mở lại hướng dẫn từ About
-- ⬜ 9.6 Focus ring + tab order
+- ✅ 9.6 Focus ring + tab order
 - ⬜ 9.7 Ảnh chụp màn hình README
 
 ## Giai đoạn 10: Phát hành (`release/v2.0`)

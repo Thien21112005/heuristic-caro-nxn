@@ -52,6 +52,7 @@ public final class Theme {
         FlatLaf.setGlobalExtraDefaults(vars);
 
         FlatDarkLaf.setup();
+        view.components.FocusRing.install();
 
         UIManager.put("defaultFont", font(Font.PLAIN, 14));
         UIManager.put("Component.arc", RADIUS);
