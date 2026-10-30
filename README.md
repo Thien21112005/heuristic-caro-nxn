@@ -8,7 +8,7 @@
 
 [![CI](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml/badge.svg)](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml)
 
-A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). This project features a modern dark, neon-accented user interface, dynamic NxN board generation, and a highly competitive Artificial Intelligence opponent powered by a custom **Heuristic Pattern Matching** algorithm.
+A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). This project features a modern dark, neon-accented user interface, dynamic NxN board generation, an AI opponent with three levels (from a custom **Heuristic Pattern Matching** engine up to a time-limited alpha-beta search), English and Vietnamese, and play over LAN between two computers.
 
 ## Screenshots
 
@@ -56,7 +56,7 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 
 ## In-Depth AI Algorithm
 
-The single-player mode relies on a **Heuristic Pattern Matching** algorithm. While traditional Minimax algorithms (even with Alpha-Beta pruning) scale poorly on large NxN boards due to their exponential time complexity $\mathcal{O}(b^d)$, this heuristic approach evaluates the board locally and responds in sub-milliseconds, regardless of the board size.
+The **Normal** level relies on a **Heuristic Pattern Matching** algorithm, described in sections 1–6. A full Minimax search scales poorly on large NxN boards because its cost grows exponentially, $\mathcal{O}(b^d)$; this heuristic evaluates the board locally and responds in sub-milliseconds, regardless of the board size. The **Hard** level (section 7) does use alpha-beta search, but keeps it affordable with a time budget, a small set of candidate cells and forced-move pruning.
 
 ### 1. 4-Directional Ray Casting
 For every empty cell `(x, y)` on the board, the AI casts rays in 4 axes:
@@ -95,7 +95,7 @@ When a pattern reaches the target winning length (e.g., 5 in a row), exponential
 - **Human Win (Defense):** `500,000,000` (Second priority: If the AI cannot win immediately but the human is about to win, it MUST block).
 
 ### 6. Complexity Analysis
-By scanning only from empty cells and limiting the ray cast distance to the target winning length (max 5 steps per direction), the time complexity per AI turn is strictly $\mathcal{O}(N^2)$, where $N$ is the board dimension. This guarantees a stable `~1ms` calculation time even on a 100x100 grid. To prevent the AI from feeling overly robotic, a randomized artificial delay (300ms - 800ms) is injected to simulate "thinking" time.
+By scanning only from empty cells and limiting the ray cast distance to the target winning length (max 5 steps per direction), the time complexity per AI turn is strictly $\mathcal{O}(N^2)$, where $N$ is the board dimension. This keeps the Normal level at about `1ms` per move even on the largest 20×20 board. To prevent the AI from feeling overly robotic, a randomized artificial delay (300ms - 800ms) is injected to simulate "thinking" time.
 
 ### 7. Difficulty Levels
 - **Easy** (`EasyAi`): always takes a win, but blocks your winning move only 60% of the time and picks among its top six cells 35% of the time.
@@ -184,7 +184,7 @@ Both computers must be on the same Wi-Fi or wired network.
 
 <h1 id="tiếng-việt">Cyberpunk Gomoku AI (Caro NxN)</h1>
 
-Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing và [FlatLaf](https://www.formdev.com/flatlaf/). Dự án có giao diện tối hiện đại với điểm nhấn neon, hỗ trợ linh hoạt kích thước bàn cờ NxN và được tích hợp một hệ thống Trí tuệ Nhân tạo (AI) đáng gờm, vận hành bởi thuật toán **Heuristic Pattern Matching** (Đánh giá theo mẫu chẩn đoán) tự xây dựng.
+Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing và [FlatLaf](https://www.formdev.com/flatlaf/). Dự án có giao diện tối hiện đại với điểm nhấn neon, hỗ trợ linh hoạt kích thước bàn cờ NxN AI với ba mức độ khó (từ thuật toán **Heuristic Pattern Matching** tự xây dựng tới tìm kiếm alpha-beta có giới hạn thời gian), song ngữ Anh – Việt, và chơi qua mạng LAN giữa hai máy.
 
 ## Ảnh chụp màn hình
 
@@ -232,7 +232,7 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 
 ## Phân tích sâu Thuật toán AI
 
-Chế độ chơi đơn sử dụng thuật toán **Heuristic Pattern Matching** (Đánh giá Heuristic theo mẫu). Trong khi thuật toán Minimax truyền thống (ngay cả khi có Cắt tỉa Alpha-Beta) gặp bế tắc và giật lag trên các bàn cờ NxN lớn do độ phức tạp thời gian tăng theo cấp số mũ $\mathcal{O}(b^d)$, phương pháp Heuristic này chỉ đánh giá cục bộ tại các điểm trống, cho ra quyết định trong chưa tới 1 mili-giây bất chấp kích thước bàn cờ.
+Mức **Thường** dùng thuật toán **Heuristic Pattern Matching** (Đánh giá Heuristic theo mẫu), mô tả ở mục 1–6. Tìm kiếm Minimax đầy đủ rất chậm trên bàn NxN lớn vì chi phí tăng theo cấp số mũ $\mathcal{O}(b^d)$; còn heuristic này chỉ đánh giá cục bộ tại các ô trống, cho ra quyết định trong chưa tới 1 mili-giây bất kể kích thước bàn. Mức **Khó** (mục 7) có dùng tìm kiếm alpha-beta, nhưng vẫn nhanh nhờ giới hạn thời gian, chỉ xét ít ô ứng viên và cắt tỉa các nước bắt buộc.
 
 ### 1. Quét tia 4 hướng (4-Directional Ray Casting)
 Tại mỗi ô trống `(x, y)` trên bàn cờ, AI sẽ phóng các tia quét theo 4 trục:
@@ -271,7 +271,7 @@ Khi một mẫu đạt đủ độ dài chiến thắng (ví dụ: 5 quân liên
 - **Người Thắng (Defense):** `500,000,000` (Ưu tiên số 2: Nếu AI chưa thể thắng, nhưng phát hiện con người chuẩn bị thắng, nó BẮT BUỘC phải đánh vào đó để chặn lại).
 
 ### 6. Phân tích Độ phức tạp Thời gian
-Bằng cách chỉ quét từ các ô trống và giới hạn khoảng cách quét bằng với số quân cờ cần để thắng (tối đa 5 bước quét mỗi hướng), độ phức tạp thời gian cho mỗi lượt suy nghĩ của AI bị ép xuống chuẩn $\mathcal{O}(N^2)$ ($N$ là kích thước cạnh bàn cờ). Điều này đảm bảo AI luôn xử lý xong trong `~1ms` kể cả trên bàn cờ khổng lồ 100x100. 
+Bằng cách chỉ quét từ các ô trống và giới hạn khoảng cách quét bằng với số quân cờ cần để thắng (tối đa 5 bước quét mỗi hướng), độ phức tạp thời gian cho mỗi lượt suy nghĩ của AI bị ép xuống chuẩn $\mathcal{O}(N^2)$ ($N$ là kích thước cạnh bàn cờ). Nhờ vậy mức Thường chỉ mất khoảng `1ms` mỗi nước, kể cả trên bàn lớn nhất 20×20. 
 
 *Lưu ý: Để tránh AI đánh quá nhanh gây cảm giác "máy móc", code đã cố tình chèn thêm độ trễ ngẫu nhiên (300ms - 800ms) để giả lập thời gian "suy nghĩ" của con người.*
 
