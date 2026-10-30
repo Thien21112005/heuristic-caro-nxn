@@ -46,6 +46,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
     private final AppButton undo;
     private final AppButton hint;
     private final AppButton resign;
+    private final AppButton restart;
     private final AppButton numbers;
 
     // Replay of a finished game
@@ -119,7 +120,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         resign = new AppButton(I18n.t("game.resign"), AppButton.Variant.GHOST).setAccent(Theme.DANGER);
         resign.setToolTipText(I18n.t("game.resign.tooltip"));
         resign.addActionListener(e -> requestResign());
-        AppButton restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
+        restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
         restart.setToolTipText(I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());
 
@@ -260,7 +261,9 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
 
         undo.setEnabled(controller.canUndo());
         hint.setEnabled(controller.acceptsInput());
-        resign.setEnabled(inProgress());
+        boolean linked = !(controller instanceof NetworkGameController lan) || lan.isConnected();
+        resign.setEnabled(inProgress() && linked);
+        restart.setEnabled(linked);
         if (model.getMoveCount() == 0) hintsUsed = 0;
         board.stateChanged();
         lastTickSecond = -1;
@@ -334,6 +337,28 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         int option = CustomDialog.confirm(window, I18n.t("lan.restart.title", seatName(1)),
                 I18n.t("lan.restart.message"), I18n.t("lan.restart.accept"), I18n.t("lan.restart.decline"), false);
         lan.answerRestart(option == CustomDialog.YES_OPTION);
+    }
+
+    @Override
+    public void onConnectionLost(String reason) {
+        cancelGameOverDialog();
+        refreshStatus();
+        if (!isShowing()) return;
+        SoundManager.play(SoundManager.ALERT);
+        String key = switch (reason) {
+            case "bye" -> "lan.lost.left";
+            case "desync" -> "lan.lost.desync";
+            default -> "lan.lost.connection";
+        };
+        // The interrupted round counts for nobody, so it is not added to scores or statistics
+        int option = CustomDialog.confirm(window, I18n.t(key, seatName(1)), I18n.t("lan.lost.message"),
+                I18n.t("lan.lost.lobby"), I18n.t("game.over.viewBoard"), false);
+        if (option == CustomDialog.YES_OPTION) {
+            dispose();
+            window.showScreen(MainWindow.LAN);
+        } else {
+            enterReplay();
+        }
     }
 
     @Override
@@ -506,7 +531,10 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         for (int seat = 0; seat < 2; seat++) {
             cards[seat].setPiece(sideOf(seat));
             boolean seatThinking = thinking && mode == GameMode.VS_AI && seat == 1;
-            cards[seat].setStatus(statusFor(sideOf(seat), current, winner, seatThinking));
+            // An interrupted LAN round has no real winner, so neither card claims the win
+            boolean interrupted = model.getEndReason() == EndReason.DISCONNECT;
+            cards[seat].setStatus(interrupted ? PlayerCard.Status.WAITING
+                    : statusFor(sideOf(seat), current, winner, seatThinking));
         }
 
         String text;
@@ -544,6 +572,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         int winner = model.getWinner();
         if (winner == GameModel.EMPTY) return I18n.t("game.status.draw");
         if (model.getEndReason() == EndReason.TIMEOUT) return I18n.t("game.result.timeout", nameOf(winner));
+        if (model.getEndReason() == EndReason.DISCONNECT) return I18n.t("lan.result.disconnect", seatName(1));
         if (model.getEndReason() == EndReason.RESIGN) {
             return I18n.t("game.result.resigned", nameOf(GameModel.opponent(winner)), nameOf(winner));
         }
