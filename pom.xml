@@ -154,6 +154,8 @@
                                         <argument>Nha Chot Let</argument>
                                         <argument>--input</argument>
                                         <argument>${project.build.directory}/jpackage-input</argument>
+                                        <argument>--icon</argument>
+                                        <argument>${project.basedir}/packaging/caro.ico</argument>
                                         <argument>--main-jar</argument>
                                         <argument>caro-nxn.jar</argument>
                                         <argument>--main-class</argument>
