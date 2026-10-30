@@ -3,6 +3,7 @@ package view;
 import utils.I18n;
 import controller.GameController;
 import controller.GameSession;
+import controller.NetworkGameController;
 import model.EndReason;
 import model.GameConfig;
 import model.GameMode;
@@ -81,8 +82,9 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
 
         cards[0] = new PlayerCard(sideOf(0), seatName(0));
         cards[1] = new PlayerCard(sideOf(1), seatName(1));
-        String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty()) : null;
-        cards[1].setTag(level);
+        String level = mode == GameMode.VS_AI ? difficultyLabel(config.difficulty())
+                : mode == GameMode.LAN ? I18n.t("game.lan.vs", seatName(1)) : null;
+        if (mode == GameMode.VS_AI) cards[1].setTag(level);
 
         // Header
         JPanel header = new JPanel(new BorderLayout());
@@ -107,12 +109,13 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         AppButton menu = TopBar.backButton(I18n.t("common.back"), this::requestLeave);
         undo = new AppButton(I18n.t("game.undo"), AppButton.Variant.SECONDARY);
         undo.setToolTipText(I18n.t("game.undo.tooltip"));
-        undo.setVisible(Settings.get().isUndoEnabled());
+        // Taking moves back or asking the engine would be unfair against a person on another machine
+        undo.setVisible(Settings.get().isUndoEnabled() && mode != GameMode.LAN);
         undo.addActionListener(e -> undoMove());
         hint = new AppButton(I18n.t("game.hint"), AppButton.Variant.SECONDARY);
         hint.setToolTipText(I18n.t("game.hint.tooltip"));
         hint.addActionListener(e -> showHint());
-        hint.setVisible(Settings.get().isHintsEnabled());
+        hint.setVisible(Settings.get().isHintsEnabled() && mode != GameMode.LAN);
         resign = new AppButton(I18n.t("game.resign"), AppButton.Variant.GHOST).setAccent(Theme.DANGER);
         resign.setToolTipText(I18n.t("game.resign.tooltip"));
         resign.addActionListener(e -> requestResign());
@@ -412,7 +415,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
 
     private void requestResign() {
         if (!inProgress()) return;
-        int loser = mode == GameMode.VS_AI ? controller.getHumanSide() : model.getCurrentPlayer();
+        int loser = mode == GameMode.TWO_PLAYERS ? model.getCurrentPlayer() : controller.getHumanSide();
         controller.pauseClock();
         int option = CustomDialog.confirm(window, I18n.t("game.resign.title", nameOf(loser)),
                 I18n.t("game.resign.message"), I18n.t("game.resign.confirm"), I18n.t("common.cancel"), true);
@@ -495,7 +498,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         } else if (thinking) {
             text = I18n.t("game.status.aiThinking");
             color = GameModel.opponent(controller.getHumanSide()) == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
-        } else if (mode == GameMode.VS_AI) {
+        } else if (mode == GameMode.VS_AI || (mode == GameMode.LAN && current == controller.getHumanSide())) {
             text = I18n.t("game.status.yourTurn", controller.getHumanSide() == GameModel.X ? "X" : "O");
             color = controller.getHumanSide() == GameModel.X ? Theme.X_COLOR : Theme.O_COLOR;
         } else {
@@ -523,6 +526,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         if (mode == GameMode.VS_AI) {
             return I18n.t(winner == controller.getHumanSide() ? "game.result.youWin" : "game.result.aiWins");
         }
+        if (mode == GameMode.LAN && winner == controller.getHumanSide()) return I18n.t("game.result.youWin");
         return I18n.t("game.result.wins", nameOf(winner));
     }
 
@@ -556,6 +560,9 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
 
     private String seatName(int seat) {
         if (mode == GameMode.VS_AI) return I18n.t(seat == 0 ? "player.you" : "player.ai");
+        if (controller instanceof NetworkGameController lan) {
+            return seat == 0 ? I18n.t("player.you") : lan.getOpponentName();
+        }
         return I18n.t(seat == 0 ? "player.one" : "player.two");
     }
 
