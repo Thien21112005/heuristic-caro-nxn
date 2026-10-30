@@ -10,7 +10,19 @@
 
 A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). This project features a modern dark, neon-accented user interface, dynamic NxN board generation, and a highly competitive Artificial Intelligence opponent powered by a custom **Heuristic Pattern Matching** algorithm.
 
+## Screenshots
+
+| | |
+|:-:|:-:|
+| <img src="docs/screenshots/menu.jpg" alt="Main menu" width="420"> | <img src="docs/screenshots/setup.jpg" alt="Setup: board, AI level, side, turn time" width="420"> |
+| Main menu | Setup: board, AI level, side, turn time |
+| <img src="docs/screenshots/game.jpg" alt="Playing the hard AI, with a hint and the turn clock" width="420"> | <img src="docs/screenshots/replay.jpg" alt="Replay with move numbers" width="420"> |
+| Playing the hard AI, with a hint and the turn clock | Replay with move numbers |
+| <img src="docs/screenshots/stats.jpg" alt="Lifetime statistics" width="420"> | <img src="docs/screenshots/lan.jpg" alt="LAN lobby: host or join a room" width="420"> |
+| Lifetime statistics | LAN lobby: host or join a room |
+
 ## Table of Contents
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [In-Depth AI Algorithm](#in-depth-ai-algorithm)
 - [Architecture & Design](#architecture--design)
@@ -164,7 +176,19 @@ Both computers must be on the same Wi-Fi or wired network.
 
 Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing và [FlatLaf](https://www.formdev.com/flatlaf/). Dự án có giao diện tối hiện đại với điểm nhấn neon, hỗ trợ linh hoạt kích thước bàn cờ NxN và được tích hợp một hệ thống Trí tuệ Nhân tạo (AI) đáng gờm, vận hành bởi thuật toán **Heuristic Pattern Matching** (Đánh giá theo mẫu chẩn đoán) tự xây dựng.
 
+## Ảnh chụp màn hình
+
+| | |
+|:-:|:-:|
+| <img src="docs/screenshots/menu.jpg" alt="Menu chính" width="420"> | <img src="docs/screenshots/setup.jpg" alt="Thiết lập: bàn cờ, độ khó, phe, thời gian" width="420"> |
+| Menu chính | Thiết lập: bàn cờ, độ khó, phe, thời gian |
+| <img src="docs/screenshots/game.jpg" alt="Đấu AI mức Khó, có gợi ý và đồng hồ" width="420"> | <img src="docs/screenshots/replay.jpg" alt="Xem lại ván kèm số thứ tự nước đi" width="420"> |
+| Đấu AI mức Khó, có gợi ý và đồng hồ | Xem lại ván kèm số thứ tự nước đi |
+| <img src="docs/screenshots/stats.jpg" alt="Thống kê lâu dài" width="420"> | <img src="docs/screenshots/lan.jpg" alt="Sảnh LAN: tạo hoặc vào phòng" width="420"> |
+| Thống kê lâu dài | Sảnh LAN: tạo hoặc vào phòng |
+
 ## Mục lục
+- [Ảnh chụp màn hình](#ảnh-chụp-màn-hình)
 - [Tính năng nổi bật](#tính-năng-nổi-bật)
 - [Phân tích sâu Thuật toán AI](#phân-tích-sâu-thuật-toán-ai)
 - [Kiến trúc & Thiết kế](#kiến-trúc--thiết-kế)

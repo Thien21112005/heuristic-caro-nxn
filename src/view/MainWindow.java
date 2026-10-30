@@ -3,6 +3,7 @@ package view;
 import utils.I18n;
 import model.GameConfig;
 import model.GameMode;
+import model.Settings;
 import utils.ResourceUtils;
 import utils.SoundManager;
 
@@ -35,8 +36,12 @@ public class MainWindow extends JFrame {
 
         buildScreens();
         setContentPane(cardPanel);
+        getRootPane().registerKeyboardAction(e -> toggleFullScreen(),
+                KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F11, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
         setLocationRelativeTo(null);
         setVisible(true);
+        if (Settings.get().isFullScreen()) setFullScreen(true);
+        SwingUtilities.invokeLater(() -> WalkthroughDialog.showIfFirstLaunch(this));
     }
 
     private void buildScreens() {
@@ -72,6 +77,22 @@ public class MainWindow extends JFrame {
             icons.add(ResourceUtils.getImageIcon("/assets/icon/icon-" + size + ".png").getImage());
         }
         return icons;
+    }
+
+    public void toggleFullScreen() {
+        setFullScreen(!isFullScreen());
+    }
+
+    private boolean isFullScreen() {
+        return getGraphicsConfiguration().getDevice().getFullScreenWindow() == this;
+    }
+
+    private void setFullScreen(boolean on) {
+        GraphicsDevice device = getGraphicsConfiguration().getDevice();
+        if (on && !device.isFullScreenSupported()) return;
+        // FlatLaf hides its title bar while the window is full screen
+        device.setFullScreenWindow(on ? this : null);
+        Settings.get().setFullScreen(on);
     }
 
     public void showScreen(String name) {

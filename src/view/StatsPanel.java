@@ -5,6 +5,7 @@ import model.Stats;
 import model.ai.Difficulty;
 import utils.I18n;
 import view.components.AppButton;
+import view.components.CenteringScroll;
 import view.components.RoundedPanel;
 import view.theme.Theme;
 
@@ -20,7 +21,7 @@ import java.awt.event.KeyEvent;
  */
 public class StatsPanel extends BackgroundPanel {
     private static final int TILE_WIDTH = 360;
-    private static final int TILE_HEIGHT = 206;
+    private static final int TILE_HEIGHT = 192;
 
     private final Tile[] tiles = {
             new Tile(Stats.bucket(GameMode.VS_AI, Difficulty.EASY), "difficulty.easy", false),
@@ -35,8 +36,8 @@ public class StatsPanel extends BackgroundPanel {
         Runnable back = () -> window.showScreen(MainWindow.MAIN_MENU);
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
-        RoundedPanel card = new RoundedPanel(new BorderLayout(0, 22));
-        card.setBorder(BorderFactory.createEmptyBorder(32, 36, 32, 36));
+        RoundedPanel card = new RoundedPanel(new BorderLayout(0, 16));
+        card.setBorder(BorderFactory.createEmptyBorder(26, 32, 22, 32));
 
         JPanel header = new JPanel();
         header.setOpaque(false);
@@ -51,7 +52,7 @@ public class StatsPanel extends BackgroundPanel {
         header.add(Box.createVerticalStrut(6));
         header.add(subtitle);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 18, 18));
+        JPanel grid = new JPanel(new GridLayout(2, 2, 16, 16));
         grid.setOpaque(false);
         for (Tile tile : tiles) grid.add(tile);
 
@@ -73,10 +74,9 @@ public class StatsPanel extends BackgroundPanel {
         card.add(grid, BorderLayout.CENTER);
         card.add(footer, BorderLayout.SOUTH);
 
-        JPanel center = new JPanel(new GridBagLayout());
-        center.setOpaque(false);
-        center.add(card);
-        add(center, BorderLayout.CENTER);
+        // A scroll pane instead of GridBagLayout: when space runs short, GridBagLayout drops to the
+        // card's minimum size and squashes the tiles flat
+        add(CenteringScroll.wrap(card), BorderLayout.CENTER);
 
         addComponentListener(new ComponentAdapter() {
             @Override

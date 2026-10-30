@@ -93,7 +93,7 @@ public class ToggleSwitch extends JComponent {
         g2.setColor(Color.WHITE);
         g2.fillOval(kx, y + 4, knob, knob);
 
-        if (isFocusOwner()) {
+        if (FocusRing.shouldPaint(this)) {
             g2.setColor(Theme.alpha(Theme.ACCENT_HOVER, 150));
             g2.setStroke(new BasicStroke(2f));
             g2.drawRoundRect(x - 2, y - 2, w + 3, h + 3, h + 4, h + 4);

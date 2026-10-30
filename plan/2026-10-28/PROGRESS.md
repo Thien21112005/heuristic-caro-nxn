@@ -82,13 +82,13 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 8.14 Tài liệu LAN + firewall
 
 ## Giai đoạn 9: Tiện ích (`feat/polish`)
-- ⬜ 9.1 Âm lượng qua master gain
-- ⬜ 9.2 Thanh trượt âm lượng
-- ⬜ 9.3 Toàn màn hình F11
-- ⬜ 9.4 Hướng dẫn lần đầu
-- ⬜ 9.5 Mở lại hướng dẫn từ About
-- ⬜ 9.6 Focus ring + tab order
-- ⬜ 9.7 Ảnh chụp màn hình README
+- ✅ 9.1 Âm lượng qua master gain
+- ✅ 9.2 Thanh trượt âm lượng
+- ✅ 9.3 Toàn màn hình F11
+- ✅ 9.4 Hướng dẫn lần đầu
+- ✅ 9.5 Mở lại hướng dẫn từ About
+- ✅ 9.6 Focus ring + tab order
+- ✅ 9.7 Ảnh chụp màn hình README
 
 ## Giai đoạn 10: Phát hành (`release/v2.0`)
 - ⬜ 10.1 Profile jpackage

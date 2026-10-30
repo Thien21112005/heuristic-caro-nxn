@@ -1,6 +1,7 @@
 package view;
 
 import utils.I18n;
+import view.components.AppButton;
 import view.components.RoundedPanel;
 import view.theme.Theme;
 
@@ -43,6 +44,16 @@ public class AboutPanel extends BackgroundPanel {
 
         card.add(section(I18n.t("about.controls")));
         card.add(paragraph(I18n.t("about.controls.body"), 0));
+
+        AppButton tour = new AppButton(I18n.t("about.walkthrough"), AppButton.Variant.SECONDARY).compact();
+        tour.setFont(Theme.semibold(14f));
+        tour.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+        tour.addActionListener(e -> WalkthroughDialog.open(window));
+        JPanel tourRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        tourRow.setOpaque(false);
+        tourRow.setBorder(BorderFactory.createEmptyBorder(16, 0, 0, 0));
+        tourRow.add(tour);
+        card.add(left(tourRow));
 
         JLabel team = new JLabel(I18n.t("about.team"));
         team.setFont(Theme.font(Font.PLAIN, 12f));

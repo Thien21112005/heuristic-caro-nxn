@@ -14,6 +14,10 @@ public final class Settings {
     private static final String KEY_SFX = "sfxEnabled";
     private static final String KEY_UNDO = "undoEnabled";
     private static final String KEY_HINTS = "hintsEnabled";
+    private static final String KEY_MUSIC_VOLUME = "musicVolume";
+    private static final String KEY_FULL_SCREEN = "fullScreen";
+    private static final String KEY_WALKTHROUGH = "walkthroughDone";
+    private static final String KEY_SFX_VOLUME = "sfxVolume";
     private static final String KEY_BOARD_SIZE = "boardSize.";
     private static final String KEY_LANGUAGE = "language";
     private static final String KEY_DIFFICULTY = "difficulty";
@@ -36,6 +40,21 @@ public final class Settings {
 
     public boolean isUndoEnabled() { return prefs.getBoolean(KEY_UNDO, false); }
     public void setUndoEnabled(boolean enabled) { prefs.putBoolean(KEY_UNDO, enabled); }
+
+    /** 0–100. The soundtrack starts a little quieter than the effects. */
+    public int getMusicVolume() { return clampVolume(prefs.getInt(KEY_MUSIC_VOLUME, 60)); }
+    public void setMusicVolume(int volume) { prefs.putInt(KEY_MUSIC_VOLUME, clampVolume(volume)); }
+
+    public int getSfxVolume() { return clampVolume(prefs.getInt(KEY_SFX_VOLUME, 80)); }
+    public void setSfxVolume(int volume) { prefs.putInt(KEY_SFX_VOLUME, clampVolume(volume)); }
+
+    private static int clampVolume(int v) { return Math.max(0, Math.min(100, v)); }
+
+    public boolean isFullScreen() { return prefs.getBoolean(KEY_FULL_SCREEN, false); }
+    public void setFullScreen(boolean on) { prefs.putBoolean(KEY_FULL_SCREEN, on); }
+
+    public boolean isWalkthroughDone() { return prefs.getBoolean(KEY_WALKTHROUGH, false); }
+    public void setWalkthroughDone(boolean done) { prefs.putBoolean(KEY_WALKTHROUGH, done); }
 
     public boolean isHintsEnabled() { return prefs.getBoolean(KEY_HINTS, true); }
     public void setHintsEnabled(boolean enabled) { prefs.putBoolean(KEY_HINTS, enabled); }
