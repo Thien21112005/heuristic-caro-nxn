@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build and test
+        run: mvn -B verify
+
+      - name: Package Windows app image
+        run: mvn -B -Ppackage-win -DskipTests package
+
+      - name: Zip the app
+        shell: pwsh
+        run: Compress-Archive -Path target/dist/Caro -DestinationPath Caro-windows.zip
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/caro-nxn.jar
+            Caro-windows.zip
+          generate_release_notes: true
