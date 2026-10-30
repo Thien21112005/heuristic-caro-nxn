@@ -28,16 +28,25 @@ public final class SoundManager {
 
     public static void play(String path) {
         if (!Settings.get().isSfxEnabled()) return;
-        AUDIO.execute(() -> new SoundPlayer(path).playOnce());
+        int volume = Settings.get().getSfxVolume();
+        AUDIO.execute(() -> new SoundPlayer(path).playOnce(volume));
     }
 
     public static void startMusic() {
         if (!Settings.get().isMusicEnabled()) return;
+        int volume = Settings.get().getMusicVolume();
         AUDIO.execute(() -> {
             if (music == null) {
                 music = new SoundPlayer(MUSIC);
-                music.playLoop();
+                music.playLoop(volume);
             }
+        });
+    }
+
+    /** Applies a new music volume (0–100) to the soundtrack that is already playing. */
+    public static void setMusicVolume(int volume) {
+        AUDIO.execute(() -> {
+            if (music != null) music.setVolume(volume);
         });
     }
 

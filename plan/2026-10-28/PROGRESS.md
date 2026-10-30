@@ -82,7 +82,7 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 8.14 Tài liệu LAN + firewall
 
 ## Giai đoạn 9: Tiện ích (`feat/polish`)
-- ⬜ 9.1 Âm lượng qua master gain
+- ✅ 9.1 Âm lượng qua master gain
 - ⬜ 9.2 Thanh trượt âm lượng
 - ⬜ 9.3 Toàn màn hình F11
 - ⬜ 9.4 Hướng dẫn lần đầu
