@@ -15,6 +15,7 @@ public final class Settings {
     private static final String KEY_UNDO = "undoEnabled";
     private static final String KEY_HINTS = "hintsEnabled";
     private static final String KEY_MUSIC_VOLUME = "musicVolume";
+    private static final String KEY_FULL_SCREEN = "fullScreen";
     private static final String KEY_SFX_VOLUME = "sfxVolume";
     private static final String KEY_BOARD_SIZE = "boardSize.";
     private static final String KEY_LANGUAGE = "language";
@@ -47,6 +48,9 @@ public final class Settings {
     public void setSfxVolume(int volume) { prefs.putInt(KEY_SFX_VOLUME, clampVolume(volume)); }
 
     private static int clampVolume(int v) { return Math.max(0, Math.min(100, v)); }
+
+    public boolean isFullScreen() { return prefs.getBoolean(KEY_FULL_SCREEN, false); }
+    public void setFullScreen(boolean on) { prefs.putBoolean(KEY_FULL_SCREEN, on); }
 
     public boolean isHintsEnabled() { return prefs.getBoolean(KEY_HINTS, true); }
     public void setHintsEnabled(boolean enabled) { prefs.putBoolean(KEY_HINTS, enabled); }
