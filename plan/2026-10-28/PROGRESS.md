@@ -96,4 +96,4 @@ Xem chi tiết từng mục tại [ROADMAP.md](ROADMAP.md). Cập nhật mỗi k
 - ✅ 10.3 Workflow release
 - ✅ 10.4 CHANGELOG
 - ✅ 10.5 Version 2.0.0
-- ⬜ 10.6 Hướng dẫn tải và cài
+- ✅ 10.6 Hướng dẫn tải và cài
