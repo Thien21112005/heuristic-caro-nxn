@@ -4,6 +4,7 @@ import utils.I18n;
 import model.Settings;
 import utils.SoundManager;
 import view.components.AppButton;
+import view.components.CenteringScroll;
 import view.components.RoundedPanel;
 import view.components.ToggleSwitch;
 import view.theme.Theme;
@@ -45,9 +46,14 @@ public class SettingsPanel extends BackgroundPanel {
             if (on) SoundManager.startMusic();
             else SoundManager.stopMusic();
         }));
+        card.add(volumeRow(settings.getMusicVolume(), v -> {
+            settings.setMusicVolume(v);
+            SoundManager.setMusicVolume(v);
+        }, false));
         card.add(divider());
         card.add(row(I18n.t("settings.sfx"), I18n.t("settings.sfx.desc"), settings.isSfxEnabled(),
                 settings::setSfxEnabled));
+        card.add(volumeRow(settings.getSfxVolume(), settings::setSfxVolume, true));
 
         card.add(section(I18n.t("settings.gameplay"), 24));
         card.add(row(I18n.t("settings.undo"), I18n.t("settings.undo.desc"),
@@ -67,10 +73,7 @@ public class SettingsPanel extends BackgroundPanel {
         card.add(note);
 
         card.setPreferredSize(new Dimension(CARD_WIDTH, card.getPreferredSize().height));
-        JPanel center = new JPanel(new GridBagLayout());
-        center.setOpaque(false);
-        center.add(card);
-        add(center, BorderLayout.CENTER);
+        add(CenteringScroll.wrap(card), BorderLayout.CENTER);
 
         getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "back");
         getActionMap().put("back", new AbstractAction() {
@@ -107,6 +110,41 @@ public class SettingsPanel extends BackgroundPanel {
         label.setAlignmentX(Component.LEFT_ALIGNMENT);
         label.setBorder(BorderFactory.createEmptyBorder(gapTop, 0, 8, 0));
         return label;
+    }
+
+    /**
+     * "Volume" slider with a percentage. Changes apply while dragging; with
+     * {@code preview} a sample effect plays when the knob is released.
+     */
+    private static JComponent volumeRow(int value, java.util.function.IntConsumer onChange, boolean preview) {
+        JPanel row = new JPanel(new BorderLayout(12, 0));
+        row.setOpaque(false);
+        row.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.setBorder(BorderFactory.createEmptyBorder(0, 0, 6, 0));
+
+        JLabel label = new JLabel(I18n.t("settings.volume"));
+        label.setFont(Theme.font(Font.PLAIN, 13f));
+        label.setForeground(Theme.TEXT_MUTED);
+        JLabel percent = new JLabel(value + "%");
+        percent.setFont(Theme.semibold(13f));
+        percent.setForeground(Theme.TEXT);
+        percent.setPreferredSize(new Dimension(44, 20));
+        percent.setHorizontalAlignment(SwingConstants.RIGHT);
+
+        JSlider slider = new JSlider(0, 100, value);
+        slider.setOpaque(false);
+        slider.setFocusable(true);
+        slider.addChangeListener(e -> {
+            percent.setText(slider.getValue() + "%");
+            onChange.accept(slider.getValue());
+            if (preview && !slider.getValueIsAdjusting()) SoundManager.play(SoundManager.CLICK);
+        });
+
+        row.add(label, BorderLayout.WEST);
+        row.add(slider, BorderLayout.CENTER);
+        row.add(percent, BorderLayout.EAST);
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        return row;
     }
 
     private static JComponent divider() {
