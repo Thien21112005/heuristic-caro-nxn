@@ -26,10 +26,14 @@ import java.awt.event.KeyEvent;
 
 /**
  * The in-game screen: header with actions, player cards either side of the
- * board, and a status bar with zoom controls.
+ * board, and a fixed-height footer that holds the status, the result of the
+ * round or the replay controls, so the board never moves or gets covered.
  */
 public class GamePanel extends PaperPanel implements GameSession.Listener {
-    private static final int GAME_OVER_DELAY_MS = 900;
+    // Lets the red pen finish its loop around the winning line before the result appears
+    private static final int RESULT_DELAY_MS = 500;
+    private static final int FOOTER_HEIGHT = 76;
+    private static final int HINT_MIN_WIDTH = 960;
 
     private final MainWindow window;
     private final GameSession controller;
@@ -48,6 +52,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     private final AppButton resign;
     private final AppButton restart;
     private final AppButton numbers;
+    private final AppButton replayNumbers;
 
     // Replay of a finished game
     private static final int REPLAY_STEP_MS = 600;
@@ -63,7 +68,20 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     private Stats.Entry statsBeforeLastGame; // lets an undone winning move un-record the result
     private int lastMoveCount;
     private boolean autoFit = true;
-    private Timer gameOverTimer;
+    private Timer resultTimer;
+
+    // Footer: one row at a time, always the same height
+    private final CardLayout footerCards = new CardLayout();
+    private final JPanel footerRow = new JPanel(footerCards);
+    private final JLabel resultFace = new JLabel();
+    private final JLabel resultTitleLabel = new JLabel();
+    private final JLabel resultLine = new JLabel();
+    private final AppButton playAgain = new AppButton(I18n.t("game.over.playAgain"), AppButton.Variant.PRIMARY);
+    private boolean resultShown;
+    private boolean inReplay;
+    private String statusBase = "";
+    private Color statusColor = Theme.TEXT;
+    private long statusClockMs = -1;
 
     public GamePanel(MainWindow window, GameConfig config) {
         this(window, config, new GameController(config));
@@ -88,57 +106,49 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         // Header
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        header.setBorder(BorderFactory.createEmptyBorder(14, 20, 6, 20));
+        header.setBorder(BorderFactory.createEmptyBorder(10, 48, 4, 20));
 
         JPanel titles = new JPanel();
         titles.setOpaque(false);
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(level == null ? mode.getLabel() : mode.getLabel() + "  ·  " + level);
-        title.setFont(Theme.handBold(20f));
+        title.setFont(Theme.handBold(Theme.H3));
         title.setForeground(Theme.TEXT);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
         int target = model.getTarget();
         JLabel subtitle = new JLabel(I18n.t("game.subtitle", size, target));
-        subtitle.setFont(Theme.font(Font.PLAIN, 13f));
+        subtitle.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
         subtitle.setForeground(Theme.TEXT_MUTED);
-        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         titles.add(title);
         titles.add(subtitle);
 
         AppButton menu = TopBar.backButton(I18n.t("common.back"), this::requestLeave);
-        undo = new AppButton(I18n.t("game.undo"), AppButton.Variant.SECONDARY);
-        undo.setToolTipText(I18n.t("game.undo.tooltip"));
+        undo = headerButton(I18n.t("game.undo"), I18n.t("game.undo.tooltip"));
         // Taking moves back or asking the engine would be unfair against a person on another machine
         undo.setVisible(Settings.get().isUndoEnabled() && mode != GameMode.LAN);
         undo.addActionListener(e -> undoMove());
-        hint = new AppButton(I18n.t("game.hint"), AppButton.Variant.SECONDARY);
-        hint.setToolTipText(I18n.t("game.hint.tooltip"));
+        hint = headerButton(I18n.t("game.hint"), I18n.t("game.hint.tooltip"));
         hint.addActionListener(e -> showHint());
         hint.setVisible(Settings.get().isHintsEnabled() && mode != GameMode.LAN);
         resign = new AppButton(I18n.t("game.resign"), AppButton.Variant.GHOST).setAccent(Theme.DANGER);
+        resign.compact();
         resign.setToolTipText(I18n.t("game.resign.tooltip"));
         resign.addActionListener(e -> requestResign());
-        restart = new AppButton(I18n.t("game.restart"), AppButton.Variant.SECONDARY);
-        restart.setToolTipText(I18n.t("game.restart.tooltip"));
+        restart = headerButton(I18n.t("game.restart"), I18n.t("game.restart.tooltip"));
         restart.addActionListener(e -> requestRestart());
 
-        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actions.setOpaque(false);
         actions.add(resign);
         actions.add(hint);
         actions.add(undo);
         actions.add(restart);
 
-        // Keep the title centered by giving both sides the same width
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 0));
         left.setOpaque(false);
         left.add(menu);
-        Dimension side = new Dimension(Math.max(260, actions.getPreferredSize().width), actions.getPreferredSize().height);
-        left.setPreferredSize(side);
-        actions.setPreferredSize(side);
+        left.add(titles);
 
         header.add(left, BorderLayout.WEST);
-        header.add(titles, BorderLayout.CENTER);
         header.add(actions, BorderLayout.EAST);
         add(header, BorderLayout.NORTH);
 
@@ -157,11 +167,6 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
             }
         });
 
-        JPanel boardColumn = new JPanel(new BorderLayout(0, 10));
-        boardColumn.setOpaque(false);
-        boardColumn.add(scroll, BorderLayout.CENTER);
-        boardColumn.add(replayBar, BorderLayout.SOUTH);
-        replayBar.setVisible(false);
         replayBar.setOnSeek(this::seekReplay);
         replayBar.setOnTogglePlay(this::toggleReplayPlayback);
         replayTimer = new Timer(REPLAY_STEP_MS, e -> {
@@ -171,22 +176,19 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
 
         JPanel center = new JPanel(new BorderLayout(20, 0));
         center.setOpaque(false);
-        center.setBorder(BorderFactory.createEmptyBorder(6, 24, 0, 24));
+        center.setBorder(BorderFactory.createEmptyBorder(0, 48, 0, 20));
         center.add(wrapCard(cards[0]), BorderLayout.WEST);
-        center.add(boardColumn, BorderLayout.CENTER);
+        center.add(scroll, BorderLayout.CENTER);
         center.add(wrapCard(cards[1]), BorderLayout.EAST);
         add(center, BorderLayout.CENTER);
 
-        // Status bar
-        JPanel footer = new JPanel(new BorderLayout());
-        footer.setOpaque(false);
-        footer.setBorder(BorderFactory.createEmptyBorder(8, 24, 14, 24));
-        status.setFont(Theme.semibold(17f));
+        // Status row
+        status.setFont(Theme.hand(Theme.LEAD));
         status.setForeground(Theme.TEXT);
 
-        JLabel hint = new JLabel(I18n.t("game.hint.controls"));
-        hint.setFont(Theme.font(Font.PLAIN, 12f));
-        hint.setForeground(Theme.TEXT_MUTED);
+        JLabel hintText = new JLabel("<html>" + I18n.t("game.hint.controls") + "</html>");
+        hintText.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
+        hintText.setForeground(Theme.TEXT_MUTED);
 
         AppButton zoomOut = zoomButton("−", I18n.t("game.zoomOut.tooltip"), () -> zoomBy(-1));
         AppButton fit = zoomButton(I18n.t("game.fit"), I18n.t("game.fit.tooltip"), () -> {
@@ -194,7 +196,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
             fitBoard();
         });
         AppButton zoomIn = zoomButton("+", I18n.t("game.zoomIn.tooltip"), () -> zoomBy(1));
-        numbers = zoomButton("#", I18n.t("game.numbers.tooltip"), this::toggleMoveNumbers);
+        numbers = zoomButton(I18n.t("game.numbers"), I18n.t("game.numbers.tooltip"), this::toggleMoveNumbers);
         JPanel zoom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         zoom.setOpaque(false);
         zoom.add(numbers);
@@ -202,17 +204,66 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         zoom.add(fit);
         zoom.add(zoomIn);
 
-        JPanel hintBox = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 10));
-        hintBox.setOpaque(false);
-        hintBox.add(hint);
-        Dimension footerSide = new Dimension(Math.max(240, zoom.getPreferredSize().width), zoom.getPreferredSize().height);
-        hintBox.setPreferredSize(footerSide);
-        zoom.setPreferredSize(footerSide);
+        JPanel playRow = new JPanel(new BorderLayout(12, 0));
+        playRow.setOpaque(false);
+        playRow.add(hintText, BorderLayout.WEST);
+        playRow.add(status, BorderLayout.CENTER);
+        playRow.add(centeredVertically(zoom), BorderLayout.EAST);
+        // On a small window the status line needs that room more than the reminder does
+        playRow.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                hintText.setVisible(playRow.getWidth() >= HINT_MIN_WIDTH);
+            }
+        });
 
-        footer.add(hintBox, BorderLayout.WEST);
-        footer.add(status, BorderLayout.CENTER);
-        footer.add(zoom, BorderLayout.EAST);
-        add(footer, BorderLayout.SOUTH);
+        // Result row
+        resultTitleLabel.setFont(Theme.handBold(Theme.H2));
+        resultTitleLabel.setForeground(Theme.TEXT);
+        resultLine.setFont(Theme.font(Font.PLAIN, Theme.BODY));
+        resultLine.setForeground(Theme.TEXT_MUTED);
+        JPanel resultText = new JPanel();
+        resultText.setOpaque(false);
+        resultText.setLayout(new BoxLayout(resultText, BoxLayout.Y_AXIS));
+        resultText.add(resultTitleLabel);
+        resultText.add(resultLine);
+        playAgain.setFont(Theme.hand(Theme.LEAD));
+        playAgain.addActionListener(e -> {
+            controller.newRound(config.alternateFirst());
+            if (model.isOver()) refreshResult();
+        });
+        AppButton review = new AppButton(I18n.t("game.over.viewBoard"), AppButton.Variant.SECONDARY);
+        review.addActionListener(e -> enterReplay());
+        JPanel resultButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        resultButtons.setOpaque(false);
+        resultButtons.add(review);
+        resultButtons.add(playAgain);
+        JPanel resultRow = new JPanel(new BorderLayout(14, 0));
+        resultRow.setOpaque(false);
+        resultRow.add(resultFace, BorderLayout.WEST);
+        resultRow.add(resultText, BorderLayout.CENTER);
+        resultRow.add(centeredVertically(resultButtons), BorderLayout.EAST);
+
+        // Replay row
+        AppButton closeReplay = new AppButton(I18n.t("game.replay.close"), AppButton.Variant.SECONDARY);
+        closeReplay.addActionListener(e -> exitReplay());
+        JPanel replayRow = new JPanel(new BorderLayout(12, 0));
+        replayRow.setOpaque(false);
+        replayRow.add(centeredVertically(replayBar), BorderLayout.CENTER);
+        replayNumbers = zoomButton(I18n.t("game.numbers"), I18n.t("game.numbers.tooltip"), this::toggleMoveNumbers);
+        JPanel replayActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        replayActions.setOpaque(false);
+        replayActions.add(replayNumbers);
+        replayActions.add(closeReplay);
+        replayRow.add(centeredVertically(replayActions), BorderLayout.EAST);
+
+        footerRow.setOpaque(false);
+        footerRow.setBorder(BorderFactory.createEmptyBorder(6, 48, 8, 20));
+        footerRow.setPreferredSize(new Dimension(10, FOOTER_HEIGHT));
+        footerRow.add(playRow, "play");
+        footerRow.add(resultRow, "result");
+        footerRow.add(replayRow, "replay");
+        add(footerRow, BorderLayout.SOUTH);
 
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), () -> {
             if (undo.isVisible()) undoMove();
@@ -225,8 +276,11 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), fit::doClick);
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0), this::toggleMoveNumbers);
         // Replay controls; they only act while the replay bar is showing
-        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), () -> replayStep(() -> replayIndex - 1));
-        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), () -> replayStep(() -> replayIndex + 1));
+        // During play they bring back the board's cursor if a button had taken the focus
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), () -> arrowKey(0, -1, () -> replayIndex - 1));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), () -> arrowKey(0, 1, () -> replayIndex + 1));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), () -> arrowKey(-1, 0, null));
+        bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), () -> arrowKey(1, 0, null));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), () -> replayStep(() -> 0));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), () -> replayStep(() -> Integer.MAX_VALUE));
         bindKey(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), () -> {
@@ -240,11 +294,12 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         controller.setListener(this);
         onStateChanged();
         controller.start();
+        SwingUtilities.invokeLater(board::requestFocusInWindow);
     }
 
     /** Stops timers; call when the screen is discarded. */
     public void dispose() {
-        if (gameOverTimer != null) gameOverTimer.stop();
+        if (resultTimer != null) resultTimer.stop();
         replayTimer.stop();
         controller.dispose();
     }
@@ -253,7 +308,10 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
 
     @Override
     public void onStateChanged() {
-        if (!model.isOver()) exitReplay();
+        if (!model.isOver()) {
+            leaveReplay();
+            resultShown = false;
+        }
         if (model.getMoveCount() > lastMoveCount) SoundManager.play(SoundManager.CLICK);
         lastMoveCount = model.getMoveCount();
 
@@ -267,6 +325,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         lastTickSecond = -1;
         showCountdown(controller.getRemainingMillis());
         refreshStatus();
+        updateFooter();
     }
 
     @Override
@@ -283,10 +342,9 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         boolean humanLost = mode == GameMode.VS_AI && winner == GameModel.opponent(controller.getHumanSide());
         SoundManager.play(winner == GameModel.EMPTY || humanLost ? SoundManager.ALERT : SoundManager.WIN);
 
-        // Give the player a moment to see the winning line before the dialog covers it
-        gameOverTimer = new Timer(GAME_OVER_DELAY_MS, e -> showGameOverDialog());
-        gameOverTimer.setRepeats(false);
-        gameOverTimer.start();
+        resultTimer = new Timer(RESULT_DELAY_MS, e -> revealResult());
+        resultTimer.setRepeats(false);
+        resultTimer.start();
     }
 
     @Override
@@ -303,6 +361,9 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         for (int seat = 0; seat < 2; seat++) {
             cards[seat].setCountdown(seat == current ? remainingMs : -1, controller.getTurnSeconds());
         }
+        // The same clock in words, right under the board where the player is looking
+        statusClockMs = controller.getTurnSeconds() > 0 ? remainingMs : -1;
+        paintStatus();
     }
 
     @Override
@@ -313,16 +374,41 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
 
     // ---- Actions ----
 
-    private void showGameOverDialog() {
-        gameOverTimer = null;
-        if (!isShowing() || !model.isOver()) return;
-        int moves = model.getMoveCount();
-        int option = CustomDialog.confirm(window, resultTitle(), scoreLine(), I18n.t("game.over.playAgain"),
-                I18n.t("game.over.viewBoard"), false);
-        // In a LAN game the opponent may have started the next round while this dialog was open
-        if (!model.isOver() || model.getMoveCount() != moves) return;
-        if (option == CustomDialog.YES_OPTION) controller.newRound(config.alternateFirst());
-        else enterReplay();
+    /** Shows the outcome below the board: nothing covers the winning line. */
+    private void revealResult() {
+        resultTimer = null;
+        if (!model.isOver()) return;
+        resultShown = true;
+        updateFooter();
+    }
+
+    private void updateFooter() {
+        if (inReplay) return;
+        boolean showResult = model.isOver() && resultShown;
+        if (showResult) refreshResult();
+        footerCards.show(footerRow, showResult ? "result" : "play");
+    }
+
+    private void refreshResult() {
+        int winner = model.getWinner();
+        boolean interrupted = model.getEndReason() == EndReason.DISCONNECT;
+        resultFace.setIcon(interrupted ? null : new ImageIcon(winner != GameModel.EMPTY
+                ? BoardView.pieceImage(winner, 60) : drawFaces()));
+        resultTitleLabel.setText(resultTitle());
+        boolean linked = !(controller instanceof NetworkGameController lan) || lan.isConnected();
+        boolean pending = controller instanceof NetworkGameController lan && lan.isRestartPending();
+        resultLine.setText(pending ? I18n.t("lan.restart.waiting", seatName(1)) : scoreLine());
+        playAgain.setEnabled(linked && !pending);
+    }
+
+    /** A draw belongs to both faces. */
+    private static Image drawFaces() {
+        java.awt.image.BufferedImage both = new java.awt.image.BufferedImage(92, 60, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = both.createGraphics();
+        g2.drawImage(BoardView.pieceImage(GameModel.X, 56), 0, 2, null);
+        g2.drawImage(BoardView.pieceImage(GameModel.O, 56), 36, 2, null);
+        g2.dispose();
+        return both;
     }
 
     // ---- LAN: new-round handshake ----
@@ -330,7 +416,6 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     @Override
     public void onRestartRequested() {
         if (!(controller instanceof NetworkGameController lan)) return;
-        cancelGameOverDialog();
         SoundManager.play(SoundManager.ALERT);
         int option = CustomDialog.confirm(window, I18n.t("lan.restart.title", seatName(1)),
                 I18n.t("lan.restart.message"), I18n.t("lan.restart.accept"), I18n.t("lan.restart.decline"), false);
@@ -339,7 +424,6 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
 
     @Override
     public void onConnectionLost(String reason) {
-        cancelGameOverDialog();
         refreshStatus();
         if (!isShowing()) return;
         SoundManager.play(SoundManager.ALERT);
@@ -368,14 +452,14 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     // ---- Replay ----
 
     private void enterReplay() {
-        if (!model.isOver() || replayBar.isVisible()) return;
+        if (!model.isOver() || inReplay) return;
+        inReplay = true;
         replayMoves = model.getMoves();
         replayIndex = replayMoves.size();
         replayBar.setRange(replayMoves.size());
         replayBar.setPosition(replayIndex);
         replayBar.setPlaying(false);
-        replayBar.setVisible(true);
-        revalidate();
+        footerCards.show(footerRow, "replay");
     }
 
     /** Opens the replay if the round is over; false while a game is still running. */
@@ -391,12 +475,27 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         seekReplay(target.getAsInt());
     }
 
-    private void exitReplay() {
-        if (!replayBar.isVisible()) return;
+    private void arrowKey(int dRow, int dCol, java.util.function.IntSupplier replayTarget) {
+        if (model.isOver()) {
+            if (replayTarget != null) replayStep(replayTarget);
+            return;
+        }
+        board.requestFocusInWindow();
+        board.moveCursor(dRow, dCol);
+    }
+
+    private void leaveReplay() {
+        if (!inReplay) return;
         stopReplayPlayback();
         board.setDisplayModel(null);
-        replayBar.setVisible(false);
-        revalidate();
+        inReplay = false;
+    }
+
+    /** Back from the replay to the result of the round. */
+    private void exitReplay() {
+        leaveReplay();
+        resultShown = true;
+        updateFooter();
     }
 
     private void seekReplay(int k) {
@@ -428,7 +527,8 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     private void toggleMoveNumbers() {
         boolean on = !board.isShowingMoveNumbers();
         board.setShowMoveNumbers(on);
-        numbers.setVariant(on ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
+        numbers.setVariant(on ? AppButton.Variant.CIRCLED : AppButton.Variant.SECONDARY);
+        replayNumbers.setVariant(on ? AppButton.Variant.CIRCLED : AppButton.Variant.SECONDARY);
     }
 
     private void showHint() {
@@ -453,7 +553,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
                 statsBeforeLastGame = null;
             }
         }
-        cancelGameOverDialog();
+        cancelResultReveal();
         controller.undo();
     }
 
@@ -475,7 +575,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
             controller.resumeClock();
             if (option != CustomDialog.YES_OPTION) return;
         }
-        cancelGameOverDialog();
+        cancelResultReveal();
         // After a finished round "restart" means the next round; mid-game it replays the same one
         if (model.isOver()) controller.newRound(config.alternateFirst());
         else controller.restart();
@@ -498,10 +598,10 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         return model.getMoveCount() > 0 && !model.isOver();
     }
 
-    private void cancelGameOverDialog() {
-        if (gameOverTimer != null) {
-            gameOverTimer.stop();
-            gameOverTimer = null;
+    private void cancelResultReveal() {
+        if (resultTimer != null) {
+            resultTimer.stop();
+            resultTimer = null;
         }
     }
 
@@ -531,7 +631,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
             boolean seatThinking = thinking && mode == GameMode.VS_AI && seat == 1;
             // An interrupted LAN round has no real winner, so neither card claims the win
             boolean interrupted = model.getEndReason() == EndReason.DISCONNECT;
-            cards[seat].setStatus(interrupted ? PlayerCard.Status.WAITING
+            cards[seat].setStatus(interrupted || model.isDraw() ? PlayerCard.Status.WAITING
                     : statusFor(sideOf(seat), current, winner, seatThinking));
         }
 
@@ -542,7 +642,6 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
             color = Theme.TEXT_MUTED;
         } else if (winner != GameModel.EMPTY) {
             text = resultTitle();
-            color = Theme.WIN;
         } else if (model.isDraw()) {
             text = I18n.t("game.status.draw");
         } else if (thinking) {
@@ -556,8 +655,16 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
             text = I18n.t("game.status.turn", nameOf(current), x ? "X" : "O");
             color = x ? Theme.X_COLOR : Theme.O_COLOR;
         }
-        status.setText(text);
-        status.setForeground(color);
+        statusBase = text;
+        statusColor = color;
+        paintStatus();
+    }
+
+    private void paintStatus() {
+        boolean timed = statusClockMs >= 0 && !model.isOver();
+        long seconds = (statusClockMs + 999) / 1000;
+        status.setText(timed ? statusBase + "  ·  " + I18n.t("setup.turnTime.seconds", seconds) : statusBase);
+        status.setForeground(timed && seconds <= 5 ? Theme.DANGER : statusColor);
     }
 
     private static PlayerCard.Status statusFor(int player, int current, int winner, boolean thinking) {
@@ -587,12 +694,9 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     }
 
     private String scoreLine() {
-        String a = seatName(0);
-        String b = seatName(1);
-        // The dialog renders HTML, so plain double spaces would collapse
-        String line = a + "&nbsp;&nbsp;<b style='color:#ECEEFA'>" + scores[0] + " – " + scores[1] + "</b>&nbsp;&nbsp;" + b;
-        if (draws > 0) line += "\n" + I18n.t("game.result.draws", draws);
-        if (hintsUsed > 0) line += "\n" + I18n.t("game.result.hints", hintsUsed);
+        String line = seatName(0) + "  " + scores[0] + " – " + scores[1] + "  " + seatName(1);
+        if (draws > 0) line += "   ·   " + I18n.t("game.result.draws", draws);
+        if (hintsUsed > 0) line += "   ·   " + I18n.t("game.result.hints", hintsUsed);
         return line;
     }
 
@@ -628,15 +732,33 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         return holder;
     }
 
+    private static AppButton headerButton(String text, String tooltip) {
+        AppButton b = new AppButton(text, AppButton.Variant.SECONDARY).compact();
+        b.setToolTipText(tooltip);
+        return b;
+    }
+
     private static AppButton zoomButton(String text, String tooltip, Runnable action) {
         AppButton b = new AppButton(text, AppButton.Variant.SECONDARY).compact();
         b.setToolTipText(tooltip);
         boolean icon = text.length() == 1;
-        b.setFont(Theme.semibold(icon ? 18f : 13f));
+        if (icon) {
+            b.setFont(Theme.semibold(Theme.H3));
+            b.setPreferredSize(new Dimension(42, 42));
+        }
         // Text buttons measure themselves so translations never get clipped
-        if (icon) b.setPreferredSize(new Dimension(44, 44));
         b.addActionListener(e -> action.run());
         return b;
+    }
+
+    private static JComponent centeredVertically(JComponent c) {
+        JPanel holder = new JPanel(new GridBagLayout());
+        holder.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        holder.add(c, gbc);
+        return holder;
     }
 
     private void bindKey(KeyStroke stroke, Runnable action) {
