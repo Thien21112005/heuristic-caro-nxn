@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  * paper quiz. Left and right arrows move the choice while the row has focus.
  */
 public class SegmentedControl<T> extends JPanel {
-    public static final int HEIGHT = 46;
+    public static final int HEIGHT = 42;
 
     private final List<T> values = new ArrayList<>();
     private final List<AppButton> buttons = new ArrayList<>();
@@ -25,6 +25,12 @@ public class SegmentedControl<T> extends JPanel {
     public SegmentedControl() {
         super(new GridLayout(1, 0, 4, 0));
         setOpaque(false);
+    }
+
+    public SegmentedControl<T> add(T value, String label, Icon icon) {
+        add(value, label);
+        buttons.get(buttons.size() - 1).setIcon(icon);
+        return this;
     }
 
     public SegmentedControl<T> add(T value, String label) {

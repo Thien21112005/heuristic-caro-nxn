@@ -11,7 +11,16 @@ public final class CenteringScroll {
     private CenteringScroll() {}
 
     public static JScrollPane wrap(JComponent content) {
-        JScrollPane scroll = new JScrollPane(new Holder(content));
+        return scrollOver(new Holder(content, false));
+    }
+
+    /** Same, but keeps the top edge fixed, for content that grows and must not slide from under the pointer. */
+    public static JScrollPane wrapTop(JComponent content) {
+        return scrollOver(new Holder(content, true));
+    }
+
+    private static JScrollPane scrollOver(Holder holder) {
+        JScrollPane scroll = new JScrollPane(holder);
         scroll.setOpaque(false);
         scroll.getViewport().setOpaque(false);
         scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -21,11 +30,16 @@ public final class CenteringScroll {
     }
 
     private static final class Holder extends JPanel implements Scrollable {
-        Holder(JComponent content) {
+        Holder(JComponent content, boolean top) {
             super(new GridBagLayout());
             setOpaque(false);
-            setBorder(BorderFactory.createEmptyBorder(8, 16, 16, 16));
-            add(content);
+            setBorder(BorderFactory.createEmptyBorder(top ? 4 : 8, 16, top ? 6 : 16, 16));
+            GridBagConstraints gbc = new GridBagConstraints();
+            if (top) {
+                gbc.weighty = 1;
+                gbc.anchor = GridBagConstraints.NORTH;
+            }
+            add(content, gbc);
         }
 
         @Override

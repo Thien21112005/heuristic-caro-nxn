@@ -7,6 +7,7 @@ import model.Settings;
 import model.ai.Difficulty;
 import utils.I18n;
 import view.components.AppButton;
+import view.components.BoardView;
 import view.components.RoundedPanel;
 import view.components.CenteringScroll;
 import view.components.SegmentedControl;
@@ -68,7 +69,7 @@ public class SetupPanel extends PaperPanel {
                 return new Dimension(2 * COLUMN_WIDTH + COLUMN_GAP + 2 * PADDING, super.getPreferredSize().height);
             }
         };
-        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 8, PADDING, PADDING - 4, PADDING));
+        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 14, PADDING, PADDING - 14, PADDING));
 
         JPanel header = column();
         JLabel title = new JLabel(I18n.t(mode == GameMode.VS_AI ? "setup.title.vsAi" : "setup.title.twoPlayers"));
@@ -80,7 +81,7 @@ public class SetupPanel extends PaperPanel {
         subtitle.setForeground(Theme.TEXT_MUTED);
         addRow(header, title, 0);
         addRow(header, subtitle, 2);
-        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         JPanel body = new JPanel(new GridLayout(1, 2, COLUMN_GAP, 0));
         body.setOpaque(false);
@@ -91,7 +92,7 @@ public class SetupPanel extends PaperPanel {
 
         card.add(header, BorderLayout.NORTH);
         card.add(body, BorderLayout.CENTER);
-        add(CenteringScroll.wrap(card), BorderLayout.CENTER);
+        add(CenteringScroll.wrapTop(card), BorderLayout.CENTER);
 
         AppButton start = new AppButton(I18n.t("setup.start"), AppButton.Variant.PRIMARY);
         start.setFont(Theme.hand(Theme.H3));
@@ -113,7 +114,7 @@ public class SetupPanel extends PaperPanel {
         });
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         footer.setOpaque(false);
-        footer.setBorder(BorderFactory.createEmptyBorder(4, 0, 14, 0));
+        footer.setBorder(BorderFactory.createEmptyBorder(2, 0, 10, 0));
         footer.add(start);
         add(footer, BorderLayout.SOUTH);
 
@@ -176,7 +177,8 @@ public class SetupPanel extends PaperPanel {
         difficulty.setSelected(Settings.get().getDifficulty());
 
         side = new SegmentedControl<>();
-        side.add(GameModel.X, I18n.t("setup.side.x")).add(GameModel.O, I18n.t("setup.side.o"));
+        side.add(GameModel.X, I18n.t("setup.side.x"), new ImageIcon(BoardView.pieceImage(GameModel.X, 28)))
+                .add(GameModel.O, I18n.t("setup.side.o"), new ImageIcon(BoardView.pieceImage(GameModel.O, 28)));
         side.setSelected(Settings.get().getHumanSide());
 
         addRow(col, sectionLabel(I18n.t("setup.difficulty")), 0);
@@ -234,9 +236,10 @@ public class SetupPanel extends PaperPanel {
     /** The folded row always says what is currently chosen inside it. */
     private void refreshRoundOptions() {
         int seconds = turnTime.getSelected();
-        timeRule.setText(seconds == 0 ? " " : "<html><div style='width:280px'>" + I18n.t("setup.turnTime.desc") + "</div></html>");
+        timeRule.setText("<html><div style='width:280px'>" + I18n.t("setup.turnTime.desc") + "</div></html>");
+        timeRule.setVisible(seconds != 0);
         if (moreToggle == null) return;
-        String time = seconds == 0 ? I18n.t("setup.turnTime.off") : I18n.t("setup.turnTime.seconds", seconds);
+        String time = seconds == 0 ? I18n.t("setup.more.noClock") : I18n.t("setup.turnTime.seconds", seconds);
         String swap = I18n.t(alternate.getSelected() ? "setup.firstMove.alternate" : "setup.firstMove.same");
         moreToggle.setIcon(new ChevronIcon(moreBody.isVisible()));
         moreToggle.setText(I18n.t("setup.more", swap, time));
