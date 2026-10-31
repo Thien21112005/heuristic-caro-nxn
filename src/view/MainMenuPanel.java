@@ -24,11 +24,11 @@ public class MainMenuPanel extends PaperPanel {
     private static final int COLUMN_WIDTH = 340;
     private static final int X = GameModel.X, O = GameModel.O, E = GameModel.EMPTY;
     private static final int[][] SAMPLE = {
-            {O, E, E, E, E, E},
-            {E, X, O, E, O, E},
-            {E, O, X, E, E, E},
-            {E, E, O, X, E, E},
-            {E, E, E, E, X, O},
+            {E, E, O, E, E, E},
+            {E, X, E, E, O, E},
+            {E, E, X, E, E, E},
+            {O, E, E, X, E, E},
+            {E, E, E, E, X, E},
             {E, E, O, E, E, X},
     };
 
