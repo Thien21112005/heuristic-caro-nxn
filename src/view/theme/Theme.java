@@ -75,6 +75,7 @@ public final class Theme {
         FlatLaf.setGlobalExtraDefaults(vars);
 
         FlatLightLaf.setup();
+        UIManager.put("LabelUI", RoomyLabelUI.class.getName());
         view.components.FocusRing.install();
 
         UIManager.put("defaultFont", font(Font.PLAIN, BODY));
