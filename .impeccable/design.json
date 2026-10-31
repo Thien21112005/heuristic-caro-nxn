@@ -1,0 +1,540 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T16:40:22Z",
+  "title": "Design System: Caro",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cool Paper",
+        "canonical": "#F7F8FC",
+        "tonalRamp": [
+          "#0B0B0D",
+          "#242528",
+          "#414245",
+          "#606164",
+          "#818286",
+          "#A4A5A8",
+          "#C8C9CC",
+          "#EEEEEF"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Plain Sheet",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "sheet-tint": {
+        "role": "neutral",
+        "displayName": "Sheet Tint",
+        "canonical": "#EBEDF8",
+        "tonalRamp": [
+          "#0A0B0F",
+          "#23242C",
+          "#40414A",
+          "#5F616A",
+          "#80828B",
+          "#A2A4AF",
+          "#C7C9D0",
+          "#EEEEF1"
+        ]
+      },
+      "printed-square": {
+        "role": "neutral",
+        "displayName": "Printed Square",
+        "canonical": "#E2E5F4",
+        "tonalRamp": [
+          "#0A0B11",
+          "#22242F",
+          "#3F414D",
+          "#5E606D",
+          "#7F818F",
+          "#A1A4B2",
+          "#C6C8D3",
+          "#EDEEF2"
+        ]
+      },
+      "printed-square-fine": {
+        "role": "neutral",
+        "displayName": "Fine Printed Square",
+        "canonical": "#F0F1F9",
+        "tonalRamp": [
+          "#0A0B0E",
+          "#24252A",
+          "#414148",
+          "#606167",
+          "#818289",
+          "#A3A4AC",
+          "#C8C9CE",
+          "#EEEEF0"
+        ]
+      },
+      "margin-line": {
+        "role": "neutral",
+        "displayName": "Margin Pink",
+        "canonical": "#E88C9A",
+        "tonalRamp": [
+          "#1E0006",
+          "#4B0119",
+          "#712134",
+          "#964252",
+          "#BB6472",
+          "#E28694",
+          "#FAB3BC",
+          "#FEE8EA"
+        ]
+      },
+      "pencil-line": {
+        "role": "neutral",
+        "displayName": "Pencil Line",
+        "canonical": "#7C85B3",
+        "tonalRamp": [
+          "#07081F",
+          "#1C2146",
+          "#383E67",
+          "#565E89",
+          "#767FAD",
+          "#98A2D2",
+          "#BFC7EB",
+          "#EBEEFB"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1E2A5A",
+        "tonalRamp": [
+          "#040724",
+          "#15204F",
+          "#303E70",
+          "#4E5E93",
+          "#6E80B7",
+          "#90A3DD",
+          "#B9C8F4",
+          "#E8EEFE"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#4E5A86",
+        "tonalRamp": [
+          "#050820",
+          "#192148",
+          "#343F69",
+          "#525F8B",
+          "#7380AF",
+          "#95A3D4",
+          "#BCC8ED",
+          "#EAEEFB"
+        ]
+      },
+      "ink-faded": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "#8A91B3",
+        "tonalRamp": [
+          "#07091A",
+          "#1E223E",
+          "#3A405D",
+          "#595F7F",
+          "#7980A1",
+          "#9CA3C6",
+          "#C2C8E2",
+          "#ECEEF7"
+        ]
+      },
+      "ballpoint": {
+        "role": "primary",
+        "displayName": "Purple Ballpoint",
+        "canonical": "#4B2FB5",
+        "tonalRamp": [
+          "#0B002E",
+          "#24006B",
+          "#3F1AA4",
+          "#5A44CA",
+          "#7969F2",
+          "#9B96FE",
+          "#C2C2FF",
+          "#ECEDFF"
+        ]
+      },
+      "ballpoint-hover": {
+        "role": "primary",
+        "displayName": "Ballpoint Hover",
+        "canonical": "#5C3FCB",
+        "tonalRamp": [
+          "#0C002D",
+          "#26006A",
+          "#4214A6",
+          "#5D41CD",
+          "#7C66F5",
+          "#9D95FE",
+          "#C3C2FE",
+          "#ECEDFE"
+        ]
+      },
+      "ballpoint-pressed": {
+        "role": "primary",
+        "displayName": "Ballpoint Pressed",
+        "canonical": "#3D2596",
+        "tonalRamp": [
+          "#0B002E",
+          "#24016B",
+          "#3E2697",
+          "#5A4BBD",
+          "#796EE4",
+          "#9B96FF",
+          "#C2C2FF",
+          "#ECEDFE"
+        ]
+      },
+      "piece-x": {
+        "role": "tertiary",
+        "displayName": "Piece Teal",
+        "canonical": "#0B7285",
+        "tonalRamp": [
+          "#000E12",
+          "#012A33",
+          "#044A58",
+          "#076D7F",
+          "#378FA3",
+          "#5EB3C7",
+          "#99D4E3",
+          "#DFF3F8"
+        ]
+      },
+      "piece-o": {
+        "role": "tertiary",
+        "displayName": "Piece Orange",
+        "canonical": "#C2410C",
+        "tonalRamp": [
+          "#1C0300",
+          "#451000",
+          "#742201",
+          "#A83400",
+          "#D55325",
+          "#FD784C",
+          "#FFB49D",
+          "#FEE9E3"
+        ]
+      },
+      "highlighter": {
+        "role": "secondary",
+        "displayName": "Yellow Highlighter",
+        "canonical": "#FFE45C",
+        "tonalRamp": [
+          "#0F0B00",
+          "#2C2500",
+          "#4D4202",
+          "#716103",
+          "#968203",
+          "#BEA502",
+          "#DDCA70",
+          "#F5EFD2"
+        ]
+      },
+      "red-pen": {
+        "role": "secondary",
+        "displayName": "Teacher's Red Pen",
+        "canonical": "#C62828",
+        "tonalRamp": [
+          "#1F0001",
+          "#4D0003",
+          "#80010B",
+          "#B60F19",
+          "#DF433D",
+          "#FE7369",
+          "#FFB3AA",
+          "#FEE9E6"
+        ]
+      },
+      "red-pen-pressed": {
+        "role": "secondary",
+        "displayName": "Red Pen Pressed",
+        "canonical": "#A31F1F",
+        "tonalRamp": [
+          "#1F0001",
+          "#4D0003",
+          "#80010A",
+          "#AC2A27",
+          "#D45048",
+          "#FD756A",
+          "#FEB3AA",
+          "#FFE9E6"
+        ]
+      },
+      "scrim": {
+        "role": "neutral",
+        "displayName": "Scrim",
+        "canonical": "#1E2A5A6E",
+        "tonalRamp": [
+          "#040724",
+          "#15204F",
+          "#303E70",
+          "#4E5E93",
+          "#6E80B7",
+          "#90A3DD",
+          "#B9C8F4",
+          "#E8EEFE"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The Caro title on the main menu only."
+      },
+      "number": {
+        "displayName": "Number",
+        "purpose": "The board size in setup."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Screen titles, the result title and the big figure in a results row."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Game header, dialog titles, player names and LAN column headings."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Main-action labels, the status line and results row names."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, options, field and section labels, and a player's status."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Subtitles, explanations, dialog messages and field text."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Captions, helper text, errors and game counts."
+      },
+      "small-strong": {
+        "displayName": "Small Strong",
+        "purpose": "Win counts and the replay position."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "hover-ease",
+        "value": "15ms tick, 25% of the remaining distance per tick (about 200ms)",
+        "purpose": "Button hover colour and tint."
+      },
+      {
+        "name": "toggle-slide",
+        "value": "15ms tick, 30% of the remaining distance per tick (about 170ms)",
+        "purpose": "Toggle knob and track fill."
+      },
+      {
+        "name": "piece-pop",
+        "value": "220ms ease-out-back, scale 0.55 to 1",
+        "purpose": "The newest piece landing on the board."
+      },
+      {
+        "name": "win-loop",
+        "value": "450ms ease-out-quad along the loop's length",
+        "purpose": "The red pen closing around a winning line, once per win."
+      },
+      {
+        "name": "win-hop",
+        "value": "scale up to 1.14 over the last 45% of the win loop",
+        "purpose": "Winning faces hop as the loop closes."
+      },
+      {
+        "name": "hint-pulse",
+        "value": "800ms sine period, for 2500ms",
+        "purpose": "The violet loop around a hinted cell."
+      },
+      {
+        "name": "replay-step",
+        "value": "600ms per move",
+        "purpose": "Automatic replay playback."
+      },
+      {
+        "name": "thinking-dots",
+        "value": "350ms per dot",
+        "purpose": "The computer's thinking status."
+      },
+      {
+        "name": "spinner-turn",
+        "value": "1400ms per turn, linear",
+        "purpose": "The pen spinner in the LAN lobby."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "min-window",
+        "value": "980px x 680px"
+      },
+      {
+        "name": "controls-reminder-min-row",
+        "value": "960px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one solid action of a screen.",
+      "html": "<button class=\"ds-btn-primary\">Start</button>",
+      "css": ".ds-btn-primary{background:#4B2FB5;color:#FFFFFF;border:none;border-radius:10px;height:56px;padding:9px 20px;min-width:320px;font-family:Mali,Inter,sans-serif;font-weight:600;font-size:17px;cursor:pointer;transition:background .2s}.ds-btn-primary:hover{background:#5C3FCB}.ds-btn-primary:active{background:#3D2596}.ds-btn-primary:focus-visible{outline:2px solid #FFFFFF;outline-offset:-5px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Every other outlined button: menu entries, game controls, dialog cancel.",
+      "html": "<button class=\"ds-btn-secondary\">Hint</button>",
+      "css": ".ds-btn-secondary{background:#FFFFFF;color:#1E2A5A;border:1.4px solid #7C85B3;border-radius:10px;height:42px;padding:9px 20px;font-family:Mali,Inter,sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s,border-color .2s}.ds-btn-secondary:hover{background:#EBEDF8;border-color:#4F5A8C}.ds-btn-secondary:active{background:#E2E5F4}.ds-btn-secondary:focus-visible{outline:2px solid #4B2FB5;outline-offset:-5px}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Back links, menu links and minor actions; may turn red on hover when destructive.",
+      "html": "<button class=\"ds-btn-ghost\">Statistics</button>",
+      "css": ".ds-btn-ghost{background:transparent;color:#4E5A86;border:none;border-radius:10px;min-height:42px;padding:4px 12px;font-family:Mali,Inter,sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s,color .2s}.ds-btn-ghost:hover{background:#EBEDF8;color:#1E2A5A}.ds-btn-ghost:active{background:#E2E5F4}.ds-btn-ghost:focus-visible{outline:2px solid #4B2FB5;outline-offset:-5px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "The confirming button of a destructive dialog, and nowhere else.",
+      "html": "<button class=\"ds-btn-danger\">Leave</button>",
+      "css": ".ds-btn-danger{background:#C62828;color:#FFFFFF;border:none;border-radius:10px;height:42px;padding:9px 20px;font-family:Mali,Inter,sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s}.ds-btn-danger:hover{background:#CC4141}.ds-btn-danger:active{background:#A31F1F}.ds-btn-danger:focus-visible{outline:2px solid #FFFFFF;outline-offset:-5px}"
+    },
+    {
+      "name": "Choice Row",
+      "kind": "chip",
+      "refersTo": "option-circled",
+      "description": "Mutually exclusive answers; the chosen one is circled in pen.",
+      "html": "<div class=\"ds-choice\" role=\"radiogroup\"><button class=\"ds-choice-opt\" role=\"radio\" aria-checked=\"false\">Easy</button><button class=\"ds-choice-opt ds-choice-on\" role=\"radio\" aria-checked=\"true\">Normal<svg viewBox=\"0 0 120 42\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path d=\"M14 9C34 3 88 2 106 7C118 11 118 31 106 36C86 41 32 41 14 36C2 31 1 13 15 7C24 4 30 4 36 5\" fill=\"none\" stroke=\"#4B2FB5\" stroke-width=\"2.2\" stroke-linecap=\"round\" vector-effect=\"non-scaling-stroke\"/></svg></button><button class=\"ds-choice-opt\" role=\"radio\" aria-checked=\"false\">Hard</button></div>",
+      "css": ".ds-choice{display:grid;grid-template-columns:repeat(3,120px);gap:4px}.ds-choice-opt{position:relative;background:transparent;border:none;border-radius:10px;height:42px;padding:4px;color:#1E2A5A;font-family:Mali,Inter,sans-serif;font-weight:600;font-size:15px;cursor:pointer;transition:background .2s}.ds-choice-opt:hover{background:#EBEDF8}.ds-choice-opt:focus-visible{outline:2px solid #4B2FB5;outline-offset:-5px}.ds-choice-on{color:#4B2FB5}.ds-choice-on:hover{background:transparent}.ds-choice-on svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}"
+    },
+    {
+      "name": "Sheet",
+      "kind": "card",
+      "refersTo": "sheet-panel",
+      "description": "The one white sheet of a secondary screen, on the printed page.",
+      "html": "<div class=\"ds-page\"><div class=\"ds-sheet\"><h3 class=\"ds-sheet-title\">Statistics</h3><p class=\"ds-sheet-sub\">Your results on this computer so far.</p></div></div>",
+      "css": ".ds-page{padding:24px;background-color:#F7F8FC;background-image:linear-gradient(#E2E5F4 1px,transparent 1px),linear-gradient(90deg,#E2E5F4 1px,transparent 1px);background-size:24px 24px}.ds-sheet{background:#FFFFFF;border:1px solid rgba(124,133,179,.59);border-radius:7px;padding:24px 32px}.ds-sheet-title{margin:0;font-family:Mali,Inter,sans-serif;font-weight:700;font-size:28px;color:#1E2A5A}.ds-sheet-sub{margin:2px 0 0;font-family:Inter,sans-serif;font-size:15px;color:#4E5A86}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "A single-line field in the LAN lobby.",
+      "html": "<input class=\"ds-input\" placeholder=\"e.g. 192.168.1.23\" aria-label=\"Address\">",
+      "css": ".ds-input{background:#FFFFFF;color:#1E2A5A;border:1px solid #7C85B3;border-radius:5px;height:44px;width:320px;padding:0 10px;font-family:Inter,sans-serif;font-size:15px}.ds-input::placeholder{color:#4E5A86}.ds-input:focus-visible{outline:none;border-color:#4B2FB5;box-shadow:inset 0 0 0 1px #4B2FB5}"
+    },
+    {
+      "name": "Toggle Switch",
+      "kind": "custom",
+      "refersTo": "toggle-on",
+      "description": "On/off in ink: an empty outlined track when off, filled when on.",
+      "html": "<label class=\"ds-toggle\"><input type=\"checkbox\" checked aria-label=\"Allow hints\"><span></span></label>",
+      "css": ".ds-toggle{display:inline-block;width:52px;height:30px;cursor:pointer}.ds-toggle input{position:absolute;opacity:0}.ds-toggle span{display:block;position:relative;width:100%;height:100%;box-sizing:border-box;background:#FFFFFF;border:1.4px solid #7C85B3;border-radius:999px;transition:background .17s,border-color .17s}.ds-toggle span::after{content:'';position:absolute;top:4px;left:4px;width:19px;height:19px;border-radius:50%;background:#4E5A86;transition:transform .17s,background .17s}.ds-toggle input:checked+span{background:#1E2A5A;border-color:#1E2A5A}.ds-toggle input:checked+span::after{transform:translateX(22px);background:#FFFFFF}.ds-toggle input:focus-visible+span{outline:2px solid #4B2FB5;outline-offset:2px}"
+    },
+    {
+      "name": "Winning Board",
+      "kind": "custom",
+      "refersTo": "board-sheet",
+      "description": "The signature moment: highlighter under the grid and a red pen loop clear of the pieces. The app's pieces are raster faces; plain drawn stand-ins are used here.",
+      "html": "<svg class=\"ds-board\" viewBox=\"0 0 240 240\" role=\"img\" aria-label=\"Board with a highlighted, looped winning line\"><rect x=\"1\" y=\"1\" width=\"238\" height=\"238\" rx=\"10\" fill=\"#FFFFFF\"/><path d=\"M30 30L210 210\" stroke=\"#FFE45C\" stroke-opacity=\".85\" stroke-width=\"50\" stroke-linecap=\"round\"/><path d=\"M60 2C61 80 59 160 60 238M120 2C119 80 121 160 120 238M180 2C181 80 179 160 180 238M2 60C80 61 160 59 238 60M2 120C80 119 160 121 238 120M2 180C80 181 160 179 238 180\" stroke=\"#7C85B3\" stroke-width=\"1.4\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"1\" y=\"1\" width=\"238\" height=\"238\" rx=\"10\" fill=\"none\" stroke=\"#4E5A86\" stroke-width=\"1.8\"/><path d=\"M8 28C14 8 34 2 50 14L226 188C240 206 232 230 212 234C198 237 186 230 176 220L14 52C8 44 6 36 10 24\" fill=\"none\" stroke=\"#C62828\" stroke-width=\"3\" stroke-linecap=\"round\"/><g stroke=\"#0B7285\" stroke-width=\"7\" stroke-linecap=\"round\"><path d=\"M18 18L42 42M42 18L18 42M78 78L102 102M102 78L78 102M138 138L162 162M162 138L138 162M198 198L222 222M222 198L198 222\"/></g><g fill=\"none\" stroke=\"#C2410C\" stroke-width=\"7\" opacity=\".55\"><circle cx=\"150\" cy=\"30\" r=\"14\"/><circle cx=\"210\" cy=\"90\" r=\"14\"/><circle cx=\"30\" cy=\"150\" r=\"14\"/></g></svg>",
+      "css": ".ds-board{width:240px;height:240px;display:block}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Back Page of the Notebook",
+    "overview": "Caro is what you played in the back of a school notebook, so the app is that page: a Vietnamese vở ô ly with faint violet-blue squares, a pink-red margin line, ink, a purple ballpoint, the teacher's red pen and a yellow highlighter. Two ridiculous faces are the only loud things on it.\n\nThe system is a real desktop control set that borrows its hand from the page. Buttons, sliders and fields behave like standard controls, while their outlines, grid lines and marks wobble slightly as a pen does. Density is moderate and everything fits a 980×680 window. The board is the largest thing on any screen it appears on.\n\nChoices are circled, wins are looped and highlighted, and scores are kept as tally strokes, because that is how each of those things is marked on paper. The rejected looks are the old dark neon treatment (wallpaper, gradient title, glowing lines), notebook costume (ring binders, torn edges, coffee stains), grey WinForms panels, cream paper and serif type.",
+    "keyCharacteristics": [
+      "Cool paper with printed squares and a double margin line on every full screen",
+      "Mali handwriting for headings, numbers and buttons; Inter for small reading text",
+      "One solid button per screen, and a pen circle for whatever is selected",
+      "Seeded pen wobble that holds still on every repaint",
+      "Flat paper layers with hairline edges and no shadows",
+      "Large raster faces that are never covered or crossed out"
+    ],
+    "rules": [
+      {
+        "name": "The One Solid Action Rule",
+        "body": "Each screen has at most one button filled in violet: the thing you came here to do. Everything else is outlined or plain, and a game in progress has none at all.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pen Circle Rule",
+        "body": "A selected option is circled in ballpoint on a transparent ground, with its text turned violet. No option ever becomes a filled button.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ink Controls Rule",
+        "body": "Toggles, sliders and pagers are ink, not violet. They show a setting or a position; only the main action and the pen circle may spend the ballpoint.",
+        "section": "colors"
+      },
+      {
+        "name": "The Red Pen Rule",
+        "body": "Red marks what a teacher would mark: the win, the error, the time running out, the thing you can't undo. A win is red because it is marked, not because it is bad.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Hands Rule",
+        "body": "If you would write it with a pen, it is Mali: titles, numbers, buttons, labels. If it is a sentence you need to read, it is Inter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Spare Width Rule",
+        "body": "Every label is measured 4px wider than Swing reports, because Vietnamese text draws a little wider than it measures and the last letter would otherwise be cut off. Never set a label to an exact computed width.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Sheet Rule",
+        "body": "A secondary screen keeps one white sheet on the paper, and the board keeps its own white sheet, because small text and grid lines read better without the printed squares behind them. The main menu's column and the game's header, player cards and footer stay directly on the page, because they are short labels rather than reading text.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Nothing casts a shadow or glows. If something needs to stand out, mark it with a pen.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do take every colour, size and radius from `Theme`; add a token there before using a new value.",
+      "Do draw new outlines, lines and loops through `Sketch` with a fixed seed, so they never shimmer between repaints.",
+      "Do keep to one solid violet button per screen, and name what it does.",
+      "Do show a selected option with the pen circle, and keep toggles, sliders and pagers in ink.",
+      "Do give each secondary screen one white sheet, and keep the board on its own.",
+      "Do put game-end results beside the board or in the 84px footer, with the winner's face large and in view.",
+      "Do draw new icons as vector shapes painted at their size.",
+      "Do keep text at 4.5:1 and UI parts at 3:1 on paper, and pair colour with a shape, a word or a mark.",
+      "Do paint focus rings and the board cursor only during keyboard use, through `FocusRing`.",
+      "Do check every new string in Vietnamese at the 980×680 minimum."
+    ],
+    "donts": [
+      "Don't set forms, tables, paragraphs or board lines directly on the printed squares.",
+      "Don't fill a selected option or add a second solid violet button to a screen.",
+      "Don't strike through or cover a face, or bring up a modal over the board at the end of a round.",
+      "Don't resize the board when the footer changes state.",
+      "Don't use the highlighter beyond the win, the turn marker and the hint, or Margin Pink for anything but the margin.",
+      "Don't add ring binders, torn edges, coffee stains, cream paper or serif type.",
+      "Don't bring back wallpaper behind the board, gradient titles, glowing lines or violet everywhere.",
+      "Don't use grey WinForms panels, or drop shadows of any kind."
+    ]
+  }
+}
