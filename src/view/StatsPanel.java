@@ -16,12 +16,12 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 
 /**
- * Lifetime results: one tile per AI level plus one for two-player games.
+ * Lifetime results: one row per AI level plus one for two-player games.
  * Reloads every time the screen is shown.
  */
 public class StatsPanel extends PaperPanel {
-    private static final int TILE_WIDTH = 360;
-    private static final int TILE_HEIGHT = 168;
+    private static final int TILE_WIDTH = 752;
+    private static final int TILE_HEIGHT = 80;
 
     private final Tile[] tiles = {
             new Tile(Stats.bucket(GameMode.VS_AI, Difficulty.EASY), "difficulty.easy", false),
@@ -50,7 +50,7 @@ public class StatsPanel extends PaperPanel {
         header.add(title);
                 header.add(subtitle);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 32, 14));
+        JPanel grid = new JPanel(new GridLayout(0, 1));
         grid.setOpaque(false);
         for (Tile tile : tiles) grid.add(tile);
 
@@ -121,71 +121,60 @@ public class StatsPanel extends PaperPanel {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             Theme.antialias(g2);
-            int pad = 0;
-            int top = 4;
             int w = getWidth();
+            int numberX = 170, barX = 320, statsX = w - 180;
 
+            // Name and how many games
             g2.setFont(Theme.hand(Theme.LEAD));
             g2.setColor(Theme.TEXT);
-            g2.drawString(I18n.t(titleKey), pad, top + 16);
-            String games = I18n.t("stats.games", entry.played());
+            g2.drawString(I18n.t(titleKey), 0, 32);
             g2.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
             g2.setColor(Theme.TEXT_MUTED);
-            g2.drawString(games, w - pad - g2.getFontMetrics().stringWidth(games), top + 16);
+            g2.drawString(I18n.t("stats.games", entry.played()), 0, 54);
 
             // Headline
-            String big;
-            String caption;
-            if (twoPlayers) {
-                big = entry.wins() + " – " + entry.losses();
-                caption = I18n.t("stats.twoPlayers.caption");
-            } else {
-                big = entry.played() == 0 ? "—" : entry.winRatePercent() + "%";
-                caption = I18n.t("stats.winRate");
-            }
-            g2.setFont(Theme.handBold(Theme.H1));
+            String big = twoPlayers ? entry.wins() + " – " + entry.losses()
+                    : entry.played() == 0 ? "—" : entry.winRatePercent() + "%";
+            g2.setFont(Theme.handBold(Theme.H2));
             g2.setColor(entry.played() == 0 ? Theme.TEXT_MUTED : Theme.TEXT);
-            g2.drawString(big, pad, top + 60);
-            int bigWidth = g2.getFontMetrics().stringWidth(big);
+            g2.drawString(big, numberX, 38);
             g2.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
             g2.setColor(Theme.TEXT_MUTED);
-            g2.drawString(caption, pad + bigWidth + 12, top + 58);
+            g2.drawString(I18n.t(twoPlayers ? "stats.twoPlayers.caption" : "stats.winRate"), numberX, 58);
 
-            // Win / draw / loss bar
-            int barY = top + 72;
-            int barW = w - 2 * pad;
-            int barH = 10;
+            // Win / draw / loss: ink, a pencil grey and the red pen
+            int barW = (twoPlayers ? w : statsX - 20) - barX;
+            int barY = 20, barH = 10;
             g2.setColor(Theme.RULE);
-            g2.fillRoundRect(pad, barY, barW, barH, barH, barH);
+            g2.fillRoundRect(barX, barY, barW, barH, barH, barH);
             if (entry.played() > 0) {
                 Shape clip = g2.getClip();
-                g2.clip(new java.awt.geom.RoundRectangle2D.Float(pad, barY, barW, barH, barH, barH));
-                int x = pad;
+                g2.clip(new java.awt.geom.RoundRectangle2D.Float(barX, barY, barW, barH, barH, barH));
+                int x = barX;
                 int[] parts = {entry.wins(), entry.draws(), entry.losses()};
-                Color[] colors = {Theme.ACCENT, Theme.BORDER, Theme.DANGER};
+                Color[] colors = {Theme.TEXT, Theme.BORDER, Theme.DANGER};
                 for (int i = 0; i < parts.length; i++) {
                     int pw = Math.round(barW * parts[i] / (float) entry.played());
-                    if (i == parts.length - 1) pw = pad + barW - x;
+                    if (i == parts.length - 1) pw = barX + barW - x;
                     g2.setColor(colors[i]);
                     g2.fillRect(x, barY, pw, barH);
                     x += pw;
                 }
                 g2.setClip(clip);
             }
-
             g2.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
-            int y = barY + barH + 20;
-            String wdl = twoPlayers
-                    ? I18n.t("stats.twoPlayers.line", entry.wins(), entry.draws(), entry.losses())
-                    : I18n.t("stats.wdl", entry.wins(), entry.draws(), entry.losses());
             g2.setColor(Theme.TEXT);
-            g2.drawString(wdl, pad, y);
+            g2.drawString(twoPlayers
+                    ? I18n.t("stats.twoPlayers.line", entry.wins(), entry.draws(), entry.losses())
+                    : I18n.t("stats.wdl", entry.wins(), entry.draws(), entry.losses()), barX, 54);
 
             if (!twoPlayers) {
                 g2.setColor(Theme.TEXT_MUTED);
-                g2.drawString(I18n.t("stats.streak", entry.currentStreak(), entry.bestStreak()), pad, y + 20);
-                if (entry.fastestWin() > 0) g2.drawString(I18n.t("stats.fastest", entry.fastestWin()), pad, y + 40);
+                g2.drawString(I18n.t("stats.streak", entry.currentStreak(), entry.bestStreak()), statsX, 32);
+                if (entry.fastestWin() > 0) g2.drawString(I18n.t("stats.fastest", entry.fastestWin()), statsX, 54);
             }
+            g2.setColor(Theme.RULE);
+            g2.drawLine(0, getHeight() - 1, w, getHeight() - 1);
             g2.dispose();
         }
     }

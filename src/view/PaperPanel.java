@@ -11,6 +11,7 @@ import java.awt.*;
  */
 public class PaperPanel extends JPanel {
     private static final int SQUARE = 24;
+    private static final int SMALL_SQUARE = 8;
     private static final int MARGIN_X = 36;
 
     public PaperPanel() {
@@ -23,6 +24,9 @@ public class PaperPanel extends JPanel {
         super.paintComponent(g);
         int w = getWidth();
         int h = getHeight();
+        g.setColor(Theme.RULE_FINE);
+        for (int x = MARGIN_X % SMALL_SQUARE; x < w; x += SMALL_SQUARE) g.drawLine(x, 0, x, h);
+        for (int y = SMALL_SQUARE; y < h; y += SMALL_SQUARE) g.drawLine(0, y, w, y);
         g.setColor(Theme.RULE);
         for (int x = MARGIN_X % SQUARE; x < w; x += SQUARE) g.drawLine(x, 0, x, h);
         for (int y = SQUARE; y < h; y += SQUARE) g.drawLine(0, y, w, y);

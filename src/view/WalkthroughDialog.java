@@ -160,7 +160,7 @@ public class WalkthroughDialog extends JDialog {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             Theme.antialias(g2);
-            g2.setColor(active ? Theme.ACCENT : Theme.RULE);
+            g2.setColor(active ? Theme.TEXT : Theme.BORDER);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
             g2.dispose();
         }
@@ -198,7 +198,7 @@ public class WalkthroughDialog extends JDialog {
 
         private void drawModes(Graphics2D g2, int w, int h) {
             String[] labels = {I18n.t("walk.mode.ai"), I18n.t("walk.mode.two"), I18n.t("walk.mode.lan")};
-            int[][] pieces = { {GameModel.X, GameModel.O}, {GameModel.X, GameModel.X}, {GameModel.O, GameModel.X} };
+            int[] pieces = {GameModel.X, GameModel.O};
             int box = 120, gap = 18;
             int x0 = (w - (box * 3 + gap * 2)) / 2;
             g2.setFont(Theme.hand(Theme.SMALL));
@@ -207,8 +207,8 @@ public class WalkthroughDialog extends JDialog {
                 int x = x0 + i * (box + gap);
                 g2.setColor(Theme.SURFACE_ALT);
                 g2.fillRoundRect(x, 4, box, h - 8, Theme.RADIUS, Theme.RADIUS);
-                g2.drawImage(BoardView.pieceImage(pieces[i][0], 40), x + box / 2 - 42, 18, null);
-                g2.drawImage(BoardView.pieceImage(pieces[i][1], 40), x + box / 2 + 2, 18, null);
+                g2.drawImage(BoardView.pieceImage(pieces[0], 48), x + box / 2 - 50, 14, null);
+                g2.drawImage(BoardView.pieceImage(pieces[1], 48), x + box / 2 + 2, 14, null);
                 g2.setColor(Theme.TEXT);
                 g2.drawString(labels[i], x + (box - fm.stringWidth(labels[i])) / 2, h - 22);
             }

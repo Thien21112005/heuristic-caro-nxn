@@ -22,6 +22,7 @@ public final class Theme {
     public static final Color SURFACE = new Color(0xFFFFFF);
     public static final Color SURFACE_ALT = new Color(0xEBEDF8);
     public static final Color RULE = new Color(0xE2E5F4);      // the faint printed squares
+    public static final Color RULE_FINE = new Color(0xF0F1F9); // the small squares inside them
     public static final Color MARGIN = new Color(0xE88C9A);    // the printed margin line
     public static final Color BORDER = new Color(0x7C85B3);    // outlines of controls and board lines, at least 3:1
 
@@ -91,7 +92,8 @@ public final class Theme {
         UIManager.put("TextField.background", SURFACE);
         UIManager.put("TextField.placeholderForeground", TEXT_MUTED);
         UIManager.put("Slider.trackColor", BORDER);
-        UIManager.put("Slider.thumbColor", ACCENT);
+        UIManager.put("Slider.trackValueColor", TEXT);
+        UIManager.put("Slider.thumbColor", TEXT);
         UIManager.put("Slider.disabledTrackColor", RULE);
         UIManager.put("Slider.disabledThumbColor", TEXT_DISABLED);
         UIManager.put("ScrollBar.thumbArc", 999);

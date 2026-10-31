@@ -143,7 +143,7 @@ public class LanLobbyPanel extends PaperPanel {
     private JComponent buildJoinColumn() {
         JPanel col = column();
         RoundedPanel rooms = new RoundedPanel(Theme.RADIUS);
-        rooms.setFill(Theme.SURFACE_ALT);
+        rooms.setFill(null);
         rooms.setBorderColor(null);
         rooms.setLayout(new BorderLayout());
         rooms.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));

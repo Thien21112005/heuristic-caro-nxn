@@ -79,9 +79,9 @@ public class ToggleSwitch extends JComponent {
         boolean on = position > 0.5f;
 
         // Off is an empty outlined track, on is a filled one: state reads without colour
-        g2.setColor(mix(Theme.SURFACE, isEnabled() ? Theme.ACCENT : Theme.TEXT_DISABLED, position));
+        g2.setColor(mix(Theme.SURFACE, isEnabled() ? Theme.TEXT : Theme.TEXT_DISABLED, position));
         g2.fillRoundRect(x, y, w - 1, h - 1, h, h);
-        g2.setColor(isEnabled() ? (on ? Theme.ACCENT : Theme.BORDER) : Theme.TEXT_DISABLED);
+        g2.setColor(isEnabled() ? (on ? Theme.TEXT : Theme.BORDER) : Theme.TEXT_DISABLED);
         g2.setStroke(new BasicStroke(1.4f));
         g2.drawRoundRect(x, y, w - 1, h - 1, h, h);
 
