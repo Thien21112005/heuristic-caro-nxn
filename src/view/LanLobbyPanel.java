@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * LAN lobby: pick a name, then host a room (and wait) or join one.
  */
-public class LanLobbyPanel extends BackgroundPanel {
+public class LanLobbyPanel extends PaperPanel {
     static final int COLUMN_WIDTH = 400;
     private static final int[] SIZES = {3, 10, 15, 20};
     private static final int[] TIMES = {0, 20, 30, 60};
@@ -50,8 +50,7 @@ public class LanLobbyPanel extends BackgroundPanel {
     private boolean joining;
 
     public LanLobbyPanel(MainWindow window) {
-        super("/assets/Background.jpg");
-        this.window = window;
+                this.window = window;
         setLayout(new BorderLayout());
         add(TopBar.withBack(this::leave), BorderLayout.NORTH);
 
@@ -60,7 +59,7 @@ public class LanLobbyPanel extends BackgroundPanel {
 
         JPanel header = column();
         JLabel title = new JLabel(I18n.t("lan.title"));
-        title.setFont(Theme.font(Font.BOLD, 32f));
+        title.setFont(Theme.handBold(32f));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel("<html>" + I18n.t("lan.subtitle") + "</html>");
         subtitle.setFont(Theme.font(Font.PLAIN, 16f));

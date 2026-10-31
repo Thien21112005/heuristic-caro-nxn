@@ -20,7 +20,7 @@ import java.awt.event.KeyEvent;
  * Pre-game screen: board size and win rule on the left, mode options
  * (difficulty, ...) on the right, then start.
  */
-public class SetupPanel extends BackgroundPanel {
+public class SetupPanel extends PaperPanel {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
     private static final int[] PRESETS = {3, 10, 15, 20};
@@ -44,8 +44,7 @@ public class SetupPanel extends BackgroundPanel {
     private static final int[] TURN_TIMES = {0, 10, 20, 30, 60};
 
     public SetupPanel(MainWindow window, GameMode mode) {
-        super("/assets/Background.jpg");
-        this.mode = mode;
+                this.mode = mode;
         this.size = clamp(Settings.get().getBoardSize(mode));
         setLayout(new BorderLayout());
 
@@ -63,7 +62,7 @@ public class SetupPanel extends BackgroundPanel {
 
         JPanel header = column();
         JLabel title = new JLabel(I18n.t(mode == GameMode.VS_AI ? "setup.title.vsAi" : "setup.title.twoPlayers"));
-        title.setFont(Theme.font(Font.BOLD, 32f));
+        title.setFont(Theme.handBold(32f));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel(I18n.t(mode == GameMode.VS_AI
                 ? "setup.subtitle.vsAi" : "setup.subtitle.twoPlayers"));
@@ -118,7 +117,7 @@ public class SetupPanel extends BackgroundPanel {
     }
 
     private void buildBoardColumn(JPanel col) {
-        sizeLabel.setFont(Theme.font(Font.BOLD, 54f));
+        sizeLabel.setFont(Theme.handBold(54f));
         sizeLabel.setForeground(Theme.TEXT);
 
         minus.compact().setFont(Theme.semibold(28f));

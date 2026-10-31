@@ -1,41 +1,64 @@
 package view.theme;
 
-import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.fonts.inter.FlatInterFont;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Central design tokens (colors, fonts, spacing) and FlatLaf setup.
- * Every screen pulls its look from here so the app stays visually consistent.
+ * The look is a page from a school notebook: cool paper, ink, a violet ballpoint,
+ * the teacher's red pen and a yellow highlighter.
  */
 public final class Theme {
-    // Surfaces
-    public static final Color BG = new Color(0x0B0D1A);
-    public static final Color SURFACE = new Color(0x151831);
-    public static final Color SURFACE_ALT = new Color(0x1E2245);
-    public static final Color BORDER = new Color(0x2C3160);
+    // Paper
+    public static final Color BG = new Color(0xF7F8FC);
+    public static final Color SURFACE = new Color(0xFFFFFF);
+    public static final Color SURFACE_ALT = new Color(0xEBEDF8);
+    public static final Color RULE = new Color(0xE2E5F4);      // the faint printed squares
+    public static final Color MARGIN = new Color(0xE88C9A);    // the printed margin line
+    public static final Color BORDER = new Color(0x7C85B3);    // outlines of controls and board lines, at least 3:1
 
-    // Text
-    public static final Color TEXT = new Color(0xECEEFA);
-    public static final Color TEXT_MUTED = new Color(0x969CC4);
+    // Ink
+    public static final Color TEXT = new Color(0x1E2A5A);
+    public static final Color TEXT_MUTED = new Color(0x4E5A86);
+    public static final Color TEXT_DISABLED = new Color(0x8A91B3);
 
-    // Accents
-    public static final Color ACCENT = new Color(0x7C5CFF);
-    public static final Color ACCENT_HOVER = new Color(0x947BFF);
-    public static final Color ACCENT_PRESSED = new Color(0x6646F0);
-    public static final Color X_COLOR = new Color(0x22D3EE);
-    public static final Color O_COLOR = new Color(0xFF5A36);
-    public static final Color WIN = new Color(0xFACC15);
-    public static final Color DANGER = new Color(0xF43F5E);
+    // Pens
+    public static final Color ACCENT = new Color(0x4B2FB5);
+    public static final Color ACCENT_HOVER = new Color(0x5C3FCB);
+    public static final Color ACCENT_PRESSED = new Color(0x3D2596);
+    public static final Color X_COLOR = new Color(0x0B7285);
+    public static final Color O_COLOR = new Color(0xC2410C);
+    public static final Color WIN = new Color(0xFFE45C);       // highlighter
+    public static final Color DANGER = new Color(0xC62828);    // red pen
+    public static final Color DANGER_PRESSED = new Color(0xA31F1F);
+    public static final Color SCRIM = new Color(0x1E2A5A);     // tint behind dialogs
 
     // Shape
-    public static final int RADIUS = 14;
-    public static final int RADIUS_LG = 22;
+    public static final int RADIUS = 10;
+    public static final int RADIUS_LG = 14;
+
+    // Type scale
+    public static final float SMALL = 13f;
+    public static final float BODY = 15f;
+    public static final float LEAD = 17f;
+    public static final float H3 = 20f;
+    public static final float H2 = 28f;
+    public static final float H1 = 38f;
+    public static final float NUMBER = 48f;
+    public static final float DISPLAY = 88f;
+
+    // Mali, a Vietnamese school handwriting face; null if a file could not be read
+    private static final Font HAND = loadFont("Mali-SemiBold.ttf");
+    private static final Font HAND_BOLD = loadFont("Mali-Bold.ttf");
+    private static final Font HAND_MEDIUM = loadFont("Mali-Medium.ttf");
 
     private Theme() {}
 
@@ -51,14 +74,25 @@ public final class Theme {
         vars.put("@accentColor", hex(ACCENT));
         FlatLaf.setGlobalExtraDefaults(vars);
 
-        FlatDarkLaf.setup();
+        FlatLightLaf.setup();
         view.components.FocusRing.install();
 
-        UIManager.put("defaultFont", font(Font.PLAIN, 14));
+        UIManager.put("defaultFont", font(Font.PLAIN, BODY));
         UIManager.put("Component.arc", RADIUS);
         UIManager.put("Button.arc", RADIUS);
         UIManager.put("TextComponent.arc", RADIUS);
         UIManager.put("Component.focusWidth", 1);
+        UIManager.put("Component.borderColor", BORDER);
+        UIManager.put("Component.focusedBorderColor", ACCENT);
+        UIManager.put("Component.focusColor", ACCENT);
+        UIManager.put("Button.disabledText", TEXT_DISABLED);
+        UIManager.put("Label.disabledForeground", TEXT_DISABLED);
+        UIManager.put("TextField.background", SURFACE);
+        UIManager.put("TextField.placeholderForeground", TEXT_MUTED);
+        UIManager.put("Slider.trackColor", BORDER);
+        UIManager.put("Slider.thumbColor", ACCENT);
+        UIManager.put("Slider.disabledTrackColor", RULE);
+        UIManager.put("Slider.disabledThumbColor", TEXT_DISABLED);
         UIManager.put("ScrollBar.thumbArc", 999);
         UIManager.put("ScrollBar.thumbInsets", new Insets(2, 2, 2, 2));
         UIManager.put("ScrollBar.width", 10);
@@ -69,17 +103,33 @@ public final class Theme {
         UIManager.put("TitlePane.inactiveBackground", BG);
         UIManager.put("TitlePane.foreground", TEXT_MUTED);
         UIManager.put("TitlePane.unifiedBackground", true);
-        UIManager.put("ToolTip.background", SURFACE_ALT);
-        UIManager.put("ToolTip.foreground", TEXT);
+        UIManager.put("ToolTip.background", TEXT);
+        UIManager.put("ToolTip.foreground", SURFACE);
         UIManager.put("ToolTip.border", BorderFactory.createEmptyBorder(6, 10, 6, 10));
     }
 
+    /** Small body text: Inter at the exact size. */
     public static Font font(int style, float size) {
-        return new Font(FlatInterFont.FAMILY, style, 1).deriveFont(size);
+        return new Font(FlatInterFont.FAMILY, style, Math.round(size));
     }
 
     public static Font semibold(float size) {
-        return new Font(FlatInterFont.FAMILY_SEMIBOLD, Font.PLAIN, 1).deriveFont(size);
+        return new Font(FlatInterFont.FAMILY_SEMIBOLD, Font.PLAIN, Math.round(size));
+    }
+
+    /** Handwriting for buttons, labels and short lines. */
+    public static Font hand(float size) {
+        return HAND != null ? HAND.deriveFont(size) : semibold(size);
+    }
+
+    /** Heavier handwriting for titles and big numbers. */
+    public static Font handBold(float size) {
+        return HAND_BOLD != null ? HAND_BOLD.deriveFont(size) : font(Font.BOLD, size);
+    }
+
+    /** Lighter handwriting for status lines. */
+    public static Font handMedium(float size) {
+        return HAND_MEDIUM != null ? HAND_MEDIUM.deriveFont(size) : font(Font.PLAIN, size);
     }
 
     public static Color alpha(Color c, int alpha) {
@@ -94,7 +144,16 @@ public final class Theme {
         g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
     }
 
-    private static String hex(Color c) {
+    /** CSS form of a colour, for labels that render HTML. */
+    public static String hex(Color c) {
         return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
+    }
+
+    private static Font loadFont(String file) {
+        try (InputStream in = Theme.class.getResourceAsStream("/assets/fonts/" + file)) {
+            return in == null ? null : Font.createFont(Font.TRUETYPE_FONT, in);
+        } catch (IOException | FontFormatException e) {
+            return null;
+        }
     }
 }

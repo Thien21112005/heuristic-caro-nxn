@@ -49,7 +49,7 @@ public class WalkthroughDialog extends JDialog {
         card.setBorderColor(Theme.alpha(Theme.ACCENT, 140));
         card.setBorder(BorderFactory.createEmptyBorder(28, 36, 24, 36));
 
-        title.setFont(Theme.font(Font.BOLD, 24f));
+        title.setFont(Theme.handBold(24f));
         title.setForeground(Theme.TEXT);
         title.setHorizontalAlignment(SwingConstants.CENTER);
         body.setFont(Theme.font(Font.PLAIN, 15f));

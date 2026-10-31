@@ -19,12 +19,11 @@ import java.util.function.Consumer;
 /**
  * Sound and gameplay preferences. Changes apply and save immediately.
  */
-public class SettingsPanel extends BackgroundPanel {
+public class SettingsPanel extends PaperPanel {
     private static final int CARD_WIDTH = 480;
 
     public SettingsPanel(MainWindow window) {
-        super("/assets/Background.jpg");
-        setLayout(new BorderLayout());
+                setLayout(new BorderLayout());
         Runnable back = () -> window.showScreen(MainWindow.MAIN_MENU);
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
@@ -35,7 +34,7 @@ public class SettingsPanel extends BackgroundPanel {
         card.setBorder(BorderFactory.createEmptyBorder(32, 36, 28, 36));
 
         JLabel title = new JLabel(I18n.t("settings.title"));
-        title.setFont(Theme.font(Font.BOLD, 28f));
+        title.setFont(Theme.handBold(28f));
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         card.add(title);

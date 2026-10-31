@@ -19,7 +19,7 @@ import java.awt.event.KeyEvent;
  * Lifetime results: one tile per AI level plus one for two-player games.
  * Reloads every time the screen is shown.
  */
-public class StatsPanel extends BackgroundPanel {
+public class StatsPanel extends PaperPanel {
     private static final int TILE_WIDTH = 360;
     private static final int TILE_HEIGHT = 192;
 
@@ -31,8 +31,7 @@ public class StatsPanel extends BackgroundPanel {
     };
 
     public StatsPanel(MainWindow window) {
-        super("/assets/Background.jpg");
-        setLayout(new BorderLayout());
+                setLayout(new BorderLayout());
         Runnable back = () -> window.showScreen(MainWindow.MAIN_MENU);
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
@@ -43,7 +42,7 @@ public class StatsPanel extends BackgroundPanel {
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(I18n.t("stats.title"));
-        title.setFont(Theme.font(Font.BOLD, 30f));
+        title.setFont(Theme.handBold(30f));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel(I18n.t("stats.subtitle"));
         subtitle.setFont(Theme.font(Font.PLAIN, 15f));
@@ -146,7 +145,7 @@ public class StatsPanel extends BackgroundPanel {
                 big = entry.played() == 0 ? "—" : entry.winRatePercent() + "%";
                 caption = I18n.t("stats.winRate");
             }
-            g2.setFont(Theme.font(Font.BOLD, 40f));
+            g2.setFont(Theme.handBold(40f));
             g2.setColor(entry.played() == 0 ? Theme.TEXT_MUTED : Theme.TEXT);
             g2.drawString(big, pad, pad + 70);
             int bigWidth = g2.getFontMetrics().stringWidth(big);

@@ -53,7 +53,7 @@ public class CustomDialog extends JDialog {
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(Theme.font(Font.BOLD, 22f));
+        titleLabel.setFont(Theme.handBold(22f));
         titleLabel.setForeground(Theme.TEXT);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 

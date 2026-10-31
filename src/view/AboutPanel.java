@@ -12,13 +12,12 @@ import java.awt.event.KeyEvent;
 /**
  * Credits plus a short "how to play" so new players know the rules and controls.
  */
-public class AboutPanel extends BackgroundPanel {
+public class AboutPanel extends PaperPanel {
     public static final String VERSION = "2.0.0";
     private static final int CARD_WIDTH = 560;
 
     public AboutPanel(MainWindow window) {
-        super("/assets/Background.jpg");
-        setLayout(new BorderLayout());
+                setLayout(new BorderLayout());
         Runnable back = () -> window.showScreen(MainWindow.MAIN_MENU);
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
@@ -29,7 +28,7 @@ public class AboutPanel extends BackgroundPanel {
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         header.setOpaque(false);
         JLabel title = new JLabel(I18n.t("about.title"));
-        title.setFont(Theme.font(Font.BOLD, 28f));
+        title.setFont(Theme.handBold(28f));
         title.setForeground(Theme.TEXT);
         header.add(title);
         header.add(Box.createHorizontalStrut(12));

@@ -28,7 +28,7 @@ import java.awt.event.KeyEvent;
  * The in-game screen: header with actions, player cards either side of the
  * board, and a status bar with zoom controls.
  */
-public class GamePanel extends BackgroundPanel implements GameSession.Listener {
+public class GamePanel extends PaperPanel implements GameSession.Listener {
     private static final int GAME_OVER_DELAY_MS = 900;
 
     private final MainWindow window;
@@ -71,9 +71,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
 
     /** Plays an already prepared session (e.g. a connected LAN game). */
     public GamePanel(MainWindow window, GameConfig config, GameSession session) {
-        super("/assets/Background.jpg");
-        setDim(40, 150);
-        this.window = window;
+                this.window = window;
         this.config = config;
         this.mode = config.mode();
         int size = config.size();
@@ -96,7 +94,7 @@ public class GamePanel extends BackgroundPanel implements GameSession.Listener {
         titles.setOpaque(false);
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(level == null ? mode.getLabel() : mode.getLabel() + "  ·  " + level);
-        title.setFont(Theme.font(Font.BOLD, 20f));
+        title.setFont(Theme.handBold(20f));
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         int target = model.getTarget();

@@ -11,12 +11,11 @@ import java.awt.*;
 /**
  * Landing screen: title, the two game modes and secondary actions.
  */
-public class MainMenuPanel extends BackgroundPanel {
+public class MainMenuPanel extends PaperPanel {
     private static final int COLUMN_WIDTH = 320;
 
     public MainMenuPanel(MainWindow window) {
-        super("/assets/Background.jpg");
-        setLayout(new GridBagLayout());
+                setLayout(new GridBagLayout());
 
         JPanel column = new JPanel();
         column.setOpaque(false);
