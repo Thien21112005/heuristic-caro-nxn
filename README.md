@@ -6,7 +6,6 @@
 
 <h1 id="english">Caro NxN: Gomoku on notebook paper</h1>
 
-[![CI](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml/badge.svg)](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml)
 
 A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). The interface looks like a page from a Vietnamese school notebook, with ballpoint lines and two ridiculous faces as the pieces. The game has dynamic NxN board generation, an AI opponent with three levels (from a custom **Heuristic Pattern Matching** engine up to a time-limited alpha-beta search), English and Vietnamese, and play over LAN between two computers.
 
