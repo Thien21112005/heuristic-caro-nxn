@@ -37,7 +37,7 @@ public class CustomDialog extends JDialog {
         JPanel backdrop = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
-                g.setColor(translucent ? Theme.alpha(Theme.BG, 170) : Theme.BG);
+                g.setColor(translucent ? Theme.alpha(Theme.SCRIM, 110) : Theme.BG);
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -45,7 +45,7 @@ public class CustomDialog extends JDialog {
 
         RoundedPanel card = new RoundedPanel(new BorderLayout(0, 18));
         card.setFill(Theme.SURFACE);
-        card.setBorderColor(Theme.alpha(accent, 140));
+        card.setBorderColor(accent);
         card.setBorder(BorderFactory.createEmptyBorder(28, 32, 24, 32));
 
         JPanel text = new JPanel();
@@ -53,13 +53,13 @@ public class CustomDialog extends JDialog {
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
 
         JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(Theme.handBold(22f));
+        titleLabel.setFont(Theme.handBold(Theme.H3));
         titleLabel.setForeground(Theme.TEXT);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel messageLabel = new JLabel("<html><div style='text-align:center;width:300px'>"
                 + message.replace("\n", "<br>") + "</div></html>");
-        messageLabel.setFont(Theme.font(Font.PLAIN, 15f));
+        messageLabel.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         messageLabel.setForeground(Theme.TEXT_MUTED);
         messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         messageLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));

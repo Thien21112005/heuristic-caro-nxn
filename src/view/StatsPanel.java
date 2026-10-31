@@ -21,7 +21,7 @@ import java.awt.event.KeyEvent;
  */
 public class StatsPanel extends PaperPanel {
     private static final int TILE_WIDTH = 360;
-    private static final int TILE_HEIGHT = 192;
+    private static final int TILE_HEIGHT = 168;
 
     private final Tile[] tiles = {
             new Tile(Stats.bucket(GameMode.VS_AI, Difficulty.EASY), "difficulty.easy", false),
@@ -36,22 +36,21 @@ public class StatsPanel extends PaperPanel {
         add(TopBar.withBack(back), BorderLayout.NORTH);
 
         RoundedPanel card = new RoundedPanel(new BorderLayout(0, 16));
-        card.setBorder(BorderFactory.createEmptyBorder(26, 32, 22, 32));
+        card.setBorder(BorderFactory.createEmptyBorder(22, 32, 14, 32));
 
         JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         JLabel title = new JLabel(I18n.t("stats.title"));
-        title.setFont(Theme.handBold(30f));
+        title.setFont(Theme.handBold(Theme.H2));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel(I18n.t("stats.subtitle"));
-        subtitle.setFont(Theme.font(Font.PLAIN, 15f));
+        subtitle.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         subtitle.setForeground(Theme.TEXT_MUTED);
         header.add(title);
-        header.add(Box.createVerticalStrut(6));
-        header.add(subtitle);
+                header.add(subtitle);
 
-        JPanel grid = new JPanel(new GridLayout(2, 2, 16, 16));
+        JPanel grid = new JPanel(new GridLayout(2, 2, 32, 14));
         grid.setOpaque(false);
         for (Tile tile : tiles) grid.add(tile);
 
@@ -99,18 +98,17 @@ public class StatsPanel extends PaperPanel {
     }
 
     /** One bucket: name, headline number, a W/D/L bar and streak details. */
-    private static final class Tile extends RoundedPanel {
+    private static final class Tile extends JPanel {
         private final String bucket;
         private final String titleKey;
         private final boolean twoPlayers;
         private Stats.Entry entry = Stats.Entry.EMPTY;
 
         Tile(String bucket, String titleKey, boolean twoPlayers) {
-            super(Theme.RADIUS_LG);
+            setOpaque(false);
             this.bucket = bucket;
             this.titleKey = titleKey;
             this.twoPlayers = twoPlayers;
-            setFill(Theme.alpha(Theme.SURFACE_ALT, 230));
             setPreferredSize(new Dimension(TILE_WIDTH, TILE_HEIGHT));
         }
 
@@ -121,19 +119,19 @@ public class StatsPanel extends PaperPanel {
 
         @Override
         protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g.create();
             Theme.antialias(g2);
-            int pad = 20;
+            int pad = 0;
+            int top = 4;
             int w = getWidth();
 
-            g2.setFont(Theme.semibold(16f));
+            g2.setFont(Theme.hand(Theme.LEAD));
             g2.setColor(Theme.TEXT);
-            g2.drawString(I18n.t(titleKey), pad, pad + 16);
+            g2.drawString(I18n.t(titleKey), pad, top + 16);
             String games = I18n.t("stats.games", entry.played());
-            g2.setFont(Theme.font(Font.PLAIN, 13f));
+            g2.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
             g2.setColor(Theme.TEXT_MUTED);
-            g2.drawString(games, w - pad - g2.getFontMetrics().stringWidth(games), pad + 16);
+            g2.drawString(games, w - pad - g2.getFontMetrics().stringWidth(games), top + 16);
 
             // Headline
             String big;
@@ -145,26 +143,26 @@ public class StatsPanel extends PaperPanel {
                 big = entry.played() == 0 ? "—" : entry.winRatePercent() + "%";
                 caption = I18n.t("stats.winRate");
             }
-            g2.setFont(Theme.handBold(40f));
+            g2.setFont(Theme.handBold(Theme.H1));
             g2.setColor(entry.played() == 0 ? Theme.TEXT_MUTED : Theme.TEXT);
-            g2.drawString(big, pad, pad + 70);
+            g2.drawString(big, pad, top + 60);
             int bigWidth = g2.getFontMetrics().stringWidth(big);
-            g2.setFont(Theme.font(Font.PLAIN, 13f));
+            g2.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
             g2.setColor(Theme.TEXT_MUTED);
-            g2.drawString(caption, pad + bigWidth + 12, pad + 68);
+            g2.drawString(caption, pad + bigWidth + 12, top + 58);
 
             // Win / draw / loss bar
-            int barY = pad + 88;
+            int barY = top + 72;
             int barW = w - 2 * pad;
             int barH = 10;
-            g2.setColor(Theme.alpha(Theme.BORDER, 200));
+            g2.setColor(Theme.RULE);
             g2.fillRoundRect(pad, barY, barW, barH, barH, barH);
             if (entry.played() > 0) {
                 Shape clip = g2.getClip();
                 g2.clip(new java.awt.geom.RoundRectangle2D.Float(pad, barY, barW, barH, barH, barH));
                 int x = pad;
                 int[] parts = {entry.wins(), entry.draws(), entry.losses()};
-                Color[] colors = {Theme.X_COLOR, Theme.TEXT_MUTED, Theme.O_COLOR};
+                Color[] colors = {Theme.ACCENT, Theme.BORDER, Theme.DANGER};
                 for (int i = 0; i < parts.length; i++) {
                     int pw = Math.round(barW * parts[i] / (float) entry.played());
                     if (i == parts.length - 1) pw = pad + barW - x;
@@ -175,8 +173,8 @@ public class StatsPanel extends PaperPanel {
                 g2.setClip(clip);
             }
 
-            g2.setFont(Theme.font(Font.PLAIN, 13f));
-            int y = barY + barH + 22;
+            g2.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
+            int y = barY + barH + 20;
             String wdl = twoPlayers
                     ? I18n.t("stats.twoPlayers.line", entry.wins(), entry.draws(), entry.losses())
                     : I18n.t("stats.wdl", entry.wins(), entry.draws(), entry.losses());
@@ -185,8 +183,8 @@ public class StatsPanel extends PaperPanel {
 
             if (!twoPlayers) {
                 g2.setColor(Theme.TEXT_MUTED);
-                g2.drawString(I18n.t("stats.streak", entry.currentStreak(), entry.bestStreak()), pad, y + 22);
-                if (entry.fastestWin() > 0) g2.drawString(I18n.t("stats.fastest", entry.fastestWin()), pad, y + 42);
+                g2.drawString(I18n.t("stats.streak", entry.currentStreak(), entry.bestStreak()), pad, y + 20);
+                if (entry.fastestWin() > 0) g2.drawString(I18n.t("stats.fastest", entry.fastestWin()), pad, y + 40);
             }
             g2.dispose();
         }
