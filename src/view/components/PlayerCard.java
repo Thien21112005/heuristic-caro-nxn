@@ -112,6 +112,9 @@ public class PlayerCard extends JComponent {
         } else if (active) {
             g2.setColor(color);
             g2.draw(ring);
+        } else if (status == Status.WINNER) {
+            g2.setColor(Theme.DANGER);
+            g2.draw(ring);
         }
         Composite solid = g2.getComposite();
         if (!active && status != Status.WINNER) {
@@ -133,7 +136,7 @@ public class PlayerCard extends JComponent {
 
         // Tally of wins, the way scores are kept on paper
         y += 16;
-        if (score > 0 && score <= MAX_TALLY) paintTally(g2, w, y);
+        if (score > 1 && score <= MAX_TALLY) paintTally(g2, w, y);
         y += 44;
         String wins = score + " " + I18n.t(score == 1 ? "player.win" : "player.wins");
         drawCentered(g2, wins, Theme.semibold(Theme.SMALL), score > 0 ? Theme.TEXT : Theme.TEXT_MUTED, w, y);

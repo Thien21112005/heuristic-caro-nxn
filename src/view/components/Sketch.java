@@ -72,14 +72,15 @@ public final class Sketch {
         double start = -2.35;
         double sweep = Math.PI * 2 + 0.55;
         int steps = 72;
+        // A superellipse hugs a wide word better than an ellipse, but a face gets a true circle
+        double squareness = w > h * 1.4 ? 0.72 : 1.0;
         Path2D.Float p = new Path2D.Float();
         for (int i = 0; i <= steps; i++) {
             double t = i / (double) steps;
             double a = start + sweep * t;
-            // A superellipse hugs a wide word better than an ellipse does
             double c = Math.cos(a), s = Math.sin(a);
-            double px = Math.signum(c) * Math.pow(Math.abs(c), 0.72);
-            double py = Math.signum(s) * Math.pow(Math.abs(s), 0.72);
+            double px = Math.signum(c) * Math.pow(Math.abs(c), squareness);
+            double py = Math.signum(s) * Math.pow(Math.abs(s), squareness);
             double drift = 1 + 0.012 * (t - 0.5);
             double wx = wobble(seed, t, amount), wy = wobble(seed + 5, t, amount);
             double fx = cx + rx * px * drift + wx, fy = cy + ry * py * drift + wy;
@@ -95,7 +96,7 @@ public final class Sketch {
         double len = Math.hypot(x2 - x1, y2 - y1);
         double cos = Math.cos(angle), sin = Math.sin(angle);
         double perimeter = 2 * len + 2 * Math.PI * radius;
-        double amount = Math.min(2.2, radius / 10);
+        double amount = Math.min(3.2, radius / 13);
         int steps = Math.max(48, (int) (perimeter / 6));
         double overshoot = 0.06;
         Path2D.Float p = new Path2D.Float();

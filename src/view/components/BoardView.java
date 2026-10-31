@@ -29,6 +29,7 @@ public class BoardView extends JComponent {
     private static final int PAD = 14;
     private static final int ANIM_MS = 220;
     private static final int WIN_MS = 450;
+    private static final int SMALL_FACE = 48;
 
     private final GameSession controller;
     private final GameModel liveModel;
@@ -427,7 +428,7 @@ public class BoardView extends JComponent {
                 }
                 Composite oldComposite = g2.getComposite();
                 if (win != null && !winning[r][c]) {
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.55f));
                 }
                 drawPiece(g2, v, PAD + c * cell, PAD + r * cell, scale);
                 g2.setComposite(oldComposite);
@@ -511,7 +512,7 @@ public class BoardView extends JComponent {
     public static void paintWinLoop(Graphics2D g2, float x1, float y1, float x2, float y2, int cell, int seed, float progress) {
         float eased = 1f - (1f - progress) * (1f - progress);
         g2.setColor(Theme.DANGER);
-        g2.setStroke(new BasicStroke(Math.max(2f, cell / 13f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.setStroke(new BasicStroke(Math.max(2f, Math.min(3.4f, cell / 13f)), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         Path2D loop = Sketch.stadium(x1, y1, x2, y2, cell * 0.57, seed);
         g2.draw(eased >= 1f ? loop : Sketch.partial(loop, eased));
     }
@@ -555,7 +556,25 @@ public class BoardView extends JComponent {
         Map<Integer, Image> cache = player == GameModel.X ? X_CACHE : O_CACHE;
         return cache.computeIfAbsent(size, s -> player == GameModel.X
                 ? highQualityScale(X_IMAGE, s, false)
-                : highQualityScale(O_IMAGE, s, true));
+                : s < SMALL_FACE ? smallFace(s) : highQualityScale(O_IMAGE, s, true));
+    }
+
+    /** At board size the O's thick ring would leave a speck of a face, so zoom in and draw a thin ring. */
+    private static Image smallFace(int size) {
+        int zoomed = Math.round(size / 0.68f);
+        Image big = highQualityScale(O_IMAGE, zoomed, true);
+        BufferedImage out = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = out.createGraphics();
+        Theme.antialias(g);
+        g.setClip(new java.awt.geom.Ellipse2D.Float(0.5f, 0.5f, size - 1f, size - 1f));
+        g.drawImage(big, (size - zoomed) / 2, (size - zoomed) / 2, null);
+        g.setClip(null);
+        float ring = Math.max(1.6f, size / 10f);
+        g.setColor(Theme.O_COLOR);
+        g.setStroke(new BasicStroke(ring));
+        g.draw(new java.awt.geom.Ellipse2D.Float(ring / 2, ring / 2, size - ring, size - ring));
+        g.dispose();
+        return out;
     }
 
     /**
