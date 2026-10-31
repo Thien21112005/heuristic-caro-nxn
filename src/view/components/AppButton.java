@@ -7,18 +7,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Path2D;
 
 /**
- * Rounded, animated button used across the whole app.
+ * The button used across the whole app. PRIMARY is the one solid action of a
+ * screen; PLAIN and CIRCLED are the two states of an option in a choice row.
  */
 public class AppButton extends JButton {
-    public enum Variant { PRIMARY, SECONDARY, GHOST, DANGER }
+    public enum Variant { PRIMARY, SECONDARY, GHOST, DANGER, PLAIN, CIRCLED }
 
     private Variant variant;
     private float hover = 0f;
     private final Timer animator;
     private boolean sounds = true;
-    private Color accent; // ghost buttons: text colour instead of the muted default
+    private Color accent; // ghost buttons: colour on hover instead of plain ink
+    private Path2D shape;
+    private int shapeW, shapeH;
 
     public AppButton(String text) {
         this(text, Variant.PRIMARY);
@@ -27,15 +31,14 @@ public class AppButton extends JButton {
     public AppButton(String text, Variant variant) {
         super(text);
         this.variant = variant;
-        setFont(Theme.semibold(15f));
-        setForeground(Color.WHITE);
+        setFont(Theme.hand(Theme.BODY));
         setFocusPainted(false);
         setContentAreaFilled(false);
         setBorderPainted(false);
         setOpaque(false);
         setRolloverEnabled(true);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        setBorder(BorderFactory.createEmptyBorder(11, 22, 11, 22));
+        setBorder(BorderFactory.createEmptyBorder(9, 20, 9, 20));
 
         animator = new Timer(15, e -> {
             float target = getModel().isRollover() && isEnabled() ? 1f : 0f;
@@ -78,7 +81,7 @@ public class AppButton extends JButton {
 
     /** Tighter padding for icon-like or chip buttons. */
     public AppButton compact() {
-        setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        setBorder(BorderFactory.createEmptyBorder(4, 12, 4, 12));
         return this;
     }
 
@@ -95,7 +98,7 @@ public class AppButton extends JButton {
     @Override
     public Dimension getPreferredSize() {
         Dimension d = super.getPreferredSize();
-        return new Dimension(d.width, Math.max(d.height, 44));
+        return new Dimension(d.width, Math.max(d.height, 42));
     }
 
     @Override
@@ -105,59 +108,61 @@ public class AppButton extends JButton {
         int w = getWidth();
         int h = getHeight();
         boolean pressed = getModel().isArmed() && getModel().isPressed();
-        if (!isEnabled()) {
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-        }
+        boolean enabled = isEnabled();
+        int seed = getText() == null ? 7 : getText().hashCode();
+        Path2D box = box(w, h, seed);
+        Color focus = Theme.ACCENT;
 
-        int arc = Theme.RADIUS;
         switch (variant) {
-            case PRIMARY: {
-                Color top = pressed ? Theme.ACCENT_PRESSED : blend(Theme.ACCENT, Theme.ACCENT_HOVER, hover);
-                Color bottom = pressed ? Theme.ACCENT_PRESSED : blend(new Color(0x5B3DF5), Theme.ACCENT, hover);
-                // soft glow under the button on hover
-                if (hover > 0) {
-                    g2.setColor(Theme.alpha(Theme.ACCENT, (int) (60 * hover)));
-                    g2.fillRoundRect(0, 2, w, h - 1, arc + 4, arc + 4);
+            case PRIMARY, DANGER -> {
+                boolean danger = variant == Variant.DANGER;
+                Color base = danger ? Theme.DANGER : Theme.ACCENT;
+                Color over = danger ? blend(Theme.DANGER, Color.WHITE, 0.12f) : Theme.ACCENT_HOVER;
+                Color down = danger ? Theme.DANGER_PRESSED : Theme.ACCENT_PRESSED;
+                g2.setColor(!enabled ? Theme.SURFACE_ALT : pressed ? down : blend(base, over, hover));
+                g2.fill(box);
+                if (!enabled) {
+                    g2.setColor(Theme.TEXT_DISABLED);
+                    g2.draw(box);
                 }
-                g2.setPaint(new GradientPaint(0, 0, top, 0, h, bottom));
-                g2.fillRoundRect(0, 0, w, h - 2, arc, arc);
-                setForeground(Color.WHITE);
-                break;
+                setForeground(Theme.SURFACE);
+                focus = Theme.SURFACE;
             }
-            case DANGER: {
-                Color fill = pressed ? Theme.DANGER.darker() : blend(new Color(0xE11D48), Theme.DANGER, hover);
-                g2.setColor(fill);
-                g2.fillRoundRect(0, 0, w, h - 2, arc, arc);
-                setForeground(Color.WHITE);
-                break;
-            }
-            case SECONDARY: {
-                Color fill = pressed ? Theme.SURFACE : blend(Theme.SURFACE_ALT, new Color(0x2A2F5E), hover);
-                g2.setColor(Theme.alpha(fill, 235));
-                g2.fillRoundRect(0, 0, w - 1, h - 3, arc, arc);
-                g2.setColor(blend(Theme.BORDER, Theme.ACCENT, hover * 0.7f));
-                g2.drawRoundRect(0, 0, w - 1, h - 3, arc, arc);
+            case SECONDARY -> {
+                g2.setColor(!enabled ? Theme.BG : pressed ? Theme.RULE : blend(Theme.SURFACE, Theme.SURFACE_ALT, hover));
+                g2.fill(box);
+                g2.setColor(enabled ? blend(Theme.BORDER, Theme.TEXT, hover * 0.6f) : Theme.RULE);
+                g2.setStroke(new BasicStroke(1.4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2.draw(box);
                 setForeground(Theme.TEXT);
-                break;
             }
-            case GHOST: {
-                if (hover > 0) {
-                    g2.setColor(Theme.alpha(Color.WHITE, (int) (18 * hover)));
-                    g2.fillRoundRect(0, 0, w, h - 2, arc, arc);
+            case GHOST, PLAIN -> {
+                if (pressed || hover > 0) {
+                    g2.setColor(pressed ? Theme.RULE : Theme.alpha(Theme.SURFACE_ALT, (int) (255 * hover)));
+                    g2.fill(box);
                 }
-                setForeground(accent != null ? blend(accent, accent.brighter(), hover)
-                        : blend(Theme.TEXT_MUTED, Theme.TEXT, hover));
-                break;
+                Color rest = variant == Variant.PLAIN ? Theme.TEXT : Theme.TEXT_MUTED;
+                setForeground(accent != null ? blend(rest, accent, hover) : blend(rest, Theme.TEXT, hover));
+            }
+            case CIRCLED -> {
+                g2.setColor(enabled ? Theme.ACCENT : Theme.TEXT_DISABLED);
+                g2.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g2.draw(Sketch.loop(4, 3, w - 8, h - 6, seed));
+                setForeground(Theme.ACCENT);
             }
         }
-        if (FocusRing.shouldPaint(this)) FocusRing.paint(g2, 0, 0, w, h - 2, Theme.RADIUS);
+        if (FocusRing.shouldPaint(this)) FocusRing.paint(g2, 3, 3, w - 6, h - 6, Theme.RADIUS - 2, focus);
         g2.dispose();
+        super.paintComponent(g);
+    }
 
-        // Let Swing draw the text (and icon) on top, nudged up to sit inside the shape
-        Graphics2D gt = (Graphics2D) g.create();
-        gt.translate(0, -1);
-        super.paintComponent(gt);
-        gt.dispose();
+    private Path2D box(int w, int h, int seed) {
+        if (shape == null || w != shapeW || h != shapeH) {
+            shape = Sketch.box(1, 1, w - 2, h - 2, Theme.RADIUS, seed);
+            shapeW = w;
+            shapeH = h;
+        }
+        return shape;
     }
 
     private static Color blend(Color a, Color b, float t) {

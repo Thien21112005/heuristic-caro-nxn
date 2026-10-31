@@ -6,12 +6,13 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Translucent "glass" card with rounded corners and a hairline border.
+ * A sheet of plain paper lying on the page, with a hairline edge.
+ * Pass a null fill or border to leave that part out.
  */
 public class RoundedPanel extends JPanel {
     private final int radius;
-    private Color fill = Theme.alpha(Theme.SURFACE, 225);
-    private Color border = Theme.alpha(Theme.BORDER, 200);
+    private Color fill = Theme.SURFACE;
+    private Color border = Theme.alpha(Theme.BORDER, 150);
 
     public RoundedPanel() {
         this(Theme.RADIUS_LG);
@@ -41,8 +42,10 @@ public class RoundedPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
         Theme.antialias(g2);
-        g2.setColor(fill);
-        g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
+        if (fill != null) {
+            g2.setColor(fill);
+            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
+        }
         if (border != null) {
             g2.setColor(border);
             g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, radius, radius);
