@@ -53,7 +53,7 @@ public class ReplayBar extends RoundedPanel {
             if (!adjusting) onSeek.accept(slider.getValue());
         });
 
-        position.setFont(Theme.semibold(13f));
+        position.setFont(Theme.semibold(Theme.SMALL));
         position.setForeground(Theme.TEXT_MUTED);
 
         add(buttons, BorderLayout.WEST);

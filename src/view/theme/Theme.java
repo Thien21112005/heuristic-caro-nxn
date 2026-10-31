@@ -52,14 +52,12 @@ public final class Theme {
     public static final float LEAD = 17f;
     public static final float H3 = 20f;
     public static final float H2 = 28f;
-    public static final float H1 = 38f;
     public static final float NUMBER = 48f;
     public static final float DISPLAY = 88f;
 
     // Mali, a Vietnamese school handwriting face; null if a file could not be read
     private static final Font HAND = loadFont("Mali-SemiBold.ttf");
     private static final Font HAND_BOLD = loadFont("Mali-Bold.ttf");
-    private static final Font HAND_MEDIUM = loadFont("Mali-Medium.ttf");
 
     private Theme() {}
 
@@ -128,11 +126,6 @@ public final class Theme {
     /** Heavier handwriting for titles and big numbers. */
     public static Font handBold(float size) {
         return HAND_BOLD != null ? HAND_BOLD.deriveFont(size) : font(Font.BOLD, size);
-    }
-
-    /** Lighter handwriting for status lines. */
-    public static Font handMedium(float size) {
-        return HAND_MEDIUM != null ? HAND_MEDIUM.deriveFont(size) : font(Font.PLAIN, size);
     }
 
     public static Color alpha(Color c, int alpha) {
