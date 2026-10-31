@@ -28,7 +28,8 @@ public class SegmentedControl<T> extends JPanel {
     }
 
     public SegmentedControl<T> add(T value, String label) {
-        AppButton b = new AppButton(label, AppButton.Variant.PLAIN).compact();
+        AppButton b = new AppButton(label, AppButton.Variant.PLAIN);
+        b.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         b.setFont(Theme.hand(Theme.BODY));
         b.addActionListener(e -> select(value, true));
         bindArrow(b, KeyEvent.VK_LEFT, -1);
