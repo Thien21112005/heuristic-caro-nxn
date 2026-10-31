@@ -4,11 +4,11 @@
 
 ---
 
-<h1 id="english">Cyberpunk Gomoku AI (Caro NxN)</h1>
+<h1 id="english">Caro NxN: Gomoku on notebook paper</h1>
 
 [![CI](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml/badge.svg)](https://github.com/Thien21112005/heuristic-caro-nxn/actions/workflows/ci.yml)
 
-A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). This project features a modern dark, neon-accented user interface, dynamic NxN board generation, an AI opponent with three levels (from a custom **Heuristic Pattern Matching** engine up to a time-limited alpha-beta search), English and Vietnamese, and play over LAN between two computers.
+A modern, highly optimized, and scalable implementation of the classic Gomoku (Caro/Tic-Tac-Toe) game built with Java Swing and [FlatLaf](https://www.formdev.com/flatlaf/). The interface looks like a page from a Vietnamese school notebook, with ballpoint lines and two ridiculous faces as the pieces. The game has dynamic NxN board generation, an AI opponent with three levels (from a custom **Heuristic Pattern Matching** engine up to a time-limited alpha-beta search), English and Vietnamese, and play over LAN between two computers.
 
 ## Screenshots
 
@@ -16,7 +16,7 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 |:-:|:-:|
 | <img src="docs/screenshots/menu.jpg" alt="Main menu" width="420"> | <img src="docs/screenshots/setup.jpg" alt="Setup: board, AI level, side, turn time" width="420"> |
 | Main menu | Setup: board, AI level, side, turn time |
-| <img src="docs/screenshots/game.jpg" alt="Playing the hard AI, with a hint and the turn clock" width="420"> | <img src="docs/screenshots/replay.jpg" alt="Replay with move numbers" width="420"> |
+| <img src="docs/screenshots/game.jpg" alt="Playing the hard AI, with a hint and the turn clock" width="420"> | <img src="docs/screenshots/replay.jpg" alt="Replay with move numbers, controls in the row below the board" width="420"> |
 | Playing the hard AI, with a hint and the turn clock | Replay with move numbers |
 | <img src="docs/screenshots/stats.jpg" alt="Lifetime statistics" width="420"> | <img src="docs/screenshots/lan.jpg" alt="LAN lobby: host or join a room" width="420"> |
 | Lifetime statistics | LAN lobby: host or join a room |
@@ -46,10 +46,13 @@ A modern, highly optimized, and scalable implementation of the classic Gomoku (C
 - **Undo (optional):** Enable "Allow undo" in Settings; against the AI it takes back your move and the AI's reply.
 
 ### User Interface (UI/UX)
-- **Modern dark theme:** FlatLaf look and feel with the Inter font, rounded cards, animated buttons and toggle switches.
-- **Custom-painted board:** Hover preview of your next piece, pop-in animation, last-move marker and a glowing winning line.
-- **Player cards:** Highlight whose turn it is, show an animated "Thinking..." state for the AI and each side's wins.
-- **Friendly dialogs:** Centered cards over a dimmed window; "Play again" or "View board" after a game.
+- **Notebook paper look:** a bright squared page with a pink margin line, the Mali handwriting font for titles and buttons, and Inter for small text. Active text meets 4.5:1 contrast and controls 3:1.
+- **Circle your answer:** the chosen option is circled in pen, as on a paper quiz, so the only solid button on a screen is the main action.
+- **Quick start:** "Play now" on the main menu starts a game with your last settings and says which ones.
+- **Pen-drawn board:** hover preview of your next piece, pop-in animation and a pen circle around the last move. The winning line gets a yellow highlighter and a red pen loop drawn around it, under the pieces, so no face is crossed out.
+- **Nothing covers the board:** the result, "Play again" and the replay controls sit in a fixed row below it, and the board never changes size.
+- **Player panels:** large faces, a pen circle that runs out with the turn clock, and wins kept as tally marks.
+- **Keyboard play:** arrow keys move a cursor on the board and `Enter` or `Space` places a piece; every control can be reached with `Tab`.
 - **Keyboard shortcuts:** `Ctrl+Z` undo, `H` hint, `R` restart, `N` move numbers, `F` fit board, `+`/`-` zoom, `←`/`→`/`Space` replay, `Esc` back.
 - **Audio settings:** Background music and sound effects can be switched off; clips load on a background thread.
 - **English & Tiếng Việt:** switch language in Settings; every screen reloads instantly.
@@ -182,9 +185,9 @@ Both computers must be on the same Wi-Fi or wired network.
 
 <br><br>
 
-<h1 id="tiếng-việt">Cyberpunk Gomoku AI (Caro NxN)</h1>
+<h1 id="tiếng-việt">Caro NxN: cờ caro trên giấy ô ly</h1>
 
-Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing và [FlatLaf](https://www.formdev.com/flatlaf/). Dự án có giao diện tối hiện đại với điểm nhấn neon, hỗ trợ linh hoạt kích thước bàn cờ NxN AI với ba mức độ khó (từ thuật toán **Heuristic Pattern Matching** tự xây dựng tới tìm kiếm alpha-beta có giới hạn thời gian), song ngữ Anh – Việt, và chơi qua mạng LAN giữa hai máy.
+Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò chơi cờ Caro (Gomoku) kinh điển, được xây dựng bằng Java Swing và [FlatLaf](https://www.formdev.com/flatlaf/). Giao diện giống một trang vở ô ly, với nét bút bi và hai quân mặt hề làm nhân vật chính. Trò chơi hỗ trợ linh hoạt kích thước bàn cờ NxN, AI với ba mức độ khó (từ thuật toán **Heuristic Pattern Matching** tự xây dựng tới tìm kiếm alpha-beta có giới hạn thời gian), song ngữ Anh – Việt, và chơi qua mạng LAN giữa hai máy.
 
 ## Ảnh chụp màn hình
 
@@ -194,7 +197,7 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 | Menu chính | Thiết lập: bàn cờ, độ khó, phe, thời gian |
 | <img src="docs/screenshots/game.jpg" alt="Đấu AI mức Khó, có gợi ý và đồng hồ" width="420"> | <img src="docs/screenshots/replay.jpg" alt="Xem lại ván kèm số thứ tự nước đi" width="420"> |
 | Đấu AI mức Khó, có gợi ý và đồng hồ | Xem lại ván kèm số thứ tự nước đi |
-| <img src="docs/screenshots/stats.jpg" alt="Thống kê lâu dài" width="420"> | <img src="docs/screenshots/lan.jpg" alt="Sảnh LAN: tạo hoặc vào phòng" width="420"> |
+| <img src="docs/screenshots/stats.jpg" alt="Thống kê lâu dài" width="420"> | <img src="docs/screenshots/lan.jpg" alt="Chơi qua LAN: tạo hoặc vào phòng" width="420"> |
 | Thống kê lâu dài | Sảnh LAN: tạo hoặc vào phòng |
 
 ## Mục lục
@@ -219,14 +222,17 @@ Một phiên bản mở rộng, hiện đại và tối ưu hóa cao của trò 
 - **Gợi ý:** hỏi AI mức Khó nước đi mạnh nhất (`H`); có thể tắt trong Cài đặt.
 - **Xem lại ván:** sau mỗi ván có thể xem từng nước hoặc cho tự phát; có thể hiện số thứ tự nước đi trên quân.
 - **Thống kê:** tỉ lệ thắng, chuỗi thắng và ván thắng nhanh nhất cho từng độ khó, cộng tỉ số đối đầu hai người, lưu lại giữa các lần mở game.
-- **Đi lại (tuỳ chọn):** Bật "Cho phép đi lại" trong Cài đặt; khi đấu với AI sẽ lùi cả nước của bạn lẫn nước của AI.
+- **Lùi nước (tuỳ chọn):** Bật "Cho phép lùi nước" trong Cài đặt; khi đấu với AI sẽ lùi cả nước của bạn lẫn nước của AI.
 
 ### Giao diện & Trải nghiệm (UI/UX)
-- **Giao diện tối hiện đại:** FlatLaf với font Inter, thẻ bo góc, nút có hiệu ứng chuyển động và công tắc bật/tắt.
-- **Bàn cờ tự vẽ:** Xem trước quân khi rê chuột, hiệu ứng đặt quân, đánh dấu nước vừa đi và đường thắng phát sáng.
-- **Thẻ người chơi:** Làm nổi bật người đến lượt, hiển thị "Thinking..." khi AI đang nghĩ và số ván thắng của mỗi bên.
-- **Hộp thoại thân thiện:** Hiện giữa màn hình trên nền mờ; sau ván có "Play again" hoặc "View board".
-- **Phím tắt:** `Ctrl+Z` đi lại, `H` gợi ý, `R` chơi lại, `N` số thứ tự nước đi, `F` vừa khung, `+`/`-` zoom, `←`/`→`/`Space` xem lại ván, `Esc` quay lại.
+- **Giao diện giấy ô ly:** nền ô ly sáng với đường kẻ lề hồng, font viết tay Mali cho tiêu đề và nút, font Inter cho chữ nhỏ. Chữ đang dùng đạt độ tương phản 4.5:1, các nút điều khiển đạt 3:1.
+- **Khoanh tròn đáp án:** lựa chọn đang chọn được khoanh bằng bút như khi làm bài trên giấy, nên mỗi màn chỉ có đúng một nút tô đặc là hành động chính.
+- **Vào ván nhanh:** nút "Chơi ngay" ở menu bắt đầu ván theo cài đặt lần trước và ghi rõ cài đặt đó.
+- **Bàn cờ nét bút:** xem trước quân khi rê chuột, hiệu ứng đặt quân và vòng bút quanh nước vừa đi. Đường thắng được tô dạ quang vàng và khoanh bút đỏ bên dưới quân cờ, nên không gạch ngang mặt quân nào.
+- **Không che bàn cờ:** kết quả, nút "Chơi ván mới" và thanh xem lại nằm ở một hàng cố định bên dưới, và bàn cờ không đổi kích thước.
+- **Khu vực người chơi:** mặt quân lớn, vòng bút rút ngắn theo đồng hồ lượt đi và số ván thắng ghi bằng vạch đếm.
+- **Chơi bằng bàn phím:** phím mũi tên di chuyển con trỏ trên bàn, `Enter` hoặc `Space` để đánh; mọi nút đều đến được bằng `Tab`.
+- **Phím tắt:** `Ctrl+Z` lùi nước, `H` gợi ý, `R` chơi lại, `N` số thứ tự nước đi, `F` vừa khung, `+`/`-` phóng to, thu nhỏ, `←`/`→`/`Space` xem lại ván, `Esc` quay lại.
 - **Cài đặt âm thanh:** Bật/tắt nhạc nền và hiệu ứng; âm thanh được nạp ở luồng riêng nên không làm giật giao diện.
 - **Tiếng Việt & English:** đổi ngôn ngữ trong Cài đặt, mọi màn hình cập nhật ngay.
 
