@@ -32,7 +32,7 @@ import java.awt.event.KeyEvent;
 public class GamePanel extends PaperPanel implements GameSession.Listener {
     // Lets the red pen finish its loop around the winning line before the result appears
     private static final int RESULT_DELAY_MS = 500;
-    private static final int FOOTER_HEIGHT = 76;
+    private static final int FOOTER_HEIGHT = 84;
     private static final int HINT_MIN_WIDTH = 960;
 
     private final MainWindow window;
@@ -53,6 +53,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     private final AppButton restart;
     private final AppButton numbers;
     private final AppButton replayNumbers;
+    private final boolean hintAllowed;
 
     // Replay of a finished game
     private static final int REPLAY_STEP_MS = 600;
@@ -128,7 +129,8 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         undo.addActionListener(e -> undoMove());
         hint = headerButton(I18n.t("game.hint"), I18n.t("game.hint.tooltip"));
         hint.addActionListener(e -> showHint());
-        hint.setVisible(Settings.get().isHintsEnabled() && mode != GameMode.LAN);
+        hintAllowed = Settings.get().isHintsEnabled() && mode != GameMode.LAN;
+        hint.setVisible(hintAllowed);
         resign = new AppButton(I18n.t("game.resign"), AppButton.Variant.GHOST).setAccent(Theme.DANGER);
         resign.compact();
         resign.setToolTipText(I18n.t("game.resign.tooltip"));
@@ -320,6 +322,11 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         boolean linked = !(controller instanceof NetworkGameController lan) || lan.isConnected();
         resign.setEnabled(inProgress() && linked);
         restart.setEnabled(linked);
+        // At the end of a round the result row offers what comes next; these have nothing left to do
+        boolean over = model.isOver();
+        resign.setVisible(!over);
+        hint.setVisible(hintAllowed && !over);
+        restart.setVisible(!over);
         if (model.getMoveCount() == 0) hintsUsed = 0;
         board.stateChanged();
         lastTickSecond = -1;
@@ -393,7 +400,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
         int winner = model.getWinner();
         boolean interrupted = model.getEndReason() == EndReason.DISCONNECT;
         resultFace.setIcon(interrupted ? null : new ImageIcon(winner != GameModel.EMPTY
-                ? BoardView.pieceImage(winner, 60) : drawFaces()));
+                ? BoardView.pieceImage(winner, 68) : drawFaces()));
         resultTitleLabel.setText(resultTitle());
         boolean linked = !(controller instanceof NetworkGameController lan) || lan.isConnected();
         boolean pending = controller instanceof NetworkGameController lan && lan.isRestartPending();
@@ -403,10 +410,10 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
 
     /** A draw belongs to both faces. */
     private static Image drawFaces() {
-        java.awt.image.BufferedImage both = new java.awt.image.BufferedImage(92, 60, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        java.awt.image.BufferedImage both = new java.awt.image.BufferedImage(104, 68, java.awt.image.BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = both.createGraphics();
-        g2.drawImage(BoardView.pieceImage(GameModel.X, 56), 0, 2, null);
-        g2.drawImage(BoardView.pieceImage(GameModel.O, 56), 36, 2, null);
+        g2.drawImage(BoardView.pieceImage(GameModel.X, 64), 0, 2, null);
+        g2.drawImage(BoardView.pieceImage(GameModel.O, 64), 40, 2, null);
         g2.dispose();
         return both;
     }
@@ -694,7 +701,7 @@ public class GamePanel extends PaperPanel implements GameSession.Listener {
     }
 
     private String scoreLine() {
-        String line = seatName(0) + "  " + scores[0] + " – " + scores[1] + "  " + seatName(1);
+        String line = seatName(0) + ": " + scores[0] + "   ·   " + seatName(1) + ": " + scores[1];
         if (draws > 0) line += "   ·   " + I18n.t("game.result.draws", draws);
         if (hintsUsed > 0) line += "   ·   " + I18n.t("game.result.hints", hintsUsed);
         return line;
