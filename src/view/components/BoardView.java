@@ -7,22 +7,28 @@ import view.theme.Theme;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The game board, painted as a single component: hover preview, last-move
- * marker, pop-in animation, glowing win line, wheel zoom and drag to pan.
+ * The game board, painted as a single component: pen lines on a sheet of paper,
+ * hover preview, last-move marker, pop-in animation, wheel zoom and drag to pan.
+ * A win is highlighted and looped in red pen, never struck through the faces.
+ * With focus, the arrow keys move a cursor and Enter or Space plays there.
  */
 public class BoardView extends JComponent {
-    public static final int MIN_CELL = 26;
+    public static final int MIN_CELL = 22;
     public static final int MAX_CELL = 120;
     private static final int PAD = 14;
     private static final int ANIM_MS = 220;
+    private static final int WIN_MS = 450;
 
     private final GameSession controller;
     private final GameModel liveModel;
@@ -52,6 +58,16 @@ public class BoardView extends JComponent {
     private long hintStart;
     private final Timer hintTimer;
 
+    private String winKey;       // the win line already announced, so a replay never redraws it
+    private long winStart;
+    private final Timer winTimer;
+
+    private int cursorRow = -1;
+    private int cursorCol = -1;
+
+    private Path2D gridShape;    // cached per cell size, so the pen lines hold still
+    private int gridCell;
+
     public BoardView(GameSession controller) {
         this.controller = controller;
         this.liveModel = controller.getModel();
@@ -71,9 +87,30 @@ public class BoardView extends JComponent {
             repaint();
         });
 
+        winTimer = new Timer(15, e -> {
+            if (System.currentTimeMillis() - winStart >= WIN_MS) ((Timer) e.getSource()).stop();
+            repaint();
+        });
+
+        setFocusable(true);
+        bindBoardKey(KeyEvent.VK_UP, () -> moveCursor(-1, 0));
+        bindBoardKey(KeyEvent.VK_DOWN, () -> moveCursor(1, 0));
+        bindBoardKey(KeyEvent.VK_LEFT, () -> moveCursor(0, -1));
+        bindBoardKey(KeyEvent.VK_RIGHT, () -> moveCursor(0, 1));
+        bindBoardKey(KeyEvent.VK_ENTER, this::playAtCursor);
+        bindBoardKey(KeyEvent.VK_SPACE, this::playAtCursor);
+        addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) { repaint(); }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) { repaint(); }
+        });
+
         MouseAdapter mouse = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                requestFocusInWindow();
                 pressPoint = e.getLocationOnScreen();
                 dragged = false;
             }
@@ -125,6 +162,38 @@ public class BoardView extends JComponent {
     }
 
     public void setOnZoom(Runnable onZoom) { this.onZoom = onZoom; }
+
+    /** A key that only works during live play; otherwise it falls through to the window's shortcuts. */
+    private void bindBoardKey(int key, Runnable action) {
+        String id = "board" + key;
+        getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(key, 0), id);
+        getActionMap().put(id, new AbstractAction() {
+            @Override
+            public boolean isEnabled() { return display == null && !liveModel.isOver(); }
+
+            @Override
+            public void actionPerformed(ActionEvent e) { action.run(); }
+        });
+    }
+
+    /** Moves the keyboard cursor, starting from the last move or the middle of the board. */
+    public void moveCursor(int dRow, int dCol) {
+        if (cursorRow < 0) {
+            int[] last = liveModel.getLastMove();
+            cursorRow = last != null ? last[0] : n / 2;
+            cursorCol = last != null ? last[1] : n / 2;
+        } else {
+            cursorRow = Math.max(0, Math.min(n - 1, cursorRow + dRow));
+            cursorCol = Math.max(0, Math.min(n - 1, cursorCol + dCol));
+        }
+        scrollToCell(cursorRow, cursorCol);
+        repaint();
+    }
+
+    private void playAtCursor() {
+        if (cursorRow < 0) moveCursor(0, 0);
+        else controller.play(cursorRow, cursorCol);
+    }
 
     /**
      * Shows a different position (e.g. a step of a replay) without touching the
@@ -181,6 +250,7 @@ public class BoardView extends JComponent {
 
     public void stateChanged() {
         clearHint();
+        announceWin();
         int[] last = shown().getLastMove();
         if (last != null && (animatedMove == null || last[0] != animatedMove[0] || last[1] != animatedMove[1])) {
             animatedMove = last;
@@ -190,6 +260,24 @@ public class BoardView extends JComponent {
             animatedMove = null;
         }
         repaint();
+    }
+
+    /** Starts drawing the win mark the first time a win line appears, and brings it into view. */
+    private void announceWin() {
+        int[] win = liveModel.getWinningLine();
+        if (win == null) {
+            winKey = null;
+            return;
+        }
+        String key = java.util.Arrays.toString(win);
+        if (key.equals(winKey)) return;
+        winKey = key;
+        winStart = System.currentTimeMillis();
+        winTimer.restart();
+        int top = Math.min(win[0], win[2]), left = Math.min(win[1], win[3]);
+        int rows = Math.abs(win[2] - win[0]) + 1, cols = Math.abs(win[3] - win[1]) + 1;
+        scrollRectToVisible(new Rectangle(PAD + left * cell - cell / 2, PAD + top * cell - cell / 2,
+                (cols + 1) * cell, (rows + 1) * cell));
     }
 
     /** Largest cell size that shows the whole board inside the given area. */
@@ -282,22 +370,18 @@ public class BoardView extends JComponent {
         Graphics2D g2 = (Graphics2D) g.create();
         Theme.antialias(g2);
         int size = n * cell;
-        int arc = Math.min(Theme.RADIUS_LG, cell);
 
-        // Board surface
-        g2.setColor(Theme.alpha(Color.BLACK, 70));
-        g2.fillRoundRect(PAD - 2, PAD + 4, size + 4, size + 4, arc, arc);
-        g2.setPaint(new GradientPaint(0, PAD, new Color(0x2D3366), 0, PAD + size, new Color(0x242A57)));
-        g2.fillRoundRect(PAD, PAD, size, size, arc, arc);
+        // The sheet covers the page's printed squares, so only the real grid shows
+        Path2D sheet = Sketch.box(PAD, PAD, size, size, Math.min(Theme.RADIUS, cell / 3f), n);
+        g2.setColor(Theme.SURFACE);
+        g2.fill(sheet);
 
-        // Winning cells highlight
+        // Highlighter under the grid, as it would be on paper
         int[] win = shown().getWinningLine();
         boolean[][] winning = winningCells(win);
+        float winT = win == null ? 0f : Math.min(1f, (System.currentTimeMillis() - winStart) / (float) WIN_MS);
         if (win != null) {
-            g2.setColor(Theme.alpha(Theme.WIN, 38));
-            for (int r = 0; r < n; r++)
-                for (int c = 0; c < n; c++)
-                    if (winning[r][c]) g2.fillRect(PAD + c * cell, PAD + r * cell, cell, cell);
+            paintHighlight(g2, centerOf(win[1]), centerOf(win[0]), centerOf(win[3]), centerOf(win[2]), cell, n);
         }
 
         // Hover preview
@@ -305,29 +389,26 @@ public class BoardView extends JComponent {
         int current = shown().getCurrentPlayer();
         if (canPlay && hoverRow >= 0 && shown().getCell(hoverRow, hoverCol) == GameModel.EMPTY) {
             int x = PAD + hoverCol * cell, y = PAD + hoverRow * cell;
-            g2.setColor(Theme.alpha(colorOf(current), 34));
-            g2.fillRoundRect(x + 2, y + 2, cell - 4, cell - 4, 10, 10);
+            g2.setColor(Theme.SURFACE_ALT);
+            g2.fillRect(x, y, cell, cell);
             Composite oldComposite = g2.getComposite();
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.35f));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
             drawPiece(g2, current, x, y, 1f);
             g2.setComposite(oldComposite);
         }
 
         // Grid
-        Shape clip = g2.getClip();
-        g2.clip(new java.awt.geom.RoundRectangle2D.Float(PAD, PAD, size, size, arc, arc));
-        g2.setColor(n <= 5 ? new Color(0x5A62A8) : new Color(0x474E8E));
-        float line = n <= 5 ? 2f : 1f;
-        g2.setStroke(new BasicStroke(line));
-        for (int i = 1; i < n; i++) {
-            int p = PAD + i * cell;
-            g2.drawLine(p, PAD, p, PAD + size);
-            g2.drawLine(PAD, p, PAD + size, p);
+        g2.setColor(Theme.BORDER);
+        g2.setStroke(new BasicStroke(n <= 5 ? 2f : 1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.draw(gridShape());
+        g2.setColor(Theme.TEXT_MUTED);
+        g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.draw(sheet);
+
+        // The red loop goes under the pieces and clear of them, so no face is ever crossed out
+        if (win != null) {
+            paintWinLoop(g2, centerOf(win[1]), centerOf(win[0]), centerOf(win[3]), centerOf(win[2]), cell, n, winT);
         }
-        g2.setClip(clip);
-        g2.setColor(Theme.alpha(Theme.ACCENT_HOVER, 130));
-        g2.setStroke(new BasicStroke(1.5f));
-        g2.drawRoundRect(PAD, PAD, size, size, arc, arc);
 
         // Pieces
         int[] last = shown().getLastMove();
@@ -340,58 +421,99 @@ public class BoardView extends JComponent {
                     float t = Math.min(1f, (System.currentTimeMillis() - animStart) / (float) ANIM_MS);
                     scale = 0.55f + 0.45f * easeOutBack(t);
                 }
+                if (win != null && winning[r][c] && winT < 1f) {
+                    // The winners hop as the pen closes its loop
+                    scale = 1f + 0.14f * (float) Math.sin(Math.PI * Math.max(0f, (winT - 0.55f) / 0.45f));
+                }
                 Composite oldComposite = g2.getComposite();
                 if (win != null && !winning[r][c]) {
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
                 }
                 drawPiece(g2, v, PAD + c * cell, PAD + r * cell, scale);
                 g2.setComposite(oldComposite);
             }
         }
 
-        // Hint: ghost of the suggested piece inside a pulsing ring
+        // Hint: ghost of the suggested piece inside a pulsing pen circle
         if (hint != null && shown().getCell(hint[0], hint[1]) == GameModel.EMPTY) {
             int x = PAD + hint[1] * cell, y = PAD + hint[0] * cell;
             double phase = (System.currentTimeMillis() - hintStart) / 400.0;
             float pulse = (float) (0.5 + 0.5 * Math.sin(phase * Math.PI));
+            g2.setColor(Theme.WIN);
+            g2.fillRect(x + 1, y + 1, cell - 1, cell - 1);
             Composite oldComposite = g2.getComposite();
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.55f));
             drawPiece(g2, shown().getCurrentPlayer(), x, y, 1f);
             g2.setComposite(oldComposite);
-            int grow = Math.round(pulse * cell * 0.12f);
-            g2.setColor(Theme.alpha(Theme.WIN, 90 + (int) (120 * pulse)));
-            g2.setStroke(new BasicStroke(Math.max(2f, cell / 16f)));
-            g2.drawRoundRect(x + 2 - grow, y + 2 - grow, cell - 4 + 2 * grow, cell - 4 + 2 * grow, 12, 12);
+            float grow = pulse * cell * 0.1f;
+            g2.setColor(Theme.ACCENT);
+            g2.setStroke(new BasicStroke(Math.max(2f, cell / 16f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.draw(Sketch.loop(x + 1 - grow, y + 1 - grow, cell - 2 + 2 * grow, cell - 2 + 2 * grow, hint[0] * 31 + hint[1]));
         }
 
-        // Last move marker
-        if (last != null && win == null) {
+        // Last move marker: the most recent piece has a small pen circle round it
+        if (last != null && !shown().isOver()) {
             int x = PAD + last[1] * cell, y = PAD + last[0] * cell;
-            g2.setColor(Theme.alpha(colorOf(last[2]), 200));
-            g2.setStroke(new BasicStroke(2f));
-            g2.drawRoundRect(x + 3, y + 3, cell - 6, cell - 6, 10, 10);
+            g2.setColor(colorOf(last[2]));
+            g2.setStroke(new BasicStroke(Math.max(1.6f, cell / 22f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.draw(Sketch.loop(x + 1, y + 1, cell - 2, cell - 2, last[0] * 31 + last[1]));
         }
 
-        // Win line with glow
-        if (win != null) {
-            float x1 = PAD + win[1] * cell + cell / 2f, y1 = PAD + win[0] * cell + cell / 2f;
-            float x2 = PAD + win[3] * cell + cell / 2f, y2 = PAD + win[2] * cell + cell / 2f;
-            double angle = Math.atan2(y2 - y1, x2 - x1);
-            float ext = cell * 0.35f;
-            java.awt.geom.Line2D.Float stroke = new java.awt.geom.Line2D.Float(
-                    (float) (x1 - Math.cos(angle) * ext), (float) (y1 - Math.sin(angle) * ext),
-                    (float) (x2 + Math.cos(angle) * ext), (float) (y2 + Math.sin(angle) * ext));
-            float base = Math.max(4f, cell / 9f);
-            int[][] layers = { {4, 30}, {2, 70}, {1, 255} };
-            for (int[] layer : layers) {
-                g2.setColor(Theme.alpha(Theme.WIN, layer[1]));
-                g2.setStroke(new BasicStroke(base * layer[0], BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                g2.draw(stroke);
+        // Keyboard cursor, only while the player is actually using the keyboard
+        if (cursorRow >= 0 && display == null && !liveModel.isOver() && FocusRing.shouldPaint(this)) {
+            int x = PAD + cursorCol * cell, y = PAD + cursorRow * cell;
+            if (canPlay && shown().getCell(cursorRow, cursorCol) == GameModel.EMPTY) {
+                Composite oldComposite = g2.getComposite();
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.45f));
+                drawPiece(g2, current, x, y, 1f);
+                g2.setComposite(oldComposite);
             }
+            g2.setColor(Theme.ACCENT);
+            g2.setStroke(new BasicStroke(Math.max(2.4f, cell / 14f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.drawRoundRect(x + 1, y + 1, cell - 2, cell - 2, 6, 6);
         }
-        // Numbers go on top of everything, including the win line, so they stay readable
+
         if (showMoveNumbers) drawMoveNumbers(g2);
         g2.dispose();
+    }
+
+    private float centerOf(int index) {
+        return PAD + index * cell + cell / 2f;
+    }
+
+    private Path2D gridShape() {
+        if (gridShape == null || gridCell != cell) {
+            Path2D.Float grid = new Path2D.Float();
+            int size = n * cell;
+            double wob = Math.min(0.6, cell / 60.0);
+            for (int i = 1; i < n; i++) {
+                int p = PAD + i * cell;
+                Sketch.addLine(grid, p, PAD + 1, p, PAD + size - 1, i * 13, wob);
+                Sketch.addLine(grid, PAD + 1, p, PAD + size - 1, p, i * 29 + 3, wob);
+            }
+            gridShape = grid;
+            gridCell = cell;
+        }
+        return gridShape;
+    }
+
+    /** Yellow highlighter swipe through the centers of a winning line. */
+    public static void paintHighlight(Graphics2D g2, float x1, float y1, float x2, float y2, int cell, int seed) {
+        Composite old = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.85f));
+        g2.setColor(Theme.WIN);
+        g2.setStroke(new BasicStroke(cell * 0.84f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.draw(Sketch.line(x1, y1, x2, y2, seed, cell * 0.03));
+        g2.setComposite(old);
+    }
+
+    /** Red pen loop around a winning line, drawn up to {@code progress}, with an eased hand. */
+    public static void paintWinLoop(Graphics2D g2, float x1, float y1, float x2, float y2, int cell, int seed, float progress) {
+        float eased = 1f - (1f - progress) * (1f - progress);
+        g2.setColor(Theme.DANGER);
+        g2.setStroke(new BasicStroke(Math.max(2f, cell / 13f), BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        Path2D loop = Sketch.stadium(x1, y1, x2, y2, cell * 0.57, seed);
+        g2.draw(eased >= 1f ? loop : Sketch.partial(loop, eased));
     }
 
     /** Small numbered badge in the corner of every piece, in the order they were played. */
@@ -408,7 +530,7 @@ public class BoardView extends JComponent {
             String text = String.valueOf(i + 1);
             int w = Math.max(d, fm.stringWidth(text) + 6);
             x -= w - d;
-            g2.setColor(Theme.alpha(Theme.BG, 225));
+            g2.setColor(Theme.alpha(Theme.SURFACE, 235));
             g2.fillRoundRect(x, y, w, d, d, d);
             g2.setColor(colorOf(m[2]));
             g2.drawString(text, x + (w - fm.stringWidth(text)) / 2, y + (d - fm.getHeight()) / 2 + fm.getAscent());
@@ -416,7 +538,7 @@ public class BoardView extends JComponent {
     }
 
     private void drawPiece(Graphics2D g2, int player, int x, int y, float scale) {
-        int inset = Math.max(3, Math.round(cell * 0.1f));
+        int inset = Math.max(1, Math.round(cell * 0.06f));
         int s = cell - inset * 2;
         if (s <= 0) return;
         if (scale >= 0.999f) {
@@ -449,7 +571,7 @@ public class BoardView extends JComponent {
         if (fillHole) {
             Theme.antialias(g);
             int d = (int) (w * 0.56);
-            g.setColor(new Color(0xFFF7EE));
+            g.setColor(Theme.SURFACE);
             g.fillOval((w - d) / 2, (h - d) / 2, d, d);
         }
         g.drawImage(src, 0, 0, null);

@@ -6,16 +6,21 @@ import view.theme.Theme;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.Path2D;
 
 /**
- * Side card for one player: piece, name, win count and a live status chip.
- * The active player's card lights up in their color.
+ * Side panel for one player: the big face, name, tally of wins and a live status.
+ * The player to move has their face circled in pen; with a turn clock the circle
+ * runs out as the time does.
  */
 public class PlayerCard extends JComponent {
     public enum Status { WAITING, TURN, THINKING, WINNER }
 
-    private static final int WIDTH = 180;
-    private static final int HEIGHT = 260;
+    private static final int WIDTH = 168;
+    private static final int HEIGHT = 270;
+    private static final int RING = 112;
+    private static final int FACE = 84;
+    private static final int MAX_TALLY = 20;
 
     private int player;
     private final String name;
@@ -46,7 +51,7 @@ public class PlayerCard extends JComponent {
         repaint();
     }
 
-    /** Shows a countdown ring around the piece; pass -1 to hide it. */
+    /** Shows the turn clock on the circle around the face; pass -1 to hide it. */
     public void setCountdown(long remainingMs, int totalSeconds) {
         this.remainingMs = remainingMs;
         this.totalSeconds = totalSeconds;
@@ -85,88 +90,104 @@ public class PlayerCard extends JComponent {
         Graphics2D g2 = (Graphics2D) g.create();
         Theme.antialias(g2);
         int w = getWidth();
-        int h = Math.min(getHeight(), HEIGHT);
-        int y0 = (getHeight() - h) / 2;
-        boolean active = status == Status.TURN || status == Status.THINKING || status == Status.WINNER;
-        Color accent = status == Status.WINNER ? Theme.WIN : color;
+        int y0 = Math.max(0, (getHeight() - HEIGHT) / 2);
+        boolean active = status == Status.TURN || status == Status.THINKING;
 
-        // Card
-        if (active) {
-            g2.setColor(Theme.alpha(accent, 40));
-            g2.fillRoundRect(-2, y0 - 2, w + 3, h + 3, Theme.RADIUS_LG + 4, Theme.RADIUS_LG + 4);
+        // Face, circled while it is this player's move
+        int rx = (w - RING) / 2;
+        int ry = y0 + 4;
+        Path2D ring = Sketch.loop(rx, ry, RING, RING, player * 17 + 3);
+        boolean clock = active && remainingMs >= 0 && totalSeconds > 0;
+        g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        if (clock) {
+            boolean urgent = remainingMs <= 5_000;
+            g2.setColor(Theme.RULE);
+            g2.draw(ring);
+            g2.setColor(urgent ? Theme.DANGER : color);
+            g2.draw(Sketch.partial(ring, Math.min(1f, remainingMs / (totalSeconds * 1000f))));
+            String secs = String.valueOf((remainingMs + 999) / 1000);
+            g2.setFont(Theme.handBold(Theme.LEAD));
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(secs, w - fm.stringWidth(secs) - 2, ry + 18);
+        } else if (active) {
+            g2.setColor(color);
+            g2.draw(ring);
         }
-        g2.setColor(Theme.alpha(Theme.SURFACE_ALT, active ? 245 : 215));
-        g2.fillRoundRect(0, y0, w - 1, h - 1, Theme.RADIUS_LG, Theme.RADIUS_LG);
-        g2.setColor(active ? Theme.alpha(accent, 200) : Theme.alpha(Theme.BORDER, 200));
-        g2.setStroke(new BasicStroke(active ? 2f : 1f));
-        g2.drawRoundRect(0, y0, w - 1, h - 1, Theme.RADIUS_LG, Theme.RADIUS_LG);
-
-        if (!active) {
+        Composite solid = g2.getComposite();
+        if (!active && status != Status.WINNER) {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
         }
-
-        // Piece in a tinted circle
-        int circle = 76;
-        int cx = (w - circle) / 2;
-        int cy = y0 + 22;
-        g2.setColor(Theme.alpha(color, 30));
-        g2.fillOval(cx, cy, circle, circle);
-        g2.setColor(Theme.alpha(color, 120));
-        g2.setStroke(new BasicStroke(1.5f));
-        g2.drawOval(cx, cy, circle, circle);
-        if (remainingMs >= 0 && totalSeconds > 0) {
-            boolean urgent = remainingMs <= 5_000;
-            Color ring = urgent ? Theme.DANGER : color;
-            float fraction = Math.min(1f, remainingMs / (totalSeconds * 1000f));
-            Composite before = g2.getComposite();
-            g2.setComposite(AlphaComposite.SrcOver);
-            g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.setColor(Theme.alpha(ring, 50));
-            g2.drawOval(cx - 5, cy - 5, circle + 10, circle + 10);
-            g2.setColor(ring);
-            g2.drawArc(cx - 5, cy - 5, circle + 10, circle + 10, 90, Math.round(360 * fraction));
-            String secs = String.valueOf((remainingMs + 999) / 1000);
-            g2.setFont(Theme.font(Font.BOLD, 15f));
-            FontMetrics sfm = g2.getFontMetrics();
-            g2.drawString(secs, w - 16 - sfm.stringWidth(secs), y0 + 26);
-            g2.setComposite(before);
-        }
-        int img = 50;
-        g2.drawImage(BoardView.pieceImage(player, img), (w - img) / 2, cy + (circle - img) / 2, null);
+        g2.drawImage(BoardView.pieceImage(player, FACE), (w - FACE) / 2, ry + (RING - FACE) / 2, null);
+        g2.setComposite(solid);
 
         // Name and side
-        int y = cy + circle + 30;
-        drawCentered(g2, name, Theme.font(Font.BOLD, 18f), Theme.TEXT, w, y);
-        y += 20;
+        int y = ry + RING + 30;
+        Font nameFont = Theme.handBold(Theme.H3);
+        String shownName = fit(g2, name, nameFont, w - 8);
+        if (status == Status.WINNER) marker(g2, shownName, nameFont, w, y);
+        drawCentered(g2, shownName, nameFont, Theme.TEXT, w, y);
+        y += 22;
         String plays = I18n.t("player.plays", player == GameModel.X ? "X" : "O");
-        drawCentered(g2, tag == null ? plays : tag + "  ·  " + plays, Theme.font(Font.PLAIN, 13f), Theme.TEXT_MUTED, w, y);
+        Font small = Theme.font(Font.PLAIN, Theme.SMALL);
+        drawCentered(g2, fit(g2, tag == null ? plays : tag + "  ·  " + plays, small, w - 4), small, Theme.TEXT_MUTED, w, y);
 
-        // Score
-        y += 44;
-        drawCentered(g2, String.valueOf(score), Theme.font(Font.BOLD, 34f), Theme.TEXT, w, y);
+        // Tally of wins, the way scores are kept on paper
         y += 16;
-        drawCentered(g2, I18n.t(score == 1 ? "player.win" : "player.wins"), Theme.semibold(11f), Theme.TEXT_MUTED, w, y);
+        if (score > 0 && score <= MAX_TALLY) paintTally(g2, w, y);
+        y += 44;
+        String wins = score + " " + I18n.t(score == 1 ? "player.win" : "player.wins");
+        drawCentered(g2, wins, Theme.semibold(Theme.SMALL), score > 0 ? Theme.TEXT : Theme.TEXT_MUTED, w, y);
 
-        // Status chip
-        g2.setComposite(AlphaComposite.SrcOver);
-        String chip = chipText();
-        if (chip != null) {
-            Font f = Theme.semibold(12f);
-            FontMetrics fm = g2.getFontMetrics(f);
-            int chipW = fm.stringWidth(status == Status.THINKING ? I18n.t("player.chip.thinking") + "..." : chip) + 24;
-            int chipH = 26;
-            int chipX = (w - chipW) / 2;
-            int chipY = y0 + h - chipH - 14;
-            g2.setColor(Theme.alpha(accent, 50));
-            g2.fillRoundRect(chipX, chipY, chipW, chipH, chipH, chipH);
-            g2.setColor(accent);
-            g2.setFont(f);
-            g2.drawString(chip, chipX + 12, chipY + (chipH - fm.getHeight()) / 2 + fm.getAscent());
+        // Status
+        String line = statusText();
+        if (line != null) {
+            Font f = Theme.hand(Theme.BODY);
+            int baseline = y0 + HEIGHT - 6;
+            if (status == Status.TURN) marker(g2, line, f, w, baseline);
+            drawCentered(g2, line, f, status == Status.WINNER ? Theme.DANGER : Theme.TEXT, w, baseline);
         }
         g2.dispose();
     }
 
-    private String chipText() {
+    /** Four strokes and a slash for every five wins. */
+    private void paintTally(Graphics2D g2, int w, int top) {
+        int stroke = 7, gap = 12, h = 24;
+        int groups = score / 5, rest = score % 5;
+        int width = groups * (4 * stroke + gap) + rest * stroke;
+        double x = (w - width) / 2.0;
+        g2.setColor(Theme.TEXT);
+        g2.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        int seed = player * 7;
+        for (int i = 0; i < groups; i++) {
+            for (int s = 0; s < 4; s++) {
+                g2.draw(Sketch.line(x + s * stroke, top, x + s * stroke - 1, top + h, seed++, 1));
+            }
+            g2.draw(Sketch.line(x - 4, top + h - 3, x + 3 * stroke + 4, top + 3, seed++, 1));
+            x += 4 * stroke + gap;
+        }
+        for (int s = 0; s < rest; s++) {
+            g2.draw(Sketch.line(x + s * stroke, top, x + s * stroke - 1, top + h, seed++, 1));
+        }
+    }
+
+    private static void marker(Graphics2D g2, String text, Font font, int w, int baseline) {
+        FontMetrics fm = g2.getFontMetrics(font);
+        int tw = fm.stringWidth(text);
+        int mid = baseline - fm.getAscent() / 3;
+        g2.setColor(Theme.WIN);
+        g2.setStroke(new BasicStroke(fm.getAscent() + 3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.draw(Sketch.line((w - tw) / 2.0, mid, (w + tw) / 2.0, mid, text.length(), 1));
+    }
+
+    private static String fit(Graphics2D g2, String text, Font font, int width) {
+        FontMetrics fm = g2.getFontMetrics(font);
+        if (fm.stringWidth(text) <= width) return text;
+        String cut = text;
+        while (!cut.isEmpty() && fm.stringWidth(cut + "…") > width) cut = cut.substring(0, cut.length() - 1);
+        return cut + "…";
+    }
+
+    private String statusText() {
         switch (status) {
             case TURN: return I18n.t("player.chip.turn");
             case THINKING: return I18n.t("player.chip.thinking") + ".".repeat(dots);
