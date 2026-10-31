@@ -5,6 +5,7 @@ import model.Settings;
 import utils.I18n;
 import view.components.AppButton;
 import view.components.BoardView;
+import view.components.MiniBoard;
 import view.components.RoundedPanel;
 import view.theme.Theme;
 
@@ -38,7 +39,7 @@ public class WalkthroughDialog extends JDialog {
         JPanel backdrop = new JPanel(new GridBagLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
-                g.setColor(translucent ? Theme.alpha(Theme.BG, 190) : Theme.BG);
+                g.setColor(translucent ? Theme.alpha(Theme.SCRIM, 110) : Theme.BG);
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
@@ -46,13 +47,13 @@ public class WalkthroughDialog extends JDialog {
 
         RoundedPanel card = new RoundedPanel(new BorderLayout(0, 18));
         card.setFill(Theme.SURFACE);
-        card.setBorderColor(Theme.alpha(Theme.ACCENT, 140));
+        card.setBorderColor(Theme.ACCENT);
         card.setBorder(BorderFactory.createEmptyBorder(28, 36, 24, 36));
 
-        title.setFont(Theme.font(Font.BOLD, 24f));
+        title.setFont(Theme.handBold(Theme.H3));
         title.setForeground(Theme.TEXT);
         title.setHorizontalAlignment(SwingConstants.CENTER);
-        body.setFont(Theme.font(Font.PLAIN, 15f));
+        body.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         body.setForeground(Theme.TEXT_MUTED);
         body.setHorizontalAlignment(SwingConstants.CENTER);
         body.setVerticalAlignment(SwingConstants.TOP);
@@ -159,7 +160,7 @@ public class WalkthroughDialog extends JDialog {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             Theme.antialias(g2);
-            g2.setColor(active ? Theme.ACCENT : Theme.BORDER);
+            g2.setColor(active ? Theme.TEXT : Theme.BORDER);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
             g2.dispose();
         }
@@ -187,34 +188,27 @@ public class WalkthroughDialog extends JDialog {
         }
 
         private void drawWinningRow(Graphics2D g2, int w, int h) {
-            int cell = 54, n = 5;
-            int x0 = (w - cell * n) / 2, y0 = (h - cell) / 2;
-            g2.setColor(new Color(0x2D3366));
-            g2.fillRoundRect(x0 - 8, y0 - 8, cell * n + 16, cell + 16, 16, 16);
-            for (int i = 0; i < n; i++) {
-                g2.drawImage(BoardView.pieceImage(GameModel.X, cell - 12), x0 + i * cell + 6, y0 + 6, null);
-            }
-            g2.setColor(Theme.alpha(Theme.WIN, 90));
-            g2.setStroke(new BasicStroke(12f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawLine(x0 + cell / 2, y0 + cell / 2, x0 + cell * n - cell / 2, y0 + cell / 2);
-            g2.setColor(Theme.WIN);
-            g2.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.drawLine(x0 + cell / 2, y0 + cell / 2, x0 + cell * n - cell / 2, y0 + cell / 2);
+            int x = GameModel.X;
+            MiniBoard row = new MiniBoard(new int[][]{ {x, x, x, x, x} }, new int[]{0, 0, 0, 4});
+            row.setSize(Math.min(w, 340), h);
+            Graphics2D placed = (Graphics2D) g2.create((w - row.getWidth()) / 2, 0, row.getWidth(), h);
+            row.paint(placed);
+            placed.dispose();
         }
 
         private void drawModes(Graphics2D g2, int w, int h) {
             String[] labels = {I18n.t("walk.mode.ai"), I18n.t("walk.mode.two"), I18n.t("walk.mode.lan")};
-            int[][] pieces = { {GameModel.X, GameModel.O}, {GameModel.X, GameModel.X}, {GameModel.O, GameModel.X} };
+            int[] pieces = {GameModel.X, GameModel.O};
             int box = 120, gap = 18;
             int x0 = (w - (box * 3 + gap * 2)) / 2;
-            g2.setFont(Theme.semibold(13f));
+            g2.setFont(Theme.hand(Theme.SMALL));
             FontMetrics fm = g2.getFontMetrics();
             for (int i = 0; i < 3; i++) {
                 int x = x0 + i * (box + gap);
                 g2.setColor(Theme.SURFACE_ALT);
-                g2.fillRoundRect(x, 4, box, h - 8, 16, 16);
-                g2.drawImage(BoardView.pieceImage(pieces[i][0], 40), x + box / 2 - 42, 18, null);
-                g2.drawImage(BoardView.pieceImage(pieces[i][1], 40), x + box / 2 + 2, 18, null);
+                g2.fillRoundRect(x, 4, box, h - 8, Theme.RADIUS, Theme.RADIUS);
+                g2.drawImage(BoardView.pieceImage(pieces[0], 48), x + box / 2 - 50, 14, null);
+                g2.drawImage(BoardView.pieceImage(pieces[1], 48), x + box / 2 + 2, 14, null);
                 g2.setColor(Theme.TEXT);
                 g2.drawString(labels[i], x + (box - fm.stringWidth(labels[i])) / 2, h - 22);
             }
@@ -222,7 +216,7 @@ public class WalkthroughDialog extends JDialog {
 
         private void drawKeys(Graphics2D g2, int w, int h) {
             String[] keys = {"H", "R", "N", "F11", "Ctrl+Z"};
-            g2.setFont(Theme.semibold(16f));
+            g2.setFont(Theme.semibold(Theme.BODY));
             FontMetrics fm = g2.getFontMetrics();
             int gap = 12, keyH = 46;
             int total = -gap;
@@ -230,10 +224,11 @@ public class WalkthroughDialog extends JDialog {
             int x = (w - total) / 2, y = (h - keyH) / 2;
             for (String k : keys) {
                 int kw = Math.max(keyH, fm.stringWidth(k) + 26);
-                g2.setColor(Theme.BORDER);
-                g2.fillRoundRect(x, y + 4, kw, keyH, 12, 12);
                 g2.setColor(Theme.SURFACE_ALT);
-                g2.fillRoundRect(x, y, kw, keyH, 12, 12);
+                g2.fillRoundRect(x, y, kw, keyH, 10, 10);
+                g2.setColor(Theme.BORDER);
+                g2.setStroke(new BasicStroke(1.4f));
+                g2.drawRoundRect(x, y, kw, keyH, 10, 10);
                 g2.setColor(Theme.TEXT);
                 g2.drawString(k, x + (kw - fm.stringWidth(k)) / 2, y + (keyH - fm.getHeight()) / 2 + fm.getAscent());
                 x += kw + gap;

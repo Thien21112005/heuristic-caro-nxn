@@ -37,10 +37,14 @@ public final class FocusRing {
         return keyboard && c.isFocusOwner();
     }
 
-    /** Accent outline just inside the component's bounds. */
-    public static void paint(Graphics2D g2, int x, int y, int w, int h, int arc) {
-        g2.setColor(Theme.alpha(Theme.ACCENT_HOVER, 220));
+    /** Outline just inside the component's bounds. */
+    public static void paint(Graphics2D g2, int x, int y, int w, int h, int arc, Color color) {
+        g2.setColor(color);
         g2.setStroke(new BasicStroke(2f));
         g2.drawRoundRect(x + 1, y + 1, w - 3, h - 3, arc, arc);
+    }
+
+    public static void paint(Graphics2D g2, int x, int y, int w, int h, int arc) {
+        paint(g2, x, y, w, h, arc, Theme.ACCENT);
     }
 }

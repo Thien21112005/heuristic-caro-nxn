@@ -28,8 +28,9 @@ public class ReplayBar extends RoundedPanel {
 
     public ReplayBar() {
         super(Theme.RADIUS_LG);
+        setFill(null);
+        setBorderColor(null);
         setLayout(new BorderLayout(14, 0));
-        setBorder(BorderFactory.createEmptyBorder(6, 12, 6, 18));
 
         first.setToolTipText(I18n.t("replay.first"));
         prev.setToolTipText(I18n.t("replay.prev"));
@@ -52,7 +53,7 @@ public class ReplayBar extends RoundedPanel {
             if (!adjusting) onSeek.accept(slider.getValue());
         });
 
-        position.setFont(Theme.semibold(13f));
+        position.setFont(Theme.semibold(Theme.SMALL));
         position.setForeground(Theme.TEXT_MUTED);
 
         add(buttons, BorderLayout.WEST);
@@ -115,7 +116,7 @@ public class ReplayBar extends RoundedPanel {
             Graphics2D g2 = (Graphics2D) g.create();
             Theme.antialias(g2);
             g2.translate(x, y);
-            g2.setColor(c.isEnabled() ? Theme.TEXT : Theme.alpha(Theme.TEXT_MUTED, 120));
+            g2.setColor(c.isEnabled() ? Theme.TEXT : Theme.TEXT_DISABLED);
             switch (glyph) {
                 case PLAY -> g2.fill(triangle(4, 2, 10, true));
                 case PAUSE -> {

@@ -7,6 +7,7 @@ import model.Settings;
 import model.ai.Difficulty;
 import utils.I18n;
 import view.components.AppButton;
+import view.components.BoardView;
 import view.components.RoundedPanel;
 import view.components.CenteringScroll;
 import view.components.SegmentedControl;
@@ -18,15 +19,16 @@ import java.awt.event.KeyEvent;
 
 /**
  * Pre-game screen: board size and win rule on the left, mode options
- * (difficulty, ...) on the right, then start.
+ * (difficulty, ...) on the right. The start button stays on screen however
+ * small the window is; the less common choices fold away against the AI.
  */
-public class SetupPanel extends BackgroundPanel {
+public class SetupPanel extends PaperPanel {
     public static final int MIN_SIZE = 3;
     public static final int MAX_SIZE = 20;
     private static final int[] PRESETS = {3, 10, 15, 20};
-    private static final int COLUMN_WIDTH = 400;
+    private static final int COLUMN_WIDTH = 380;
     private static final int COLUMN_GAP = 40;
-    private static final int PADDING = 40;
+    private static final int PADDING = 32;
 
     private final GameMode mode;
     private int size;
@@ -41,10 +43,12 @@ public class SetupPanel extends BackgroundPanel {
     private SegmentedControl<Integer> side;
     private SegmentedControl<Boolean> alternate;
     private SegmentedControl<Integer> turnTime;
+    private JLabel timeRule;
+    private AppButton moreToggle;
+    private JPanel moreBody;
     private static final int[] TURN_TIMES = {0, 10, 20, 30, 60};
 
     public SetupPanel(MainWindow window, GameMode mode) {
-        super("/assets/Background.jpg");
         this.mode = mode;
         this.size = clamp(Settings.get().getBoardSize(mode));
         setLayout(new BorderLayout());
@@ -55,23 +59,29 @@ public class SetupPanel extends BackgroundPanel {
         buildBoardColumn(left);
         JPanel right = column();
         if (mode == GameMode.VS_AI) buildAiOptions(right);
-        buildRoundOptions(right, mode == GameMode.VS_AI ? 20 : 0);
+        buildRoundOptions(right, mode == GameMode.VS_AI ? 16 : 0);
         refresh(); // fill dynamic text before the card measures itself
 
-        RoundedPanel card = new RoundedPanel(new BorderLayout(0, 0));
-        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 8, PADDING, PADDING - 8, PADDING));
+        RoundedPanel card = new RoundedPanel(new BorderLayout(0, 0)) {
+            @Override
+            public Dimension getPreferredSize() {
+                // Fixed width, but the height follows the folding options
+                return new Dimension(2 * COLUMN_WIDTH + COLUMN_GAP + 2 * PADDING, super.getPreferredSize().height);
+            }
+        };
+        card.setBorder(BorderFactory.createEmptyBorder(PADDING - 14, PADDING, PADDING - 14, PADDING));
 
         JPanel header = column();
         JLabel title = new JLabel(I18n.t(mode == GameMode.VS_AI ? "setup.title.vsAi" : "setup.title.twoPlayers"));
-        title.setFont(Theme.font(Font.BOLD, 32f));
+        title.setFont(Theme.handBold(Theme.H2));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel(I18n.t(mode == GameMode.VS_AI
                 ? "setup.subtitle.vsAi" : "setup.subtitle.twoPlayers"));
-        subtitle.setFont(Theme.font(Font.PLAIN, 17f));
+        subtitle.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         subtitle.setForeground(Theme.TEXT_MUTED);
         addRow(header, title, 0);
-        addRow(header, subtitle, 8);
-        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
+        addRow(header, subtitle, 2);
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
         JPanel body = new JPanel(new GridLayout(1, 2, COLUMN_GAP, 0));
         body.setOpaque(false);
@@ -80,9 +90,13 @@ public class SetupPanel extends BackgroundPanel {
         body.add(left);
         body.add(right);
 
+        card.add(header, BorderLayout.NORTH);
+        card.add(body, BorderLayout.CENTER);
+        add(CenteringScroll.wrapTop(card), BorderLayout.CENTER);
+
         AppButton start = new AppButton(I18n.t("setup.start"), AppButton.Variant.PRIMARY);
-        start.setFont(Theme.semibold(20f));
-        start.setPreferredSize(new Dimension(10, 62));
+        start.setFont(Theme.hand(Theme.H3));
+        start.setPreferredSize(new Dimension(320, 56));
         start.addActionListener(e -> {
             Settings.get().setBoardSize(mode, size);
             boolean swap = alternate.getSelected();
@@ -98,18 +112,11 @@ public class SetupPanel extends BackgroundPanel {
                 window.startGame(GameConfig.twoPlayers(size, swap).withTurnSeconds(seconds));
             }
         });
-        JPanel footer = new JPanel(new BorderLayout());
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         footer.setOpaque(false);
-        footer.setBorder(BorderFactory.createEmptyBorder(24, 0, 0, 0));
+        footer.setBorder(BorderFactory.createEmptyBorder(2, 0, 10, 0));
         footer.add(start);
-
-        card.add(header, BorderLayout.NORTH);
-        card.add(body, BorderLayout.CENTER);
-        card.add(footer, BorderLayout.SOUTH);
-        int width = 2 * COLUMN_WIDTH + COLUMN_GAP + 2 * PADDING;
-        card.setPreferredSize(new Dimension(width, card.getPreferredSize().height));
-
-        add(CenteringScroll.wrap(card), BorderLayout.CENTER);
+        add(footer, BorderLayout.SOUTH);
 
         bindKey(KeyEvent.VK_LEFT, () -> setSize(size - 1));
         bindKey(KeyEvent.VK_RIGHT, () -> setSize(size + 1));
@@ -118,11 +125,11 @@ public class SetupPanel extends BackgroundPanel {
     }
 
     private void buildBoardColumn(JPanel col) {
-        sizeLabel.setFont(Theme.font(Font.BOLD, 54f));
+        sizeLabel.setFont(Theme.handBold(Theme.NUMBER));
         sizeLabel.setForeground(Theme.TEXT);
 
-        minus.compact().setFont(Theme.semibold(28f));
-        plus.compact().setFont(Theme.semibold(28f));
+        minus.compact().setFont(Theme.semibold(Theme.H2));
+        plus.compact().setFont(Theme.semibold(Theme.H2));
         minus.setToolTipText(I18n.t("setup.smaller"));
         plus.setToolTipText(I18n.t("setup.bigger"));
         minus.addActionListener(e -> setSize(size - 1));
@@ -130,44 +137,32 @@ public class SetupPanel extends BackgroundPanel {
 
         JPanel stepper = new JPanel(new BorderLayout(12, 0));
         stepper.setOpaque(false);
-        minus.setPreferredSize(new Dimension(68, 68));
-        plus.setPreferredSize(new Dimension(68, 68));
+        minus.setPreferredSize(new Dimension(60, 60));
+        plus.setPreferredSize(new Dimension(60, 60));
         stepper.add(minus, BorderLayout.WEST);
         stepper.add(sizeLabel, BorderLayout.CENTER);
         stepper.add(plus, BorderLayout.EAST);
 
-        JPanel presets = new JPanel(new GridLayout(1, PRESETS.length, 8, 0));
+        JPanel presets = new JPanel(new GridLayout(1, PRESETS.length, 4, 0));
         presets.setOpaque(false);
         for (int i = 0; i < PRESETS.length; i++) {
             int preset = PRESETS[i];
-            AppButton chip = new AppButton(preset + "×" + preset, AppButton.Variant.SECONDARY);
-            chip.compact().setFont(Theme.semibold(16f));
+            AppButton chip = new AppButton(preset + "×" + preset, AppButton.Variant.PLAIN);
+            chip.compact().setFont(Theme.hand(Theme.BODY));
             chip.addActionListener(e -> setSize(preset));
             presetButtons[i] = chip;
             presets.add(chip);
         }
 
-        RoundedPanel rule = new RoundedPanel(Theme.RADIUS) {
-            @Override
-            public Dimension getMaximumSize() {
-                // Grow with the text (Vietnamese wraps to two lines) but never stretch further
-                return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
-            }
-        };
-        rule.setFill(Theme.alpha(Theme.ACCENT, 28));
-        rule.setBorderColor(Theme.alpha(Theme.ACCENT, 90));
-        rule.setLayout(new BorderLayout());
-        rule.setBorder(BorderFactory.createEmptyBorder(12, 18, 12, 18));
-        ruleLabel.setFont(Theme.font(Font.PLAIN, 15f));
+        ruleLabel.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         ruleLabel.setForeground(Theme.TEXT);
-        rule.add(ruleLabel);
 
         addRow(col, sectionLabel(I18n.t("setup.boardSize")), 0);
-        addRow(col, stepper, 12);
-        addRow(col, presets, 14);
-        addRow(col, rule, 18);
-        stretch(stepper, 72);
-        stretch(presets, 46);
+        addRow(col, stepper, 8);
+        addRow(col, presets, 10);
+        addRow(col, ruleLabel, 12);
+        stretch(stepper, 62);
+        stretch(presets, SegmentedControl.HEIGHT);
     }
 
     private void buildAiOptions(JPanel col) {
@@ -176,20 +171,21 @@ public class SetupPanel extends BackgroundPanel {
                 .add(Difficulty.NORMAL, I18n.t("difficulty.normal"))
                 .add(Difficulty.HARD, I18n.t("difficulty.hard"));
         difficultyHint = new JLabel();
-        difficultyHint.setFont(Theme.font(Font.PLAIN, 14f));
+        difficultyHint.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
         difficultyHint.setForeground(Theme.TEXT_MUTED);
         difficulty.setOnChange(d -> refreshDifficultyHint());
         difficulty.setSelected(Settings.get().getDifficulty());
 
         side = new SegmentedControl<>();
-        side.add(GameModel.X, I18n.t("setup.side.x")).add(GameModel.O, I18n.t("setup.side.o"));
+        side.add(GameModel.X, I18n.t("setup.side.x"), new ImageIcon(BoardView.pieceImage(GameModel.X, 28)))
+                .add(GameModel.O, I18n.t("setup.side.o"), new ImageIcon(BoardView.pieceImage(GameModel.O, 28)));
         side.setSelected(Settings.get().getHumanSide());
 
         addRow(col, sectionLabel(I18n.t("setup.difficulty")), 0);
-        addRow(col, difficulty, 12);
-        addRow(col, difficultyHint, 10);
-        addRow(col, sectionLabel(I18n.t("setup.side")), 20);
-        addRow(col, side, 12);
+        addRow(col, difficulty, 6);
+        addRow(col, difficultyHint, 4);
+        addRow(col, sectionLabel(I18n.t("setup.side")), 14);
+        addRow(col, side, 6);
         refreshDifficultyHint();
     }
 
@@ -205,17 +201,53 @@ public class SetupPanel extends BackgroundPanel {
         }
         int saved = Settings.get().getTurnSeconds(mode);
         turnTime.setSelected(java.util.Arrays.stream(TURN_TIMES).anyMatch(t -> t == saved) ? saved : 0);
-        turnTime.setToolTipText(I18n.t("setup.turnTime.desc"));
+        timeRule = new JLabel();
+        timeRule.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
+        timeRule.setForeground(Theme.TEXT_MUTED);
+        turnTime.setOnChange(t -> refreshRoundOptions());
+        alternate.setOnChange(a -> refreshRoundOptions());
 
-        addRow(col, sectionLabel(I18n.t("setup.firstMove")), gapBefore);
-        addRow(col, alternate, 12);
-        addRow(col, sectionLabel(I18n.t("setup.turnTime")), 20);
-        addRow(col, turnTime, 12);
+        moreBody = column();
+        addRow(moreBody, sectionLabel(I18n.t("setup.firstMove")), 0);
+        addRow(moreBody, alternate, 6);
+        addRow(moreBody, sectionLabel(I18n.t("setup.turnTime")), 12);
+        addRow(moreBody, turnTime, 6);
+        addRow(moreBody, timeRule, 4);
+
+        if (mode == GameMode.VS_AI) {
+            moreToggle = new AppButton("", AppButton.Variant.GHOST).compact();
+            moreToggle.setHorizontalAlignment(SwingConstants.LEFT);
+            moreToggle.setFont(Theme.hand(Theme.BODY));
+            moreToggle.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+            moreToggle.addActionListener(e -> {
+                moreBody.setVisible(!moreBody.isVisible());
+                refreshRoundOptions();
+                revalidate();
+            });
+            moreBody.setVisible(false);
+            addRow(col, moreToggle, gapBefore - 8);
+            addRow(col, moreBody, 6);
+        } else {
+            addRow(col, moreBody, gapBefore);
+        }
+        refreshRoundOptions();
+    }
+
+    /** The folded row always says what is currently chosen inside it. */
+    private void refreshRoundOptions() {
+        int seconds = turnTime.getSelected();
+        timeRule.setText("<html><div style='width:280px'>" + I18n.t("setup.turnTime.desc") + "</div></html>");
+        timeRule.setVisible(seconds != 0);
+        if (moreToggle == null) return;
+        String time = seconds == 0 ? I18n.t("setup.more.noClock") : I18n.t("setup.turnTime.seconds", seconds);
+        String swap = I18n.t(alternate.getSelected() ? "setup.firstMove.alternate" : "setup.firstMove.same");
+        moreToggle.setIcon(new ChevronIcon(moreBody.isVisible()));
+        moreToggle.setText(I18n.t("setup.more", swap, time));
     }
 
     private void refreshDifficultyHint() {
         String key = "difficulty." + difficulty.getSelected().name().toLowerCase() + ".desc";
-        difficultyHint.setText("<html><div style='width:300px'>" + I18n.t(key) + "</div></html>");
+        difficultyHint.setText("<html><div style='width:280px'>" + I18n.t(key) + "</div></html>");
     }
 
     private void setSize(int newSize) {
@@ -228,10 +260,10 @@ public class SetupPanel extends BackgroundPanel {
         minus.setEnabled(size > MIN_SIZE);
         plus.setEnabled(size < MAX_SIZE);
         for (int i = 0; i < PRESETS.length; i++) {
-            presetButtons[i].setVariant(PRESETS[i] == size ? AppButton.Variant.PRIMARY : AppButton.Variant.SECONDARY);
+            presetButtons[i].setVariant(PRESETS[i] == size ? AppButton.Variant.CIRCLED : AppButton.Variant.PLAIN);
         }
         int target = GameModel.winLengthFor(size);
-        ruleLabel.setText("<html><div style='width:270px'><b>" + I18n.t("setup.rule.label") + "</b> " + (target == size
+        ruleLabel.setText("<html><div style='width:280px'><b>" + I18n.t("setup.rule.label") + "</b> " + (target == size
                 ? I18n.t("setup.rule.fullLine")
                 : I18n.t("setup.rule.inARow", target)) + "</div></html>");
     }
@@ -259,8 +291,8 @@ public class SetupPanel extends BackgroundPanel {
 
     static JLabel sectionLabel(String text) {
         JLabel label = new JLabel(text);
-        label.setFont(Theme.semibold(13f));
-        label.setForeground(Theme.TEXT_MUTED);
+        label.setFont(Theme.hand(Theme.BODY));
+        label.setForeground(Theme.TEXT);
         return label;
     }
 
@@ -280,5 +312,35 @@ public class SetupPanel extends BackgroundPanel {
     private static void stretch(JComponent c, int height) {
         c.setPreferredSize(new Dimension(COLUMN_WIDTH, height));
         c.setMaximumSize(new Dimension(Integer.MAX_VALUE, height));
+    }
+
+    /** Pen-drawn arrow showing whether the extra options are open. */
+    private static final class ChevronIcon implements Icon {
+        private final boolean open;
+
+        ChevronIcon(boolean open) {
+            this.open = open;
+        }
+
+        @Override
+        public int getIconWidth() { return 14; }
+
+        @Override
+        public int getIconHeight() { return 14; }
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            Theme.antialias(g2);
+            g2.translate(x, y);
+            g2.setColor(c.getForeground());
+            g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            if (open) {
+                g2.drawPolyline(new int[]{2, 7, 12}, new int[]{5, 10, 5}, 3);
+            } else {
+                g2.drawPolyline(new int[]{5, 10, 5}, new int[]{2, 7, 12}, 3);
+            }
+            g2.dispose();
+        }
     }
 }

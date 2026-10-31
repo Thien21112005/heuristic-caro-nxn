@@ -11,7 +11,7 @@ import java.awt.event.MouseEvent;
 import java.util.function.Consumer;
 
 /**
- * iOS-style on/off switch with an animated knob. Space toggles when focused.
+ * On/off switch with an animated knob. Space toggles when focused.
  */
 public class ToggleSwitch extends JComponent {
     private boolean selected;
@@ -57,6 +57,7 @@ public class ToggleSwitch extends JComponent {
     public boolean isSelected() { return selected; }
 
     public void toggle() {
+        if (!isEnabled()) return;
         selected = !selected;
         SoundManager.play(SoundManager.CLICK);
         animator.start();
@@ -75,29 +76,32 @@ public class ToggleSwitch extends JComponent {
         int w = 52, h = 30;
         int y = (getHeight() - h) / 2;
         int x = getWidth() - w;
+        boolean on = position > 0.5f;
 
-        Color off = Theme.SURFACE_ALT;
-        Color on = Theme.ACCENT;
-        g2.setColor(new Color(
-                (int) (off.getRed() + (on.getRed() - off.getRed()) * position),
-                (int) (off.getGreen() + (on.getGreen() - off.getGreen()) * position),
-                (int) (off.getBlue() + (on.getBlue() - off.getBlue()) * position)));
-        g2.fillRoundRect(x, y, w, h, h, h);
-        g2.setColor(Theme.alpha(Color.WHITE, 30));
+        // Off is an empty outlined track, on is a filled one: state reads without colour
+        g2.setColor(mix(Theme.SURFACE, isEnabled() ? Theme.TEXT : Theme.TEXT_DISABLED, position));
+        g2.fillRoundRect(x, y, w - 1, h - 1, h, h);
+        g2.setColor(isEnabled() ? (on ? Theme.TEXT : Theme.BORDER) : Theme.TEXT_DISABLED);
+        g2.setStroke(new BasicStroke(1.4f));
         g2.drawRoundRect(x, y, w - 1, h - 1, h, h);
 
-        int knob = h - 8;
-        int kx = x + 4 + Math.round((w - knob - 8) * position);
-        g2.setColor(new Color(0, 0, 0, 60));
-        g2.fillOval(kx, y + 5, knob, knob);
-        g2.setColor(Color.WHITE);
-        g2.fillOval(kx, y + 4, knob, knob);
+        int knob = h - 10;
+        int kx = x + 5 + Math.round((w - knob - 11) * position);
+        g2.setColor(on ? Theme.SURFACE : isEnabled() ? Theme.TEXT_MUTED : Theme.TEXT_DISABLED);
+        g2.fillOval(kx, y + 5, knob - 1, knob - 1);
 
         if (FocusRing.shouldPaint(this)) {
-            g2.setColor(Theme.alpha(Theme.ACCENT_HOVER, 150));
+            g2.setColor(Theme.ACCENT);
             g2.setStroke(new BasicStroke(2f));
-            g2.drawRoundRect(x - 2, y - 2, w + 3, h + 3, h + 4, h + 4);
+            g2.drawRoundRect(x - 3, y - 3, w + 5, h + 5, h + 6, h + 6);
         }
         g2.dispose();
+    }
+
+    private static Color mix(Color a, Color b, float t) {
+        return new Color(
+                (int) (a.getRed() + (b.getRed() - a.getRed()) * t),
+                (int) (a.getGreen() + (b.getGreen() - a.getGreen()) * t),
+                (int) (a.getBlue() + (b.getBlue() - a.getBlue()) * t));
     }
 }

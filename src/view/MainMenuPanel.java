@@ -1,81 +1,149 @@
 package view;
 
+import model.GameConfig;
+import model.GameMode;
+import model.GameModel;
+import model.Settings;
 import utils.I18n;
 import view.components.AppButton;
-import view.components.GradientTitle;
+import view.components.HandTitle;
+import view.components.MiniBoard;
 import view.theme.Theme;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
 
 /**
- * Landing screen: title, the two game modes and secondary actions.
+ * Landing screen: the handwritten title and one solid button that starts a game
+ * with the last settings, beside a finished game showing the two faces.
  */
-public class MainMenuPanel extends BackgroundPanel {
-    private static final int COLUMN_WIDTH = 320;
+public class MainMenuPanel extends PaperPanel {
+    private static final int COLUMN_WIDTH = 340;
+    private static final int X = GameModel.X, O = GameModel.O, E = GameModel.EMPTY;
+    private static final int[][] SAMPLE = {
+            {E, E, O, E, E, E},
+            {E, X, E, E, O, E},
+            {E, E, X, E, E, E},
+            {O, E, E, X, E, E},
+            {E, E, E, E, X, E},
+            {E, E, O, E, E, X},
+    };
+
+    private final AppButton quick = new AppButton("", AppButton.Variant.PRIMARY);
 
     public MainMenuPanel(MainWindow window) {
-        super("/assets/Background.jpg");
         setLayout(new GridBagLayout());
 
         JPanel column = new JPanel();
         column.setOpaque(false);
         column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
 
-        GradientTitle title = new GradientTitle("CARO", 84f);
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        HandTitle title = new HandTitle(I18n.t("app.title"), Theme.DISPLAY);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JLabel subtitle = new JLabel(I18n.t("menu.subtitle"));
-        subtitle.setFont(Theme.font(Font.PLAIN, 15f));
+        JLabel subtitle = new JLabel("<html><div style='width:250px'>" + I18n.t("menu.subtitle") + "</div></html>");
+        subtitle.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         subtitle.setForeground(Theme.TEXT_MUTED);
-        subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        subtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        AppButton vsAi = button(I18n.t("menu.vsAi"), AppButton.Variant.PRIMARY);
-        vsAi.setToolTipText(I18n.t("menu.vsAi.tooltip"));
-        AppButton twoPlayers = button(I18n.t("menu.twoPlayers"), AppButton.Variant.SECONDARY);
-        twoPlayers.setToolTipText(I18n.t("menu.twoPlayers.tooltip"));
-        AppButton lan = button(I18n.t("menu.lan"), AppButton.Variant.SECONDARY);
-        lan.setToolTipText(I18n.t("menu.lan.tooltip"));
-        AppButton settings = button(I18n.t("menu.settings"), AppButton.Variant.SECONDARY);
-        AppButton about = button(I18n.t("menu.about"), AppButton.Variant.SECONDARY);
-        AppButton stats = button(I18n.t("menu.stats"), AppButton.Variant.SECONDARY);
-        AppButton quit = button(I18n.t("menu.quit"), AppButton.Variant.GHOST);
+        quick.setFont(Theme.hand(Theme.LEAD));
+        quick.setToolTipText(I18n.t("menu.quick.tooltip"));
+        quick.addActionListener(e -> window.startGame(lastGame()));
+        fix(quick, 58);
 
-        vsAi.addActionListener(e -> window.showScreen(MainWindow.SETUP_AI));
+        AppButton custom = secondary(I18n.t("menu.custom"), I18n.t("menu.custom.tooltip"));
+        AppButton twoPlayers = secondary(I18n.t("menu.twoPlayers"), I18n.t("menu.twoPlayers.tooltip"));
+        AppButton lan = secondary(I18n.t("menu.lan"), I18n.t("menu.lan.tooltip"));
+        custom.addActionListener(e -> window.showScreen(MainWindow.SETUP_AI));
         twoPlayers.addActionListener(e -> window.showScreen(MainWindow.SETUP_TWO));
+        lan.addActionListener(e -> window.showScreen(MainWindow.LAN));
+
+        AppButton stats = quiet(I18n.t("menu.stats"));
+        AppButton settings = quiet(I18n.t("menu.settings"));
+        AppButton about = quiet(I18n.t("menu.about"));
+        AppButton quit = quiet(I18n.t("menu.quit"));
+        stats.addActionListener(e -> window.showScreen(MainWindow.STATS));
         settings.addActionListener(e -> window.showScreen(MainWindow.SETTINGS));
         about.addActionListener(e -> window.showScreen(MainWindow.ABOUT));
-        stats.addActionListener(e -> window.showScreen(MainWindow.STATS));
-        lan.addActionListener(e -> window.showScreen(MainWindow.LAN));
         quit.addActionListener(e -> window.requestQuit());
+        JPanel links = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        links.setOpaque(false);
+        for (AppButton b : new AppButton[]{stats, settings, about, quit}) links.add(b);
+        links.setAlignmentX(Component.LEFT_ALIGNMENT);
+        links.setMaximumSize(new Dimension(COLUMN_WIDTH + 40, 44));
 
         column.add(title);
+        column.add(Box.createVerticalStrut(10));
         column.add(subtitle);
-        column.add(Box.createVerticalStrut(40));
-        column.add(vsAi);
-        column.add(Box.createVerticalStrut(12));
-        column.add(twoPlayers);
-        column.add(Box.createVerticalStrut(12));
-        column.add(lan);
         column.add(Box.createVerticalStrut(28));
-        JPanel row = new JPanel(new GridLayout(1, 3, 10, 0));
-        row.setOpaque(false);
-        for (AppButton b : new AppButton[]{settings, stats, about}) {
-            b.compact();
-            row.add(b);
-        }
-        fix(row, 44);
-        column.add(row);
+        column.add(quick);
         column.add(Box.createVerticalStrut(12));
-        column.add(quit);
+        column.add(custom);
+        column.add(Box.createVerticalStrut(10));
+        column.add(twoPlayers);
+        column.add(Box.createVerticalStrut(10));
+        column.add(lan);
+        column.add(Box.createVerticalStrut(20));
+        column.add(links);
 
-        add(column);
+        GridBagConstraints left = new GridBagConstraints();
+        left.gridx = 0;
+        left.anchor = GridBagConstraints.WEST;
+        left.insets = new Insets(0, 68, 0, 24);
+        add(column, left);
+
+        GridBagConstraints right = new GridBagConstraints();
+        right.gridx = 1;
+        right.weightx = 1;
+        right.weighty = 1;
+        right.fill = GridBagConstraints.BOTH;
+        right.insets = new Insets(36, 8, 36, 32);
+        add(new MiniBoard(SAMPLE, new int[]{1, 1, 5, 5}), right);
+
+        // The label names the settings it will use, which change whenever a game is set up
+        refreshQuick();
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                refreshQuick();
+            }
+        });
+        getInputMap(WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "quick");
+        getActionMap().put("quick", new AbstractAction() {
+            @Override
+            public boolean isEnabled() { return isShowing(); }
+
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) { quick.doClick(); }
+        });
     }
 
-    private static AppButton button(String text, AppButton.Variant variant) {
-        AppButton b = new AppButton(text, variant);
-        if (variant == AppButton.Variant.PRIMARY) b.setFont(Theme.semibold(17f));
-        fix(b, variant == AppButton.Variant.PRIMARY ? 54 : 48);
+    private void refreshQuick() {
+        Settings s = Settings.get();
+        int size = s.getBoardSize(GameMode.VS_AI);
+        quick.setText(I18n.t("menu.quick", size, I18n.t("difficulty." + s.getDifficulty().name().toLowerCase())));
+    }
+
+    private static GameConfig lastGame() {
+        Settings s = Settings.get();
+        return GameConfig.vsAi(s.getBoardSize(GameMode.VS_AI), s.getDifficulty(), s.getHumanSide(),
+                        s.isAlternateFirst(GameMode.VS_AI))
+                .withTurnSeconds(s.getTurnSeconds(GameMode.VS_AI));
+    }
+
+    private static AppButton secondary(String text, String tooltip) {
+        AppButton b = new AppButton(text, AppButton.Variant.SECONDARY);
+        b.setToolTipText(tooltip);
+        fix(b, 46);
+        return b;
+    }
+
+    private static AppButton quiet(String text) {
+        AppButton b = new AppButton(text, AppButton.Variant.GHOST).compact();
+        b.setFont(Theme.hand(Theme.BODY));
         return b;
     }
 
@@ -83,6 +151,6 @@ public class MainMenuPanel extends BackgroundPanel {
         Dimension d = new Dimension(COLUMN_WIDTH, height);
         c.setPreferredSize(d);
         c.setMaximumSize(d);
-        c.setAlignmentX(Component.CENTER_ALIGNMENT);
+        c.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 }

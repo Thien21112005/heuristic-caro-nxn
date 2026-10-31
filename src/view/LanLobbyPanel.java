@@ -8,6 +8,7 @@ import net.LanHost;
 import utils.I18n;
 import view.components.AppButton;
 import view.components.CenteringScroll;
+import view.components.PenSpinner;
 import view.components.RoundedPanel;
 import view.components.SegmentedControl;
 import view.theme.Theme;
@@ -23,8 +24,8 @@ import java.util.List;
 /**
  * LAN lobby: pick a name, then host a room (and wait) or join one.
  */
-public class LanLobbyPanel extends BackgroundPanel {
-    static final int COLUMN_WIDTH = 400;
+public class LanLobbyPanel extends PaperPanel {
+    static final int COLUMN_WIDTH = 380;
     private static final int[] SIZES = {3, 10, 15, 20};
     private static final int[] TIMES = {0, 20, 30, 60};
 
@@ -50,29 +51,28 @@ public class LanLobbyPanel extends BackgroundPanel {
     private boolean joining;
 
     public LanLobbyPanel(MainWindow window) {
-        super("/assets/Background.jpg");
-        this.window = window;
+                this.window = window;
         setLayout(new BorderLayout());
         add(TopBar.withBack(this::leave), BorderLayout.NORTH);
 
         RoundedPanel card = new RoundedPanel(new BorderLayout(0, 0));
-        card.setBorder(BorderFactory.createEmptyBorder(32, 40, 36, 40));
+        card.setBorder(BorderFactory.createEmptyBorder(22, 32, 24, 32));
 
         JPanel header = column();
         JLabel title = new JLabel(I18n.t("lan.title"));
-        title.setFont(Theme.font(Font.BOLD, 32f));
+        title.setFont(Theme.handBold(Theme.H2));
         title.setForeground(Theme.TEXT);
         JLabel subtitle = new JLabel("<html>" + I18n.t("lan.subtitle") + "</html>");
-        subtitle.setFont(Theme.font(Font.PLAIN, 16f));
+        subtitle.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         subtitle.setForeground(Theme.TEXT_MUTED);
         addRow(header, title, 0);
-        addRow(header, subtitle, 6);
-        addRow(header, SetupPanel.sectionLabel(I18n.t("lan.name")), 22);
+        addRow(header, subtitle, 2);
+        addRow(header, SetupPanel.sectionLabel(I18n.t("lan.name")), 14);
         styleField(nameField, I18n.t("lan.name.placeholder"));
         nameField.setText(Settings.get().getPlayerName());
         nameField.setMaximumSize(new Dimension(COLUMN_WIDTH, 44));
-        addRow(header, nameField, 10);
-        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 24, 0));
+        addRow(header, nameField, 6);
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 18, 0));
 
         hostArea.setOpaque(false);
         hostArea.add(buildHostForm(), "form");
@@ -85,7 +85,7 @@ public class LanLobbyPanel extends BackgroundPanel {
 
         card.add(header, BorderLayout.NORTH);
         card.add(body, BorderLayout.CENTER);
-        card.setPreferredSize(new Dimension(2 * COLUMN_WIDTH + 40 + 80, card.getPreferredSize().height));
+        card.setPreferredSize(new Dimension(2 * COLUMN_WIDTH + 40 + 64, card.getPreferredSize().height));
         add(CenteringScroll.wrap(card), BorderLayout.CENTER);
 
         dots = new Timer(400, e -> {
@@ -123,37 +123,38 @@ public class LanLobbyPanel extends BackgroundPanel {
         time.setSelected(0);
 
         AppButton create = new AppButton(I18n.t("lan.host.create"), AppButton.Variant.PRIMARY);
-        create.setFont(Theme.semibold(18f));
+        create.setFont(Theme.hand(Theme.LEAD));
         create.addActionListener(e -> startHosting());
         create.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
 
-        hostError.setFont(Theme.font(Font.PLAIN, 14f));
+        hostError.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
         hostError.setForeground(Theme.DANGER);
 
-        addRow(col, SetupPanel.sectionLabel(I18n.t("lan.host")), 0);
-        addRow(col, SetupPanel.sectionLabel(I18n.t("setup.boardSize")), 16);
-        addRow(col, size, 10);
-        addRow(col, SetupPanel.sectionLabel(I18n.t("setup.turnTime")), 18);
-        addRow(col, time, 10);
-        addRow(col, create, 24);
-        addRow(col, hostError, 10);
+        addRow(col, heading(I18n.t("lan.host")), 0);
+        addRow(col, SetupPanel.sectionLabel(I18n.t("setup.boardSize")), 10);
+        addRow(col, size, 4);
+        addRow(col, SetupPanel.sectionLabel(I18n.t("setup.turnTime")), 10);
+        addRow(col, time, 4);
+        addRow(col, create, 14);
+        addRow(col, hostError, 6);
         return col;
     }
 
     private JComponent buildJoinColumn() {
         JPanel col = column();
         RoundedPanel rooms = new RoundedPanel(Theme.RADIUS);
-        rooms.setFill(Theme.alpha(Theme.SURFACE_ALT, 200));
+        rooms.setFill(null);
+        rooms.setBorderColor(null);
         rooms.setLayout(new BorderLayout());
         rooms.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         rooms.add(roomList, BorderLayout.NORTH);
-        rooms.setPreferredSize(new Dimension(COLUMN_WIDTH, 168));
-        rooms.setMaximumSize(new Dimension(Integer.MAX_VALUE, 168));
+        rooms.setPreferredSize(new Dimension(COLUMN_WIDTH, 150));
+        rooms.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
         showRooms(List.of());
 
         styleField(addressField, I18n.t("lan.join.placeholder"));
         addressField.addActionListener(e -> connect.doClick());
-        connect.compact().setFont(Theme.semibold(15f));
+        connect.compact();
         connect.addActionListener(e -> joinManual());
         JPanel manual = new JPanel(new BorderLayout(10, 0));
         manual.setOpaque(false);
@@ -161,31 +162,37 @@ public class LanLobbyPanel extends BackgroundPanel {
         manual.add(connect, BorderLayout.EAST);
         manual.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
 
-        joinStatus.setFont(Theme.font(Font.PLAIN, 14f));
+        joinStatus.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
         joinStatus.setForeground(Theme.TEXT_MUTED);
 
-        addRow(col, SetupPanel.sectionLabel(I18n.t("lan.join")), 0);
-        addRow(col, rooms, 16);
-        addRow(col, SetupPanel.sectionLabel(I18n.t("lan.join.manual")), 18);
-        addRow(col, manual, 10);
-        addRow(col, joinStatus, 10);
+        addRow(col, heading(I18n.t("lan.join")), 0);
+        addRow(col, rooms, 10);
+        addRow(col, SetupPanel.sectionLabel(I18n.t("lan.join.manual")), 12);
+        addRow(col, manual, 4);
+        addRow(col, joinStatus, 6);
         return col;
     }
 
     private void showRooms(List<LanDiscovery.Room> rooms) {
         roomList.removeAll();
         if (rooms.isEmpty()) {
-            JLabel empty = new JLabel("<html><div style='width:260px'>" + I18n.t("lan.join.searching") + "</div></html>");
-            empty.setFont(Theme.font(Font.PLAIN, 14f));
+            JLabel empty = new JLabel("<html><div style='width:240px'>" + I18n.t("lan.join.searching") + "</div></html>");
+            empty.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
             empty.setForeground(Theme.TEXT_MUTED);
-            empty.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-            addRow(roomList, empty, 0);
+            empty.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+            PenSpinner spinner = new PenSpinner();
+            JPanel searching = new JPanel(new BorderLayout(8, 0));
+            searching.setOpaque(false);
+            searching.setBorder(BorderFactory.createEmptyBorder(4, 8, 0, 0));
+            searching.add(spinner, BorderLayout.WEST);
+            searching.add(empty, BorderLayout.CENTER);
+            addRow(roomList, searching, 0);
         }
         for (LanDiscovery.Room room : rooms.subList(0, Math.min(3, rooms.size()))) {
             AppButton row = new AppButton("<html><b>" + escape(room.name()) + "</b> &nbsp;\u00b7&nbsp; "
                     + room.size() + "\u00d7" + room.size() + " &nbsp;\u00b7&nbsp; " + room.address() + "</html>",
                     AppButton.Variant.SECONDARY);
-            row.compact().setFont(Theme.font(Font.PLAIN, 14f));
+            row.compact().setFont(Theme.font(Font.PLAIN, Theme.SMALL));
             row.setHorizontalAlignment(SwingConstants.LEFT);
             row.setToolTipText(I18n.t("lan.join.room.tooltip"));
             row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
@@ -255,12 +262,12 @@ public class LanLobbyPanel extends BackgroundPanel {
 
     private JComponent buildWaiting() {
         JPanel col = column();
-        waitingTitle.setFont(Theme.semibold(20f));
+        waitingTitle.setFont(Theme.hand(Theme.H3));
         waitingTitle.setForeground(Theme.TEXT);
-        addressLabel.setFont(Theme.font(Font.PLAIN, 15f));
+        addressLabel.setFont(Theme.font(Font.PLAIN, Theme.BODY));
         addressLabel.setForeground(Theme.TEXT);
         JLabel firewall = new JLabel("<html><div style='width:280px'>" + I18n.t("lan.firewall") + "</div></html>");
-        firewall.setFont(Theme.font(Font.PLAIN, 13f));
+        firewall.setFont(Theme.font(Font.PLAIN, Theme.SMALL));
         firewall.setForeground(Theme.TEXT_MUTED);
 
         AppButton cancel = new AppButton(I18n.t("common.cancel"), AppButton.Variant.SECONDARY);
@@ -350,11 +357,19 @@ public class LanLobbyPanel extends BackgroundPanel {
 
     static void styleField(JTextField field, String placeholder) {
         field.putClientProperty("JTextField.placeholderText", placeholder);
-        field.setFont(Theme.font(Font.PLAIN, 16f));
-        field.setBackground(Theme.SURFACE_ALT);
+        field.setFont(Theme.font(Font.PLAIN, Theme.BODY));
+        field.setBackground(Theme.SURFACE);
         field.setForeground(Theme.TEXT);
         field.setCaretColor(Theme.TEXT);
         field.setPreferredSize(new Dimension(COLUMN_WIDTH, 44));
+    }
+
+    /** Heading of a whole column, a step above the labels inside it. */
+    private static JLabel heading(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(Theme.handBold(Theme.H3));
+        label.setForeground(Theme.TEXT);
+        return label;
     }
 
     static JPanel column() {
